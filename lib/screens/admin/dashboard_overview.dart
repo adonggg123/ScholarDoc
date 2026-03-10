@@ -13,7 +13,7 @@ class DashboardOverview extends StatelessWidget {
         bool isMobile = constraints.maxWidth < 900;
         
         return SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? 16 : 32),
+          padding: EdgeInsets.all(isMobile ? 12 : 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -56,10 +56,10 @@ class DashboardOverview extends StatelessWidget {
                 children: [
                   Text('Dashboard Overview', 
                     style: isMobile 
-                      ? Theme.of(context).textTheme.headlineMedium 
-                      : Theme.of(context).textTheme.headlineLarge),
-                  const SizedBox(height: 8),
-                  const Text('Real-time analytics and system monitoring.'),
+                      ? Theme.of(context).textTheme.titleLarge 
+                      : Theme.of(context).textTheme.headlineMedium),
+                  const SizedBox(height: 4),
+                  const Text('Real-time analytics and system monitoring.', style: TextStyle(fontSize: 13)),
                 ],
               ),
             ),
@@ -123,26 +123,28 @@ class DashboardOverview extends StatelessWidget {
 
   Widget _buildStatCard(String label, String value, IconData icon, Color color) {
     return Expanded(
-      child: Card(
+      child: Container(
+        decoration: AppTheme.glassDecoration(opacity: 0.6, boxShadow: AppTheme.softShadow),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: color, size: 28),
+                child: Icon(icon, color: color, size: 22),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
-                  const SizedBox(height: 4),
-                  Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 2),
+                  Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
                 ],
               ),
             ],
@@ -153,75 +155,122 @@ class DashboardOverview extends StatelessWidget {
   }
 
   Widget _buildSubmissionTrend(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Submission Trends', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            const Text('Weekly document submission counts', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-            const SizedBox(height: 32),
-            SizedBox(
-              height: 300,
-              child: LineChart(
-                LineChartData(
-                  gridData: const FlGridData(show: false),
-                  titlesData: const FlTitlesData(show: false),
-                  borderData: FlBorderData(show: false),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: const [
-                        FlSpot(0, 3),
-                        FlSpot(1, 1),
-                        FlSpot(2, 4),
-                        FlSpot(3, 2),
-                        FlSpot(4, 5),
-                        FlSpot(5, 3),
-                        FlSpot(6, 4),
-                      ],
-                      isCurved: true,
-                      color: AppTheme.primaryColor,
-                      barWidth: 4,
-                      dotData: const FlDotData(show: false),
-                      belowBarData: BarAreaData(
-                        show: true,
-                        color: AppTheme.primaryColor.withOpacity(0.1),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: AppTheme.glassDecoration(opacity: 0.6, boxShadow: AppTheme.softShadow),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Submission Trends', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text('Last 6 Months', style: TextStyle(fontSize: 11, color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text('Weekly document submission counts', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+          const SizedBox(height: 24),
+          SizedBox(
+            height: 250,
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withOpacity(0.1), strokeWidth: 1),
+                ),
+                titlesData: FlTitlesData(
+                  show: true,
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 35,
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toInt().toString(),
+                        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 10),
                       ),
                     ),
-                  ],
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                        if (value >= 0 && value < months.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(months[value.toInt()], style: const TextStyle(color: AppTheme.textSecondary, fontSize: 10)),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
                 ),
+                borderData: FlBorderData(show: false),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: const [FlSpot(0, 3), FlSpot(1, 1), FlSpot(2, 4), FlSpot(3, 2), FlSpot(4, 5), FlSpot(5, 3)],
+                    isCurved: true,
+                    gradient: const LinearGradient(colors: [AppTheme.primaryColor, AppTheme.secondaryColor]),
+                    barWidth: 4,
+                    isStrokeCapRound: true,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [AppTheme.primaryColor.withOpacity(0.2), AppTheme.primaryColor.withOpacity(0)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildStatusDistribution(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: AppTheme.glassDecoration(opacity: 0.6).copyWith(
+        boxShadow: AppTheme.softShadow,
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Status Distribution', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 32),
+            const Text('Status Distribution', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
             SizedBox(
-              height: 200,
+              height: 180,
               child: PieChart(
                 PieChartData(
+                  sectionsSpace: 4,
+                  centerSpaceRadius: 40,
                   sections: [
-                    PieChartSectionData(color: AppTheme.success, value: 70, title: '70%', radius: 50, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    PieChartSectionData(color: AppTheme.warning, value: 20, title: '20%', radius: 50, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    PieChartSectionData(color: AppTheme.error, value: 10, title: '10%', radius: 50, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    PieChartSectionData(color: AppTheme.success, value: 70, title: '70%', radius: 45, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                    PieChartSectionData(color: AppTheme.warning, value: 20, title: '20%', radius: 45, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                    PieChartSectionData(color: AppTheme.error, value: 10, title: '10%', radius: 45, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             _buildLegendItem('Approved', AppTheme.success),
             _buildLegendItem('Pending', AppTheme.warning),
             _buildLegendItem('Rejected', AppTheme.error),
@@ -245,14 +294,17 @@ class DashboardOverview extends StatelessWidget {
   }
 
   Widget _buildRecentActivity(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: AppTheme.glassDecoration(opacity: 0.6).copyWith(
+        boxShadow: AppTheme.softShadow,
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Recent System Activity', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
+            const Text('Recent System Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

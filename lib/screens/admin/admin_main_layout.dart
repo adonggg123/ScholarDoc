@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
@@ -35,17 +36,23 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
           drawer: isMobile ? _buildDrawer() : null,
           body: Row(
             children: [
-              // Sidebar (Persistent on desktop, hidden on mobile)
+              // Sidebar (Persistent on desktop)
               if (!isMobile)
-                Container(
-                  width: 280,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border(
-                      right: BorderSide(color: Colors.grey.withOpacity(0.1)),
+                ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      width: 240,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.7),
+                        border: Border(
+                          right: BorderSide(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        boxShadow: AppTheme.softShadow,
+                      ),
+                      child: _buildSidebarContent(),
                     ),
                   ),
-                  child: _buildSidebarContent(),
                 ),
               // Main Content
               Expanded(
@@ -55,7 +62,10 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                     Expanded(
                       child: Container(
                         color: AppTheme.backgroundColor,
-                        child: _screens[_selectedIndex < _screens.length ? _selectedIndex : 0],
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: _screens[_selectedIndex < _screens.length ? _selectedIndex : 0],
+                        ),
                       ),
                     ),
                   ],
@@ -78,9 +88,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
     return Column(
       children: [
         _buildSidebarHeader(),
-        const SizedBox(height: 24),
+        const SizedBox(height: 8),
         Expanded(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
@@ -89,7 +99,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                 _buildNavItem(2, 'SA Verification', LucideIcons.landmark),
                 _buildNavItem(3, 'Activity Logs', LucideIcons.history),
                 _buildNavItem(4, 'Reports', LucideIcons.barChart4),
-                const Spacer(),
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 24),
                 _buildNavItem(5, 'Settings', LucideIcons.settings),
                 const SizedBox(height: 8),
                 _buildLogoutItem(),
@@ -104,24 +116,27 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
 
   Widget _buildSidebarHeader() {
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: AppTheme.primaryColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(LucideIcons.graduationCap, color: Colors.white, size: 24),
+            child: const Icon(LucideIcons.graduationCap, color: Colors.white, size: 18),
           ),
-          const SizedBox(width: 16),
-          const Text(
-            'ScholarDoc',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryColor,
+          const SizedBox(width: 12),
+          const Flexible(
+            child: Text(
+              'ScholarDoc',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -133,41 +148,61 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
     bool isSelected = _selectedIndex == index;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedIndex = index;
-          });
-          if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
-            Navigator.pop(context);
-          }
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
-                size: 20,
-              ),
-              const SizedBox(width: 16),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: InkWell(
+          onTap: () {
+            setState(() {
+              _selectedIndex = index;
+            });
+            if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+              Navigator.pop(context);
+            }
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: isSelected ? [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ] : null,
+            ),
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  overflow: TextOverflow.ellipsis,
+                  child: Icon(
+                    icon,
+                    color: isSelected ? Colors.white : AppTheme.textSecondary,
+                    size: 18,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -200,30 +235,34 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
   }
 
   Widget _buildTopBar(bool isMobile) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 80),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.withOpacity(0.1)),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Row(
-        children: [
-          if (isMobile)
-            IconButton(
-              icon: const Icon(LucideIcons.menu),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 64),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.8),
+            border: Border(
+              bottom: BorderSide(color: Colors.white.withOpacity(0.2)),
             ),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Text(
-              'Admin Dashboard',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              overflow: TextOverflow.ellipsis,
-            ),
+            boxShadow: AppTheme.softShadow,
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: Row(
+            children: [
+              if (isMobile)
+                IconButton(
+                  icon: const Icon(LucideIcons.menu, size: 20),
+                  onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Admin Dashboard',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
           const SizedBox(width: 8),
           // Notifications
           IconButton(
@@ -262,6 +301,8 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
           ],
         ],
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 }

@@ -12,6 +12,38 @@ class AppTheme {
   static const Color warning = Color(0xFFF59E0B);
   static const Color error = Color(0xFFEF4444);
 
+  // Premium Shadows
+  static List<BoxShadow> get softShadow => [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.03),
+      offset: const Offset(0, 2),
+      blurRadius: 4,
+    ),
+    BoxShadow(
+      color: Colors.black.withOpacity(0.02),
+      offset: const Offset(0, 10),
+      blurRadius: 20,
+    ),
+  ];
+
+  static List<BoxShadow> get premiumShadow => [
+    BoxShadow(
+      color: primaryColor.withOpacity(0.08),
+      offset: const Offset(0, 10),
+      blurRadius: 30,
+      spreadRadius: -5,
+    ),
+  ];
+
+  static BoxDecoration glassDecoration({double blur = 10, double opacity = 0.7, List<BoxShadow>? boxShadow}) {
+    return BoxDecoration(
+      color: Colors.white.withOpacity(opacity),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.white.withOpacity(0.2)),
+      boxShadow: boxShadow,
+    );
+  }
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -26,19 +58,19 @@ class AppTheme {
       scaffoldBackgroundColor: backgroundColor,
       textTheme: GoogleFonts.interTextTheme().copyWith(
         displayLarge: GoogleFonts.poppins(
-            color: textPrimary, fontWeight: FontWeight.bold),
+            color: textPrimary, fontWeight: FontWeight.bold, letterSpacing: -0.5),
         displayMedium: GoogleFonts.poppins(
-            color: textPrimary, fontWeight: FontWeight.bold),
+            color: textPrimary, fontWeight: FontWeight.bold, letterSpacing: -0.5),
         headlineLarge: GoogleFonts.poppins(
-            color: textPrimary, fontWeight: FontWeight.w600),
+            color: textPrimary, fontWeight: FontWeight.w600, letterSpacing: -0.3),
         headlineMedium: GoogleFonts.poppins(
-            color: textPrimary, fontWeight: FontWeight.w600),
+            color: textPrimary, fontWeight: FontWeight.w600, letterSpacing: -0.3),
         titleLarge: GoogleFonts.poppins(
             color: textPrimary, fontWeight: FontWeight.w600),
         titleMedium: GoogleFonts.inter(
             color: textPrimary, fontWeight: FontWeight.w500),
-        bodyLarge: GoogleFonts.inter(color: textPrimary),
-        bodyMedium: GoogleFonts.inter(color: textSecondary),
+        bodyLarge: GoogleFonts.inter(color: textPrimary, letterSpacing: 0.1),
+        bodyMedium: GoogleFonts.inter(color: textSecondary, letterSpacing: 0.1),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: surfaceColor,
@@ -105,8 +137,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: surfaceColor,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.05),
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
