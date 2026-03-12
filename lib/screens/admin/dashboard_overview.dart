@@ -13,14 +13,14 @@ class DashboardOverview extends StatelessWidget {
         bool isMobile = constraints.maxWidth < 900;
         
         return SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? 12 : 24),
+          padding: EdgeInsets.all(isMobile ? 12 : 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(context, isMobile),
               const SizedBox(height: 32),
               _buildStatsGrid(isMobile),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               if (isMobile) ...[
                 _buildSubmissionTrend(context),
                 const SizedBox(height: 24),
@@ -126,7 +126,7 @@ class DashboardOverview extends StatelessWidget {
       child: Container(
         decoration: AppTheme.glassDecoration(opacity: 0.6, boxShadow: AppTheme.softShadow),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               Container(
@@ -135,16 +135,16 @@ class DashboardOverview extends StatelessWidget {
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: color, size: 22),
+                child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
+                  Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 2),
-                  Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+                  Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
                 ],
               ),
             ],
@@ -156,7 +156,7 @@ class DashboardOverview extends StatelessWidget {
 
   Widget _buildSubmissionTrend(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: AppTheme.glassDecoration(opacity: 0.6, boxShadow: AppTheme.softShadow),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,7 +179,7 @@ class DashboardOverview extends StatelessWidget {
           const Text('Weekly document submission counts', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
           const SizedBox(height: 24),
           SizedBox(
-            height: 250,
+            height: 220,
             child: LineChart(
               LineChartData(
                 gridData: FlGridData(
@@ -250,14 +250,14 @@ class DashboardOverview extends StatelessWidget {
         boxShadow: AppTheme.softShadow,
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Status Distribution', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
+            const Text('Status Distribution', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
             SizedBox(
-              height: 180,
+              height: 160,
               child: PieChart(
                 PieChartData(
                   sectionsSpace: 4,
@@ -299,12 +299,12 @@ class DashboardOverview extends StatelessWidget {
         boxShadow: AppTheme.softShadow,
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Recent System Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
+            const Text('Recent System Activity', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

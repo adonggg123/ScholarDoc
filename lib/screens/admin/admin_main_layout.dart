@@ -42,7 +42,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: Container(
-                      width: 240,
+                      width: 210,
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.7),
                         border: Border(
@@ -116,7 +116,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
 
   Widget _buildSidebarHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
         children: [
           Container(
@@ -132,7 +132,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
             child: Text(
               'ScholarDoc',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.primaryColor,
               ),
@@ -162,7 +162,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
           borderRadius: BorderRadius.circular(12),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
@@ -239,7 +239,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          constraints: const BoxConstraints(minHeight: 64),
+          constraints: const BoxConstraints(minHeight: 56),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.8),
             border: Border(
@@ -247,7 +247,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
             ),
             boxShadow: AppTheme.softShadow,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           child: Row(
             children: [
               if (isMobile)
