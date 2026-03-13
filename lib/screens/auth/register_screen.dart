@@ -150,6 +150,139 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 32),
+                
+                // Section Divider: Family Information
+                Row(
+                  children: [
+                    const Icon(Icons.family_restroom, color: AppTheme.primaryColor, size: 20),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Family Information',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Divider(),
+                const SizedBox(height: 16),
+
+                // Father's Information
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: "Father's Full Name",
+                    prefixIcon: Icon(Icons.person_outline),
+                    hintText: 'e.g. Roberto De La Cruz',
+                  ),
+                  validator: (value) => value!.isEmpty ? "Enter father's name" : null,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Age',
+                          hintText: 'e.g. 50',
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) => value!.isEmpty ? "Enter age" : null,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Occupation',
+                          hintText: 'e.g. Farmer',
+                        ),
+                        validator: (value) => value!.isEmpty ? "Enter occupation" : null,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Mother's Information
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: "Mother's Full Name (Maiden Name)",
+                    prefixIcon: Icon(Icons.person_outline),
+                    hintText: 'e.g. Maria Clara',
+                  ),
+                  validator: (value) => value!.isEmpty ? "Enter mother's name" : null,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Age',
+                          hintText: 'e.g. 48',
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) => value!.isEmpty ? "Enter age" : null,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Occupation',
+                          hintText: 'e.g. Housewife',
+                        ),
+                        validator: (value) => value!.isEmpty ? "Enter occupation" : null,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Household Financial Detail
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Total Yearly Family Income',
+                    prefixIcon: Icon(Icons.payments_outlined),
+                    hintText: 'e.g. 150000',
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) => value!.isEmpty ? "Enter yearly income" : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Cultural & Religious Background
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Religion',
+                          hintText: 'e.g. Catholic',
+                        ),
+                        validator: (value) => value!.isEmpty ? "Enter religion" : null,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Tribe',
+                          hintText: 'e.g. Tagalog',
+                        ),
+                        validator: (value) => value!.isEmpty ? "Enter tribe" : null,
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 48),
 
                 // Register Button
                 ElevatedButton(
