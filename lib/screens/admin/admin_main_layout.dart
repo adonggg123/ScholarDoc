@@ -6,6 +6,7 @@ import 'dashboard_overview.dart';
 import 'student_records_screen.dart';
 import 'sa_verification_screen.dart';
 import 'audit_log_screen.dart';
+import 'reports_screen.dart';
 
 class AdminMainLayout extends StatefulWidget {
   const AdminMainLayout({super.key});
@@ -23,6 +24,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
     const StudentRecordsScreen(),
     const SaVerificationScreen(),
     const AuditLogScreen(),
+    const ReportsScreen(),
   ];
 
   @override
@@ -64,7 +66,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                         color: AppTheme.backgroundColor,
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
-                          child: _screens[_selectedIndex < _screens.length ? _selectedIndex : 0],
+                          child: _selectedIndex < _screens.length ? _screens[_selectedIndex] : _screens[0],
                         ),
                       ),
                     ),

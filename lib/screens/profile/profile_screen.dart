@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../services/ml_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,6 +13,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _saController = TextEditingController(text: '1234-5678-9012');
+  final MLService _mlService = MLService();
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +79,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your SA Number';
+                      }
+                      final mlCheck = _mlService.detectSASuspiciousPattern(value);
+                      if (mlCheck['isSuspicious']) {
+                        return mlCheck['message'] as String;
                       }
                       return null;
                     },

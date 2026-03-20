@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../services/ml_service.dart';
 
 class UploadWorkflowScreen extends StatefulWidget {
   const UploadWorkflowScreen({super.key});
@@ -16,6 +17,8 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
   String? _validationError;
   bool _isDuplicate = false;
 
+  final MLService _mlService = MLService();
+
   void _simulateUpload() async {
     setState(() {
       _isUploading = true;
@@ -23,27 +26,53 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
       _isDuplicate = false;
     });
 
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() {
-      _isUploading = false;
-      // Simulated "Machine Learning" logic
-      // In a real app, this would be an API call
-      _validationError = "Document is slightly blurry but readable. ML confidence: 85%";
-    });
+    try {
+      final validationResult = await _mlService.validateDocumentClarity('mock_file.jpg');
+      final classificationResult = await _mlService.classifyDocument('mock_file.jpg');
+      
+      if (!mounted) return;
+      
+      setState(() {
+        _isUploading = false;
+        if (validationResult['isValid']) {
+           _validationError = "✅ Validated. Identified as: $classificationResult. Clarity: ${validationResult['clarityScore'].toStringAsFixed(1)}%";
+        } else {
+           _validationError = "⚠️ ${validationResult['message']} Please retake.";
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isUploading = false;
+        _validationError = "Error during ML analysis.";
+      });
+    }
   }
 
   void _simulateDuplicateCheck() async {
     setState(() {
       _isUploading = true;
+      _isDuplicate = false;
+      _validationError = null;
     });
 
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    setState(() {
-      _isUploading = false;
-      _isDuplicate = true;
-    });
+    try {
+      final isDup = await _mlService.detectDuplicateSubmission('hash123', 'studentId');
+      
+      if (!mounted) return;
+      setState(() {
+        _isUploading = false;
+        _isDuplicate = isDup;
+        if (!isDup) {
+          _validationError = "✅ Document received. No duplicates found.";
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isUploading = false;
+      });
+    }
   }
 
   @override

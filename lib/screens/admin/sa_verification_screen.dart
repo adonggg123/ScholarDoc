@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../services/ml_service.dart';
 
 class SaVerificationScreen extends StatelessWidget {
   const SaVerificationScreen({super.key});
@@ -71,6 +72,10 @@ class SaVerificationScreen extends StatelessWidget {
   }
 
   Widget _buildVerificationPanel(BuildContext context, bool isMobile) {
+    final ml = MLService();
+    final String mockSaNumber = '1234-5678-9012';
+    final aiCheck = ml.detectSASuspiciousPattern(mockSaNumber);
+
     return Container(
       decoration: AppTheme.glassDecoration(opacity: 0.6, boxShadow: AppTheme.softShadow),
       child: Padding(
@@ -105,9 +110,13 @@ class SaVerificationScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _dataField('Student ID', '2021-00421'),
             const SizedBox(height: 16),
-            _dataField('Submitted SA Number', '1234-5678-9012'),
+            _dataField('Submitted SA Number', mockSaNumber),
+            const SizedBox(height: 8),
+            _buildAIBadge(aiCheck),
             const SizedBox(height: 16),
             _dataField('Bank Branch', 'Main University Branch'),
+            const SizedBox(height: 8),
+            _buildDuplicateBadge(),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -150,6 +159,57 @@ class SaVerificationScreen extends StatelessWidget {
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
       ],
+    );
+  }
+
+  Widget _buildAIBadge(Map<String, dynamic> aiCheck) {
+    final bool isSuspicious = aiCheck['isSuspicious'];
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: (isSuspicious ? AppTheme.warning : AppTheme.success).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: (isSuspicious ? AppTheme.warning : AppTheme.success).withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(LucideIcons.bot, size: 14, color: isSuspicious ? AppTheme.warning : AppTheme.success),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'AI Score: ${aiCheck['confidence']}% - ${aiCheck['message']}',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: isSuspicious ? AppTheme.warning : AppTheme.success,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDuplicateBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.success.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(LucideIcons.fileCheck2, size: 14, color: AppTheme.success),
+          SizedBox(width: 8),
+          Text(
+            'Duplicate Hash Network Check: PASSED',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.success),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../services/ml_service.dart';
 
 class DashboardOverview extends StatelessWidget {
   const DashboardOverview({super.key});
@@ -35,7 +36,19 @@ class DashboardOverview extends StatelessWidget {
                   ],
                 ),
               const SizedBox(height: 32),
-              _buildRecentActivity(context),
+              if (isMobile) ...[
+                _buildHighRiskStudents(context),
+                const SizedBox(height: 24),
+                _buildRecentActivity(context),
+              ] else
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 1, child: _buildHighRiskStudents(context)),
+                    const SizedBox(width: 32),
+                    Expanded(flex: 1, child: _buildRecentActivity(context)),
+                  ],
+                ),
             ],
           ),
         );
@@ -334,6 +347,73 @@ class DashboardOverview extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text('Approved', style: TextStyle(color: AppTheme.success, fontSize: 11, fontWeight: FontWeight.bold)),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildHighRiskStudents(BuildContext context) {
+    final MLService ml = MLService();
+    
+    // Mock students for dashboard analytics
+    final students = [
+      {'name': 'Maria Clara', 'id': '2022-0192', 'pastLateSubmissions': 3, 'familyDetails': null},
+      {'name': 'Jose Rizal', 'id': '2021-0042', 'pastLateSubmissions': 1, 'familyDetails': {'income': 'Low'}},
+      {'name': 'Andres Bonifacio', 'id': '2023-1122', 'pastLateSubmissions': 0, 'familyDetails': null},
+      {'name': 'Gabriela Silang', 'id': '2022-0811', 'pastLateSubmissions': 4, 'familyDetails': {}},
+    ];
+
+    // Auto-sort by highest risk first
+    students.sort((a, b) => ml.predictSubmissionRisk(b).compareTo(ml.predictSubmissionRisk(a)));
+
+    return Container(
+      decoration: AppTheme.glassDecoration(opacity: 0.6).copyWith(
+        boxShadow: AppTheme.softShadow,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(LucideIcons.brainCircuit, color: AppTheme.error, size: 18),
+                SizedBox(width: 8),
+                Text('AI Risk Prediction', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text('Students likely to submit late or incorrectly', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+            const SizedBox(height: 16),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: students.length,
+              separatorBuilder: (context, index) => const Divider(),
+              itemBuilder: (context, index) {
+                final student = students[index];
+                final risk = ml.predictSubmissionRisk(student);
+                final color = risk > 80 ? AppTheme.error : (risk > 50 ? AppTheme.warning : AppTheme.success);
+                
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: color.withValues(alpha: 0.1),
+                    child: Icon(LucideIcons.alertTriangle, size: 18, color: color),
+                  ),
+                  title: Text(student['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  subtitle: Text('ID: ${student['id']}', style: const TextStyle(fontSize: 11)),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('${risk.toStringAsFixed(1)}%', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+                      const Text('Risk Score', style: TextStyle(fontSize: 9, color: AppTheme.textSecondary)),
+                    ],
                   ),
                 );
               },
