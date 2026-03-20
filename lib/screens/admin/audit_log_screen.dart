@@ -31,7 +31,7 @@ class AuditLogScreen extends StatelessWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: 15,
-                  separatorBuilder: (context, index) => Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                  separatorBuilder: (context, index) => Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
                   itemBuilder: (context, index) {
                     return _buildLogItem(context, index, isMobile);
                   },
@@ -54,7 +54,7 @@ class AuditLogScreen extends StatelessWidget {
       leading: isMobile ? null : Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withOpacity(0.05),
+          color: AppTheme.primaryColor.withValues(alpha: 0.05),
           shape: BoxShape.circle,
         ),
         child: const Icon(LucideIcons.activity, color: AppTheme.primaryColor, size: 16),

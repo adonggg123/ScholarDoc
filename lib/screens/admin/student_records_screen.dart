@@ -138,7 +138,7 @@ class StudentRecordsScreen extends StatelessWidget {
                   hintText: 'Search by name, ID, or SA number...',
                   prefixIcon: const Icon(LucideIcons.search, size: 16, color: AppTheme.primaryColor),
                   filled: true,
-                  fillColor: Colors.grey.shade50.withOpacity(0.5),
+                  fillColor: Colors.grey.shade50.withValues(alpha: 0.5),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
@@ -164,8 +164,8 @@ class StudentRecordsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.5),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        color: Colors.white.withValues(alpha: 0.5),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -193,7 +193,7 @@ class StudentRecordsScreen extends StatelessWidget {
             headingRowHeight: 52,
             dataRowMinHeight: 52,
             dataRowMaxHeight: 60,
-            headingRowColor: MaterialStateProperty.all(AppTheme.primaryColor.withOpacity(0.02)),
+            headingRowColor: WidgetStateProperty.all(AppTheme.primaryColor.withValues(alpha: 0.02)),
             columns: const [
               DataColumn(label: Text('Student Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary))),
               DataColumn(label: Text('ID Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textPrimary))),
@@ -222,7 +222,7 @@ class StudentRecordsScreen extends StatelessWidget {
       DataCell(Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: colors[index % 4].withOpacity(0.1),
+          color: colors[index % 4].withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(statuses[index % 4], style: TextStyle(color: colors[index % 4], fontSize: 11, fontWeight: FontWeight.bold)),

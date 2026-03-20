@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../services/auth_service.dart';
 import 'admin_main_layout.dart';
 
 class AdminLoginScreen extends StatefulWidget {
@@ -11,7 +12,19 @@ class AdminLoginScreen extends StatefulWidget {
 
 class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+  
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +94,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             Text(
               'University Scholarship System',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: isMobile ? 16 : 20,
                   ),
             ),
@@ -118,14 +131,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       ),
                       const SizedBox(height: 48),
                       TextFormField(
+                        controller: _usernameController,
                         decoration: const InputDecoration(
                           labelText: 'Admin Username',
                           prefixIcon: Icon(Icons.person_outline),
                           filled: true,
                         ),
+                        validator: (value) => value!.isEmpty ? 'Enter username' : null,
                       ),
                       const SizedBox(height: 24),
                       TextFormField(
+                        controller: _passwordController,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
                           labelText: 'Password',
@@ -144,6 +160,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           ),
                           filled: true,
                         ),
+                        validator: (value) => value!.isEmpty ? 'Enter password' : null,
                       ),
                       const SizedBox(height: 16),
                       Align(
@@ -155,17 +172,45 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       ),
                       const SizedBox(height: 40),
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const AdminMainLayout()),
-                          );
-                        },
+                        onPressed: _isLoading
+                            ? null
+                            : () async {
+                                if (_formKey.currentState!.validate()) {
+                                  setState(() => _isLoading = true);
+                                  try {
+                                    await _authService.loginAdmin(
+                                      username: _usernameController.text.trim(),
+                                      password: _passwordController.text.trim(),
+                                    );
+                                    if (!context.mounted) return;
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => const AdminMainLayout()),
+                                    );
+                                  } catch (e) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(e.toString().replaceAll('Exception: ', '')),
+                                        backgroundColor: AppTheme.error,
+                                      ),
+                                    );
+                                  } finally {
+                                    if (mounted) setState(() => _isLoading = false);
+                                  }
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 20),
                         ),
-                        child: const Text('Sign In to Dashboard'),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Text('Sign In to Dashboard'),
                       ),
                       const SizedBox(height: 32),
                       OutlinedButton(

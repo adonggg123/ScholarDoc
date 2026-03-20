@@ -52,12 +52,12 @@ class SaVerificationScreen extends StatelessWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 5,
-        separatorBuilder: (context, index) => Divider(color: Colors.white.withOpacity(0.1), height: 1),
+        separatorBuilder: (context, index) => Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
         itemBuilder: (context, index) {
           return ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             leading: CircleAvatar(
-              backgroundColor: AppTheme.primaryColor.withOpacity(0.05),
+              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.05),
               child: const Icon(LucideIcons.user, size: 20, color: AppTheme.primaryColor),
             ),
             title: const Text('Juan De La Cruz', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
@@ -86,7 +86,7 @@ class SaVerificationScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2), width: 2),
+                      border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2), width: 2),
                     ),
                     child: const CircleAvatar(
                       radius: 32, 

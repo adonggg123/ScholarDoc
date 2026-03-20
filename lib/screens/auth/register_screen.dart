@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../services/auth_service.dart';
 import 'login_screen.dart';
 import '../main_layout.dart';
 
@@ -12,8 +13,49 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
+  
+  // Controllers
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _studentIdController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmController = TextEditingController();
+  
+  final TextEditingController _fatherNameController = TextEditingController();
+  final TextEditingController _fatherAgeController = TextEditingController();
+  final TextEditingController _fatherOccController = TextEditingController();
+  
+  final TextEditingController _motherNameController = TextEditingController();
+  final TextEditingController _motherAgeController = TextEditingController();
+  final TextEditingController _motherOccController = TextEditingController();
+  
+  final TextEditingController _incomeController = TextEditingController();
+  final TextEditingController _religionController = TextEditingController();
+  final TextEditingController _tribeController = TextEditingController();
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _studentIdController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    _fatherNameController.dispose();
+    _fatherAgeController.dispose();
+    _fatherOccController.dispose();
+    _motherNameController.dispose();
+    _motherAgeController.dispose();
+    _motherOccController.dispose();
+    _incomeController.dispose();
+    _religionController.dispose();
+    _tribeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Name Input
                 TextFormField(
+                  controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'Full Name',
                     prefixIcon: Icon(Icons.person_outline),
@@ -61,6 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Student ID Input
                 TextFormField(
+                  controller: _studentIdController,
                   decoration: const InputDecoration(
                     labelText: 'Student ID Number',
                     prefixIcon: Icon(Icons.badge_outlined),
@@ -77,6 +121,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Email Input
                 TextFormField(
+                  controller: _emailController,
                   decoration: const InputDecoration(
                     labelText: 'University Email',
                     prefixIcon: Icon(Icons.email_outlined),
@@ -94,6 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Password Input
                 TextFormField(
+                  controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -125,6 +171,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Confirm Password Input
                 TextFormField(
+                  controller: _confirmController,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
@@ -171,6 +218,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Father's Information
                 TextFormField(
+                  controller: _fatherNameController,
                   decoration: const InputDecoration(
                     labelText: "Father's Full Name",
                     prefixIcon: Icon(Icons.person_outline),
@@ -184,6 +232,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Expanded(
                       flex: 1,
                       child: TextFormField(
+                        controller: _fatherAgeController,
                         decoration: const InputDecoration(
                           labelText: 'Age',
                           hintText: 'e.g. 50',
@@ -196,6 +245,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Expanded(
                       flex: 2,
                       child: TextFormField(
+                        controller: _fatherOccController,
                         decoration: const InputDecoration(
                           labelText: 'Occupation',
                           hintText: 'e.g. Farmer',
@@ -209,6 +259,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Mother's Information
                 TextFormField(
+                  controller: _motherNameController,
                   decoration: const InputDecoration(
                     labelText: "Mother's Full Name (Maiden Name)",
                     prefixIcon: Icon(Icons.person_outline),
@@ -222,6 +273,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Expanded(
                       flex: 1,
                       child: TextFormField(
+                        controller: _motherAgeController,
                         decoration: const InputDecoration(
                           labelText: 'Age',
                           hintText: 'e.g. 48',
@@ -234,6 +286,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Expanded(
                       flex: 2,
                       child: TextFormField(
+                        controller: _motherOccController,
                         decoration: const InputDecoration(
                           labelText: 'Occupation',
                           hintText: 'e.g. Housewife',
@@ -247,6 +300,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Household Financial Detail
                 TextFormField(
+                  controller: _incomeController,
                   decoration: const InputDecoration(
                     labelText: 'Total Yearly Family Income',
                     prefixIcon: Icon(Icons.payments_outlined),
@@ -262,6 +316,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Expanded(
                       child: TextFormField(
+                        controller: _religionController,
                         decoration: const InputDecoration(
                           labelText: 'Religion',
                           hintText: 'e.g. Catholic',
@@ -272,6 +327,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: TextFormField(
+                        controller: _tribeController,
                         decoration: const InputDecoration(
                           labelText: 'Tribe',
                           hintText: 'e.g. Tagalog',
@@ -286,18 +342,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Register Button
                 ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Navigate to Main Dashboard on successful registration
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const MainLayout()),
-                        (route) => false,
-                      );
-                    }
-                  },
-                  child: const Text('Create Account'),
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          if (_formKey.currentState!.validate()) {
+                            if (_passwordController.text != _confirmController.text) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Passwords do not match'), backgroundColor: AppTheme.error),
+                              );
+                              return;
+                            }
+                            
+                            setState(() => _isLoading = true);
+                            try {
+                              Map<String, dynamic> studentData = {
+                                'fullName': _nameController.text.trim(),
+                                'studentId': _studentIdController.text.trim(),
+                                'email': _emailController.text.trim(),
+                                'role': 'student',
+                                'familyDetails': {
+                                  'fatherName': _fatherNameController.text.trim(),
+                                  'fatherAge': _fatherAgeController.text.trim(),
+                                  'fatherOccupation': _fatherOccController.text.trim(),
+                                  'motherName': _motherNameController.text.trim(),
+                                  'motherAge': _motherAgeController.text.trim(),
+                                  'motherOccupation': _motherOccController.text.trim(),
+                                  'yearlyIncome': _incomeController.text.trim(),
+                                  'religion': _religionController.text.trim(),
+                                  'tribe': _tribeController.text.trim(),
+                                },
+                              };
+
+                              await _authService.registerStudent(
+                                email: _emailController.text.trim(),
+                                password: _passwordController.text.trim(),
+                                studentData: studentData,
+                              );
+                              
+                              if (!context.mounted) return;
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (context) => const MainLayout()),
+                                (route) => false,
+                              );
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(e.toString().replaceAll(RegExp(r'\[.*\]'), '').trim()),
+                                  backgroundColor: AppTheme.error,
+                                ),
+                              );
+                            } finally {
+                              if (mounted) setState(() => _isLoading = false);
+                            }
+                          }
+                        },
+                  child: _isLoading 
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Create Account'),
                 ),
                 const SizedBox(height: 24),
 

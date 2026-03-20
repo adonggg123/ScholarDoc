@@ -44,9 +44,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                     child: Container(
                       width: 210,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         border: Border(
-                          right: BorderSide(color: Colors.white.withOpacity(0.2)),
+                          right: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                         ),
                         boxShadow: AppTheme.softShadow,
                       ),
@@ -164,11 +164,11 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+              color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               boxShadow: isSelected ? [
                 BoxShadow(
-                  color: AppTheme.primaryColor.withOpacity(0.05),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 )
@@ -221,7 +221,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
           children: [
             Icon(LucideIcons.logOut, color: AppTheme.error, size: 20),
             SizedBox(width: 16),
-            const Flexible(
+            Flexible(
               child: Text(
                 'Logout',
                 style: TextStyle(color: AppTheme.error, fontWeight: FontWeight.w500),
@@ -241,9 +241,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
         child: Container(
           constraints: const BoxConstraints(minHeight: 56),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             border: Border(
-              bottom: BorderSide(color: Colors.white.withOpacity(0.2)),
+              bottom: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
             ),
             boxShadow: AppTheme.softShadow,
           ),
@@ -275,7 +275,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Row(

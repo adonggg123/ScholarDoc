@@ -71,7 +71,7 @@ class NotificationScreen extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isNew ? color.withOpacity(0.2) : Colors.transparent,
+          color: isNew ? color.withValues(alpha: 0.2) : Colors.transparent,
         ),
       ),
       child: ListTile(
@@ -79,7 +79,7 @@ class NotificationScreen extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 24),

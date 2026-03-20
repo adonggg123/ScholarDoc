@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "583511512301",
+    "project_id": "scholardoc-40e03",
+    "storage_bucket": "scholardoc-40e03.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:583511512301:android:86d9aaf36714845add28e4",
+        "android_client_info": {
+          "package_name": "com.company.scholardocapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKFEf2kVwuCGQQYaeBtsMaeDZiA0sXv_E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:583511512301:android:8b768cedf256c9c8dd28e4",
+        "android_client_info": {
+          "package_name": "com.example.tesdoc_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKFEf2kVwuCGQQYaeBtsMaeDZiA0sXv_E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
