@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 import '../submissions/upload_workflow_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -15,9 +16,9 @@ class HomeScreen extends StatelessWidget {
             expandedHeight: 120.0,
             floating: false,
             pinned: true,
-            backgroundColor: AppTheme.backgroundColor,
+            backgroundColor: context.bgC,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              titlePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               title: Text(
                 'Hello, Juan!',
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
@@ -29,7 +30,7 @@ class HomeScreen extends StatelessWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -37,14 +38,14 @@ class HomeScreen extends StatelessWidget {
                     'Your Scholarship Status',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _buildStatusCard(context),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   Text(
                     'Quick Actions',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
@@ -61,7 +62,7 @@ class HomeScreen extends StatelessWidget {
                           },
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: 16),
                       Expanded(
                         child: _buildActionBtn(
                           context,
@@ -75,12 +76,12 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   Text(
                     'Recent Updates',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                 ],
               ),
             ),
@@ -89,7 +90,7 @@ class HomeScreen extends StatelessWidget {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
                   child: _buildUpdateItem(context, index),
                 );
               },
@@ -105,7 +106,7 @@ class HomeScreen extends StatelessWidget {
   Widget _buildStatusCard(BuildContext context) {
     return Card(
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -131,7 +132,7 @@ class HomeScreen extends StatelessWidget {
                             color: AppTheme.primaryColor,
                           ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       'Academic Year 2023-2024',
                       style: Theme.of(context).textTheme.bodyMedium,
@@ -139,7 +140,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppTheme.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -154,7 +155,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
@@ -164,7 +165,7 @@ class HomeScreen extends StatelessWidget {
                 minHeight: 8,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -191,7 +192,7 @@ class HomeScreen extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
@@ -200,7 +201,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           children: [
             Icon(icon, color: color, size: 32),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -234,9 +235,9 @@ class HomeScreen extends StatelessWidget {
 
     return Card(
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding: EdgeInsets.all(16),
         leading: Container(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: colors[index].withValues(alpha: 0.1),
             shape: BoxShape.circle,
@@ -245,10 +246,10 @@ class HomeScreen extends StatelessWidget {
         ),
         title: Text(
           titles[index],
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(subtitles[index]),
-        trailing: const Icon(Icons.chevron_right, color: AppTheme.textSecondary),
+        trailing: Icon(Icons.chevron_right, color: context.textSec),
       ),
     );
   }

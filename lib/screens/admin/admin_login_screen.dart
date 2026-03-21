@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 import '../../services/auth_service.dart';
 import 'admin_main_layout.dart';
 
@@ -62,7 +63,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     );
   }
 
-  Widget _buildBrandingSection(BuildContext context, bool isMobile) {
+  Widget _buildBrandingSection(BuildContext ctx, bool isMobile) {
     return Container(
       color: AppTheme.primaryColor,
       height: isMobile ? 300 : double.infinity,
@@ -72,8 +73,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           children: [
             Container(
               padding: EdgeInsets.all(isMobile ? 24 : 32),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: ctx.surfaceC,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -82,19 +83,19 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 color: AppTheme.primaryColor,
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             Text(
               'ScholarDoc Admin',
-              style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    color: Colors.white,
+              style: Theme.of(ctx).textTheme.displayMedium?.copyWith(
+                    color: ctx.surfaceC,
                     fontSize: isMobile ? 32 : 48,
                   ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               'University Scholarship System',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.8),
+              style: Theme.of(ctx).textTheme.bodyLarge?.copyWith(
+                    color: ctx.surfaceC.withValues(alpha: 0.8),
                     fontSize: isMobile ? 16 : 20,
                   ),
             ),
@@ -104,9 +105,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     );
   }
 
-  Widget _buildLoginForm(BuildContext context, bool isMobile) {
+  Widget _buildLoginForm(BuildContext ctx, bool isMobile) {
     return Container(
-      color: Colors.white,
+      color: ctx.surfaceC,
       height: isMobile ? null : double.infinity,
       child: Center(
         child: Container(
@@ -122,14 +123,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       Text(
                         'Administrator Login',
                         style: isMobile 
-                          ? Theme.of(context).textTheme.headlineMedium
-                          : Theme.of(context).textTheme.headlineLarge,
+                          ? Theme.of(ctx).textTheme.headlineMedium
+                          : Theme.of(ctx).textTheme.headlineLarge,
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: 8),
+                      Text(
                         'Enter your credentials to access the dashboard.',
                       ),
-                      const SizedBox(height: 48),
+                      SizedBox(height: 48),
                       TextFormField(
                         controller: _usernameController,
                         decoration: const InputDecoration(
@@ -139,13 +140,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         ),
                         validator: (value) => value!.isEmpty ? 'Enter username' : null,
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: const Icon(Icons.lock_outline),
+                          prefixIcon: Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
@@ -162,15 +163,15 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         ),
                         validator: (value) => value!.isEmpty ? 'Enter password' : null,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {},
-                          child: const Text('Forgot Password?'),
+                          child: Text('Forgot Password?'),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      SizedBox(height: 40),
                       ElevatedButton(
                         onPressed: _isLoading
                             ? null
@@ -182,15 +183,15 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                       username: _usernameController.text.trim(),
                                       password: _passwordController.text.trim(),
                                     );
-                                    if (!context.mounted) return;
+                                    if (!ctx.mounted) return;
                                     Navigator.pushReplacement(
-                                      context,
+                                      ctx,
                                       MaterialPageRoute(
                                           builder: (context) => const AdminMainLayout()),
                                     );
                                   } catch (e) {
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    if (!ctx.mounted) return;
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
                                       SnackBar(
                                         content: Text(e.toString().replaceAll('Exception: ', '')),
                                         backgroundColor: AppTheme.error,
@@ -202,22 +203,22 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 }
                               },
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          padding: EdgeInsets.symmetric(vertical: 20),
                         ),
                         child: _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: context.surfaceC),
                               )
-                            : const Text('Sign In to Dashboard'),
+                            : Text('Sign In to Dashboard'),
                       ),
-                      const SizedBox(height: 32),
+                      SizedBox(height: 32),
                       OutlinedButton(
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        child: const Text('Return to Student Portal'),
+                        child: Text('Return to Student Portal'),
                       ),
                     ],
                   ),

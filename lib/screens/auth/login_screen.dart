@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 import '../../services/auth_service.dart';
 import '../main_layout.dart';
 import 'register_screen.dart';
@@ -31,29 +32,29 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign In'),
+        title: Text('Sign In'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Text(
                   'Welcome Back!',
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   'Please sign in with your student credentials.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textSecondary,
+                        color: context.textSec,
                       ),
                 ),
-                const SizedBox(height: 48),
+                SizedBox(height: 48),
 
                 // Email Input
                 TextFormField(
@@ -71,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 // Password Input
                 TextFormField(
@@ -79,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    prefixIcon: Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -100,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Forgot Password
                 Align(
@@ -112,10 +113,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextButton.styleFrom(
                       foregroundColor: AppTheme.primaryColor,
                     ),
-                    child: const Text('Forgot Password?'),
+                    child: Text('Forgot Password?'),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
                 // Login Button
                 ElevatedButton(
@@ -149,10 +150,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         },
                   child: _isLoading 
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Sign In'),
+                      ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : Text('Sign In'),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Register Prompt
                 Row(
@@ -172,9 +173,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       style: TextButton.styleFrom(
                         foregroundColor: AppTheme.primaryColor,
-                        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                        textStyle: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      child: const Text('Register Here'),
+                      child: Text('Register Here'),
                     ),
                   ],
                 ),

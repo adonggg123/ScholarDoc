@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -9,55 +10,60 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text('Notifications'),
         actions: [
           TextButton(
             onPressed: () {},
-            child: const Text('Mark all as read'),
+            child: Text('Mark all as read'),
           ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         children: [
-          _buildNotificationItem(
-            'Document Approved',
-            'Your Billing Record for AY 2023-2024 has been verified.',
-            '2 hours ago',
-            LucideIcons.checkCircle2,
-            AppTheme.success,
-            true,
-          ),
-          _buildNotificationItem(
-            'Submission Required',
-            'Please upload your Validated School ID to complete your requirements.',
-            '5 hours ago',
-            LucideIcons.alertCircle,
-            AppTheme.warning,
-            true,
-          ),
-          _buildNotificationItem(
-            'System Maintenance',
-            'ScholarDoc will be down for maintenance on Saturday from 2 AM to 4 AM.',
-            '1 day ago',
-            LucideIcons.info,
-            AppTheme.primaryColor,
-            false,
-          ),
-          _buildNotificationItem(
-            'Congratulations!',
-            'Your scholarship application for the next semester has been preliminarily approved.',
-            '2 days ago',
-            LucideIcons.partyPopper,
-            AppTheme.secondaryColor,
-            false,
-          ),
+            _buildNotificationItem(
+              context,
+              'Document Approved',
+              'Your Billing Record for AY 2023-2024 has been verified.',
+              '2 hours ago',
+              LucideIcons.checkCircle2,
+              AppTheme.success,
+              true,
+            ),
+            _buildNotificationItem(
+              context,
+              'Submission Required',
+              'Please upload your Validated School ID to complete your requirements.',
+              '5 hours ago',
+              LucideIcons.alertCircle,
+              AppTheme.warning,
+              true,
+            ),
+            _buildNotificationItem(
+              context,
+              'System Maintenance',
+              'ScholarDoc will be down for maintenance on Saturday from 2 AM to 4 AM.',
+              '1 day ago',
+              LucideIcons.info,
+              AppTheme.primaryColor,
+              false,
+            ),
+            _buildNotificationItem(
+              context,
+              'Congratulations!',
+              'Your scholarship application for the next semester has been preliminarily approved.',
+              '2 days ago',
+              LucideIcons.partyPopper,
+              AppTheme.secondaryColor,
+              false,
+            ),
         ],
       ),
     );
   }
 
   Widget _buildNotificationItem(
+    BuildContext context,
     String title,
     String message,
     String time,
@@ -67,7 +73,7 @@ class NotificationScreen extends StatelessWidget {
   ) {
     return Card(
       elevation: isNew ? 2 : 0,
-      color: isNew ? Colors.white : AppTheme.backgroundColor,
+      color: isNew ? Colors.white : context.bgC,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
@@ -75,9 +81,9 @@ class NotificationScreen extends StatelessWidget {
         ),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding: EdgeInsets.all(16),
         leading: Container(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
@@ -108,12 +114,12 @@ class NotificationScreen extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(message),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               time,
-              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 12, color: context.textSec),
             ),
           ],
         ),

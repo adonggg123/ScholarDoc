@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 import '../../services/auth_service.dart';
 import 'login_screen.dart';
 import '../main_layout.dart';
@@ -61,29 +62,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Account'),
+        title: Text('Create Account'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Text(
                   'Join ScholarDoc',
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   'Register your student credentials to start managing your TES documents.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textSecondary,
+                        color: context.textSec,
                       ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
                 // Name Input
                 TextFormField(
@@ -100,7 +101,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Student ID Input
                 TextFormField(
@@ -117,7 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Email Input
                 TextFormField(
@@ -135,7 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Password Input
                 TextFormField(
@@ -143,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    prefixIcon: Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -167,7 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Confirm Password Input
                 TextFormField(
@@ -175,7 +176,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    prefixIcon: Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirmPassword
@@ -196,13 +197,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 
                 // Section Divider: Family Information
                 Row(
                   children: [
-                    const Icon(Icons.family_restroom, color: AppTheme.primaryColor, size: 20),
-                    const SizedBox(width: 12),
+                    Icon(Icons.family_restroom, color: AppTheme.primaryColor, size: 20),
+                    SizedBox(width: 12),
                     Text(
                       'Family Information',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -212,9 +213,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                const Divider(),
-                const SizedBox(height: 16),
+                SizedBox(height: 8),
+                Divider(),
+                SizedBox(height: 16),
 
                 // Father's Information
                 TextFormField(
@@ -226,7 +227,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) => value!.isEmpty ? "Enter father's name" : null,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -241,7 +242,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         validator: (value) => value!.isEmpty ? "Enter age" : null,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(
                       flex: 2,
                       child: TextFormField(
@@ -255,7 +256,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Mother's Information
                 TextFormField(
@@ -267,7 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) => value!.isEmpty ? "Enter mother's name" : null,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -282,7 +283,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         validator: (value) => value!.isEmpty ? "Enter age" : null,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(
                       flex: 2,
                       child: TextFormField(
@@ -296,7 +297,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Household Financial Detail
                 TextFormField(
@@ -309,7 +310,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   keyboardType: TextInputType.number,
                   validator: (value) => value!.isEmpty ? "Enter yearly income" : null,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // Cultural & Religious Background
                 Row(
@@ -324,7 +325,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         validator: (value) => value!.isEmpty ? "Enter religion" : null,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(
                       child: TextFormField(
                         controller: _tribeController,
@@ -338,7 +339,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
                 
-                const SizedBox(height: 48),
+                SizedBox(height: 48),
 
                 // Register Button
                 ElevatedButton(
@@ -399,10 +400,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           }
                         },
                   child: _isLoading 
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Create Account'),
+                      ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : Text('Create Account'),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Login Prompt
                 Row(
@@ -422,9 +423,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                       style: TextButton.styleFrom(
                         foregroundColor: AppTheme.primaryColor,
-                        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+                        textStyle: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      child: const Text('Sign In Here'),
+                      child: Text('Sign In Here'),
                     ),
                   ],
                 ),

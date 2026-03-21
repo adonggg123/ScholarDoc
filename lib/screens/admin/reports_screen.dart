@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -17,24 +18,24 @@ class ReportsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(context, isMobile),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               if (isMobile) ...[
-                _buildSystemPerformance(),
-                const SizedBox(height: 24),
-                _buildDemographicBreakdown(),
+                _buildSystemPerformance(context),
+                SizedBox(height: 24),
+                _buildDemographicBreakdown(context),
               ] else
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(flex: 3, child: _buildSystemPerformance()),
-                    const SizedBox(width: 32),
-                    Expanded(flex: 2, child: _buildDemographicBreakdown()),
+                    Expanded(flex: 3, child: _buildSystemPerformance(context)),
+                    SizedBox(width: 32),
+                    Expanded(flex: 2, child: _buildDemographicBreakdown(context)),
                   ],
                 ),
-              const SizedBox(height: 32),
-              const Text('Generated Reports', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              _buildReportList(),
+              SizedBox(height: 32),
+              Text('Generated Reports', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
+              _buildReportList(context),
             ],
           ),
         );
@@ -55,16 +56,16 @@ class ReportsScreen extends StatelessWidget {
                 style: isMobile 
                   ? Theme.of(context).textTheme.titleLarge 
                   : Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: 4),
-              const Text('Deep-dive institutional metrics and printable exports.', style: TextStyle(color: AppTheme.textSecondary)),
+              SizedBox(height: 4),
+              Text('Deep-dive institutional metrics and printable exports.', style: TextStyle(color: context.textSec)),
             ],
           ),
         ),
         if (!isMobile)
           ElevatedButton.icon(
             onPressed: () {},
-            icon: const Icon(LucideIcons.printer),
-            label: const Text('Export PDF'),
+            icon: Icon(LucideIcons.printer),
+            label: Text('Export PDF'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -74,10 +75,10 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSystemPerformance() {
+  Widget _buildSystemPerformance(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: AppTheme.glassDecoration(opacity: 0.6).copyWith(
+      padding: EdgeInsets.all(24),
+      decoration: context.glassDecoration.copyWith(
         boxShadow: AppTheme.softShadow,
       ),
       child: Column(
@@ -86,18 +87,18 @@ class ReportsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Application Throughput', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text('Application Throughput', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               DropdownButton<String>(
                 value: 'This Year',
-                underline: const SizedBox(),
-                items: ['This Week', 'This Month', 'This Year'].map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 12)))).toList(),
+                underline: SizedBox(),
+                items: ['This Week', 'This Month', 'This Year'].map((e) => DropdownMenuItem(value: e, child: Text(e, style: TextStyle(fontSize: 12)))).toList(),
                 onChanged: (v) {},
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          const Text('Total documents scanned vs. approved over time.', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-          const SizedBox(height: 32),
+          SizedBox(height: 4),
+          Text('Total documents scanned vs. approved over time.', style: TextStyle(fontSize: 12, color: context.textSec)),
+          SizedBox(height: 32),
           SizedBox(
             height: 250,
             child: BarChart(
@@ -113,7 +114,7 @@ class ReportsScreen extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        const style = TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold, fontSize: 11);
+                        TextStyle style = TextStyle(color: context.textSec, fontWeight: FontWeight.bold, fontSize: 11);
                         String text;
                         switch (value.toInt()) {
                           case 0: text = 'Q1'; break;
@@ -122,7 +123,7 @@ class ReportsScreen extends StatelessWidget {
                           case 3: text = 'Q4'; break;
                           default: text = '';
                         }
-                        return Padding(padding: const EdgeInsets.only(top: 8), child: Text(text, style: style));
+                        return Padding(padding: EdgeInsets.only(top: 8), child: Text(text, style: style));
                       },
                     ),
                   ),
@@ -142,13 +143,13 @@ class ReportsScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _legendIndicator('Total Submissions', AppTheme.primaryColor.withValues(alpha: 0.3)),
-              const SizedBox(width: 16),
-              _legendIndicator('Approved', AppTheme.primaryColor),
+              _legendIndicator(context, 'Total Submissions', AppTheme.primaryColor.withValues(alpha: 0.3)),
+              SizedBox(width: 16),
+              _legendIndicator(context, 'Approved', AppTheme.primaryColor),
             ],
           ),
         ],
@@ -177,29 +178,29 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  Widget _legendIndicator(String title, Color color) {
+  Widget _legendIndicator(BuildContext context, String title, Color color) {
     return Row(
       children: [
         Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        const SizedBox(width: 6),
-        Text(title, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+        SizedBox(width: 6),
+        Text(title, style: TextStyle(fontSize: 12, color: context.textSec)),
       ],
     );
   }
 
-  Widget _buildDemographicBreakdown() {
+  Widget _buildDemographicBreakdown(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: AppTheme.glassDecoration(opacity: 0.6).copyWith(
+      padding: EdgeInsets.all(24),
+      decoration: context.glassDecoration.copyWith(
         boxShadow: AppTheme.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Approval by College', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          const Text('Success rates across university departments.', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-          const SizedBox(height: 32),
+          Text('Approval by College', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          SizedBox(height: 4),
+          Text('Success rates across university departments.', style: TextStyle(fontSize: 12, color: context.textSec)),
+          SizedBox(height: 32),
           SizedBox(
             height: 200,
             child: PieChart(
@@ -207,15 +208,15 @@ class ReportsScreen extends StatelessWidget {
                 sectionsSpace: 2,
                 centerSpaceRadius: 50,
                 sections: [
-                  PieChartSectionData(color: AppTheme.primaryColor, value: 40, title: 'CAS', radius: 40, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
-                  PieChartSectionData(color: AppTheme.secondaryColor, value: 30, title: 'CCS', radius: 45, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
-                  PieChartSectionData(color: AppTheme.success, value: 20, title: 'COE', radius: 35, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
-                  PieChartSectionData(color: AppTheme.warning, value: 10, title: 'CBA', radius: 30, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+                  PieChartSectionData(color: AppTheme.primaryColor, value: 40, title: 'CAS', radius: 40, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 11)),
+                  PieChartSectionData(color: AppTheme.secondaryColor, value: 30, title: 'CCS', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 11)),
+                  PieChartSectionData(color: AppTheme.success, value: 20, title: 'COE', radius: 35, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 11)),
+                  PieChartSectionData(color: AppTheme.warning, value: 10, title: 'CBA', radius: 30, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 11)),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
           _collegeLegend('College of Arts and Sciences', '40%', AppTheme.primaryColor),
           _collegeLegend('College of Computer Studies', '30%', AppTheme.secondaryColor),
           _collegeLegend('College of Engineering', '20%', AppTheme.success),
@@ -227,24 +228,24 @@ class ReportsScreen extends StatelessWidget {
 
   Widget _collegeLegend(String name, String percentage, Color color) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
-              const SizedBox(width: 8),
-              Text(name, style: const TextStyle(fontSize: 12)),
+              SizedBox(width: 8),
+              Text(name, style: TextStyle(fontSize: 12)),
             ],
           ),
-          Text(percentage, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(percentage, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
-  Widget _buildReportList() {
+  Widget _buildReportList(BuildContext context) {
     final reports = [
       {'title': 'Q3 2025 Submission Integrity Report', 'date': 'Pending Generation', 'icon': LucideIcons.bot, 'color': AppTheme.secondaryColor},
       {'title': 'Annual Institutional Demographic Summary', 'date': 'Generated: Oct 12, 2025', 'icon': LucideIcons.users, 'color': AppTheme.primaryColor},
@@ -256,21 +257,21 @@ class ReportsScreen extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: reports.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      separatorBuilder: (context, index) => SizedBox(height: 12),
       itemBuilder: (context, index) {
         final r = reports[index];
         return Container(
-          decoration: AppTheme.glassDecoration(opacity: 0.6),
+          decoration: context.glassDecoration,
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             leading: CircleAvatar(
               backgroundColor: (r['color'] as Color).withValues(alpha: 0.1),
               child: Icon(r['icon'] as IconData, color: r['color'] as Color, size: 20),
             ),
-            title: Text(r['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            subtitle: Text(r['date'] as String, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+            title: Text(r['title'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            subtitle: Text(r['date'] as String, style: TextStyle(fontSize: 12, color: context.textSec)),
             trailing: IconButton(
-              icon: const Icon(LucideIcons.download, size: 20, color: AppTheme.textSecondary),
+              icon: Icon(LucideIcons.download, size: 20, color: context.textSec),
               onPressed: () {},
             ),
           ),

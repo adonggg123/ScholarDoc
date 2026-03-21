@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 import '../admin/admin_login_screen.dart';
@@ -15,23 +16,23 @@ class WelcomeScreen extends StatelessWidget {
         child: Center(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: EdgeInsets.all(32.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       LucideIcons.graduationCap,
                       size: 64,
                       color: AppTheme.primaryColor,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   Text(
                     'ScholarDoc',
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
@@ -39,16 +40,16 @@ class WelcomeScreen extends StatelessWidget {
                           color: AppTheme.primaryColor,
                         ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
+                  SizedBox(height: 12),
+                  Text(
                     'Your bridge to a brighter future through seamless scholarship management.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
-                      color: AppTheme.textSecondary,
+                      color: context.textSec,
                     ),
                   ),
-                  const SizedBox(height: 64),
+                  SizedBox(height: 64),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -59,10 +60,10 @@ class WelcomeScreen extends StatelessWidget {
                               builder: (context) => const LoginScreen()),
                         );
                       },
-                      child: const Text('Log In'),
+                      child: Text('Log In'),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
@@ -73,10 +74,10 @@ class WelcomeScreen extends StatelessWidget {
                               builder: (context) => const RegisterScreen()),
                         );
                       },
-                      child: const Text('Create an Account'),
+                      child: Text('Create an Account'),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   TextButton(
                     onPressed: () {
                       Navigator.push(
@@ -85,12 +86,12 @@ class WelcomeScreen extends StatelessWidget {
                             builder: (context) => const AdminLoginScreen()),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Admin Portal Entrance',
-                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      style: TextStyle(color: context.textSec, fontSize: 13),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                 ],
               ),
             ),

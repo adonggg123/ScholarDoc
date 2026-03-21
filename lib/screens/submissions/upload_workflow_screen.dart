@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../services/ml_service.dart';
 
@@ -79,7 +80,7 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Submit Documents'),
+        title: Text('Submit Documents'),
       ),
       body: Stepper(
         type: StepperType.horizontal,
@@ -110,17 +111,17 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
         },
         steps: [
           Step(
-            title: const Text('Guidelines'),
+            title: Text('Guidelines'),
             content: _buildStep1(),
             isActive: _currentStep >= 0,
           ),
           Step(
-            title: const Text('Upload'),
+            title: Text('Upload'),
             content: _buildStep2(),
             isActive: _currentStep >= 1,
           ),
           Step(
-            title: const Text('Review'),
+            title: Text('Review'),
             content: _buildStep3(),
             isActive: _currentStep >= 2,
           ),
@@ -133,17 +134,17 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Required Documents for TES Submission:',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         _bulletPoint('Validated School ID (Front & Back)'),
         _bulletPoint('Billing Record / Certificate of Registration'),
         _bulletPoint('Affidavit of Waiver (if required)'),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppTheme.warning.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
@@ -167,11 +168,11 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
 
   Widget _bulletPoint(String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
-          const Icon(LucideIcons.checkCircle2, size: 16, color: AppTheme.success),
-          const SizedBox(width: 8),
+          Icon(LucideIcons.checkCircle2, size: 16, color: AppTheme.success),
+          SizedBox(width: 8),
           Text(text),
         ],
       ),
@@ -198,7 +199,7 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
           onTap: _simulateUpload,
           feedback: _validationError,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         _buildUploadCard(
           'Billing Record',
           LucideIcons.fileText,
@@ -225,51 +226,51 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Column(
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, color: AppTheme.primaryColor),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const Text('PNG, JPG, or PDF up to 5MB', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text('PNG, JPG, or PDF up to 5MB', style: TextStyle(fontSize: 12, color: Colors.grey)),
                     ],
                   ),
                 ),
                 IconButton(
                   onPressed: onTap,
-                  icon: const Icon(LucideIcons.upload, color: AppTheme.textSecondary),
+                  icon: Icon(LucideIcons.upload, color: context.textSec),
                 ),
               ],
             ),
             if (feedback != null) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppTheme.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.sparkles, size: 14, color: AppTheme.success),
-                    const SizedBox(width: 8),
+                    Icon(LucideIcons.sparkles, size: 14, color: AppTheme.success),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         feedback,
-                        style: const TextStyle(fontSize: 11, color: AppTheme.success),
+                        style: TextStyle(fontSize: 11, color: AppTheme.success),
                       ),
                     ),
                   ],
@@ -277,9 +278,9 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
               ),
             ],
             if (isDuplicate) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppTheme.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),

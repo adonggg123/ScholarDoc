@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'theme/app_theme.dart';
+import 'theme/theme_provider.dart';
 import 'screens/auth/splash_screen.dart';
 import 'firebase_options.dart';
 
@@ -22,11 +23,18 @@ class ScholarDocApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ScholarDoc',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: const SplashScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeProvider().themeNotifier,
+      builder: (_, ThemeMode currentMode, _) {
+        return MaterialApp(
+          title: 'ScholarDoc',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: currentMode,
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

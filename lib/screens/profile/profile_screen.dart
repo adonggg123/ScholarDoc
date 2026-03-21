@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 import '../../services/ml_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -19,18 +20,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: Text('My Profile'),
         actions: [
           IconButton(
             onPressed: () {
               // Logout logic
             },
-            icon: const Icon(LucideIcons.logOut, color: AppTheme.error),
+            icon: Icon(LucideIcons.logOut, color: AppTheme.error),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           children: [
             const CircleAvatar(
@@ -38,36 +39,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
               backgroundColor: AppTheme.primaryColor,
               child: Icon(LucideIcons.user, size: 60, color: Colors.white),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               'Juan De La Cruz',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const Text(
+            Text(
               'BS Computer Science - 3rd Year',
-              style: TextStyle(color: AppTheme.textSecondary),
+              style: TextStyle(color: context.textSec),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSectionTitle('Personal Information'),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _buildProfileField('Full Name', 'Juan De La Cruz', LucideIcons.user),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _buildProfileField('Student ID', '2021-00421', LucideIcons.badgeCheck),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _buildProfileField('Email', 'juan.dlc@university.edu.ph', LucideIcons.mail),
-                  const SizedBox(height: 32),
-                  _buildSectionTitle('Banking Details'),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Provide your Savings Account (SA) number for scholarship fund disbursement.',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  SizedBox(height: 32),
+                  _buildSectionTitle('App Preferences'),
+                  SizedBox(height: 16),
+                  ValueListenableBuilder<ThemeMode>(
+                    valueListenable: ThemeProvider().themeNotifier,
+                    builder: (context, theme, _) {
+                      return SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                        subtitle: Text('Switch between Light and Slate Dark mode.', style: TextStyle(fontSize: 12, color: context.textSec)),
+                        value: theme == ThemeMode.dark,
+                        activeTrackColor: AppTheme.primaryColor,
+                        onChanged: (val) => ThemeProvider().toggleTheme(),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 32),
+                  _buildSectionTitle('Banking Details'),
+                  SizedBox(height: 8),
+                  Text(
+                    'Provide your Savings Account (SA) number for scholarship fund disbursement.',
+                    style: TextStyle(fontSize: 12, color: context.textSec),
+                  ),
+                  SizedBox(height: 16),
                   TextFormField(
                     controller: _saController,
                     decoration: const InputDecoration(
@@ -87,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 48),
+                  SizedBox(height: 48),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -98,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           );
                         }
                       },
-                      child: const Text('Update Profile'),
+                      child: Text('Update Profile'),
                     ),
                   ),
                 ],
@@ -113,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
         color: AppTheme.primaryColor,
@@ -125,20 +142,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-        const SizedBox(height: 8),
+        Text(label, style: TextStyle(fontSize: 12, color: context.textSec)),
+        SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaceC,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: AppTheme.textSecondary),
-              const SizedBox(width: 12),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+              Icon(icon, size: 18, color: context.textSec),
+              SizedBox(width: 12),
+              Text(value, style: TextStyle(fontWeight: FontWeight.w500)),
             ],
           ),
         ),

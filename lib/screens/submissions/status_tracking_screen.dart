@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 
 class StatusTrackingScreen extends StatelessWidget {
   const StatusTrackingScreen({super.key});
@@ -9,16 +10,16 @@ class StatusTrackingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Submissions'),
+        title: Text('My Submissions'),
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(LucideIcons.filter),
+            icon: Icon(LucideIcons.filter),
           ),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         children: [
           _buildStatusItem(
             context,
@@ -27,7 +28,7 @@ class StatusTrackingScreen extends StatelessWidget {
             'Pending Review',
             AppTheme.warning,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildStatusItem(
             context,
             'Spring Semester 2023 Docs',
@@ -35,7 +36,7 @@ class StatusTrackingScreen extends StatelessWidget {
             'Approved',
             AppTheme.success,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildStatusItem(
             context,
             'Midyear 2023 Docs',
@@ -59,7 +60,7 @@ class StatusTrackingScreen extends StatelessWidget {
   }) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -72,16 +73,16 @@ class StatusTrackingScreen extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         date,
-                        style: const TextStyle(
-                          color: AppTheme.textSecondary,
+                        style: TextStyle(
+                          color: context.textSec,
                           fontSize: 12,
                         ),
                       ),
@@ -89,7 +90,7 @@ class StatusTrackingScreen extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -106,9 +107,9 @@ class StatusTrackingScreen extends StatelessWidget {
               ],
             ),
             if (feedback != null) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppTheme.error.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
@@ -131,30 +132,30 @@ class StatusTrackingScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       feedback,
-                      style: const TextStyle(fontSize: 13, color: AppTheme.textPrimary),
+                      style: TextStyle(fontSize: 13, color: context.textPri),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.error,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: EdgeInsets.symmetric(vertical: 8),
                         ),
-                        child: const Text('Resubmit Documents', style: TextStyle(fontSize: 12)),
+                        child: Text('Resubmit Documents', style: TextStyle(fontSize: 12)),
                       ),
                     ),
                   ],
                 ),
               ),
             ],
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
+            SizedBox(height: 16),
+            Divider(),
+            SizedBox(height: 8),
             const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

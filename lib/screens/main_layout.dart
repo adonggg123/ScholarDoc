@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../theme/app_theme.dart';
+import '../theme/theme_provider.dart';
 import 'dashboard/home_screen.dart';
 import 'submissions/status_tracking_screen.dart';
 import 'notifications/notification_screen.dart';
@@ -75,10 +76,10 @@ class _MainLayoutState extends State<MainLayout> {
                 // Navigate to workflow screen (Implemented later)
               },
               backgroundColor: AppTheme.primaryColor,
-              icon: const Icon(LucideIcons.uploadCloud, color: Colors.white),
-              label: const Text(
+              icon: Icon(LucideIcons.uploadCloud, color: Colors.white),
+              label: Text(
                 'Submit Docs',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold),
               ),
             )
           : null,

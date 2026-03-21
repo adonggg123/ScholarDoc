@@ -2,11 +2,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 import 'dashboard_overview.dart';
 import 'student_records_screen.dart';
 import 'sa_verification_screen.dart';
 import 'audit_log_screen.dart';
 import 'reports_screen.dart';
+import 'admin_settings_screen.dart';
 
 class AdminMainLayout extends StatefulWidget {
   const AdminMainLayout({super.key});
@@ -25,6 +27,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
     const SaVerificationScreen(),
     const AuditLogScreen(),
     const ReportsScreen(),
+    const AdminSettingsScreen(),
   ];
 
   @override
@@ -46,9 +49,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                     child: Container(
                       width: 210,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: context.surfaceC.withValues(alpha: 0.7),
                         border: Border(
-                          right: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                          right: BorderSide(color: context.surfaceC.withValues(alpha: 0.2)),
                         ),
                         boxShadow: AppTheme.softShadow,
                       ),
@@ -63,7 +66,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                     _buildTopBar(isMobile),
                     Expanded(
                       child: Container(
-                        color: AppTheme.backgroundColor,
+                        color: context.bgC,
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
                           child: _selectedIndex < _screens.length ? _screens[_selectedIndex] : _screens[0],
@@ -90,10 +93,10 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
     return Column(
       children: [
         _buildSidebarHeader(),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
                 _buildNavItem(0, 'Dashboard', LucideIcons.layoutDashboard),
@@ -101,13 +104,13 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                 _buildNavItem(2, 'SA Verification', LucideIcons.landmark),
                 _buildNavItem(3, 'Activity Logs', LucideIcons.history),
                 _buildNavItem(4, 'Reports', LucideIcons.barChart4),
-                const SizedBox(height: 24),
-                const Divider(),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
+                Divider(),
+                SizedBox(height: 24),
                 _buildNavItem(5, 'Settings', LucideIcons.settings),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _buildLogoutItem(),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
               ],
             ),
           ),
@@ -118,18 +121,18 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
 
   Widget _buildSidebarHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(6),
+            padding: EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: AppTheme.primaryColor,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(LucideIcons.graduationCap, color: Colors.white, size: 18),
+            child: Icon(LucideIcons.graduationCap, color: context.surfaceC, size: 18),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           const Flexible(
             child: Text(
               'ScholarDoc',
@@ -149,7 +152,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
   Widget _buildNavItem(int index, String label, IconData icon) {
     bool isSelected = _selectedIndex == index;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: InkWell(
@@ -164,7 +167,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
           borderRadius: BorderRadius.circular(12),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
@@ -180,24 +183,24 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
               children: [
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: isSelected ? AppTheme.primaryColor : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     icon,
-                    color: isSelected ? Colors.white : AppTheme.textSecondary,
+                    color: isSelected ? Colors.white : context.textSec,
                     size: 18,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Flexible(
                   child: Text(
                     label,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+                      color: isSelected ? context.textPri : context.textSec,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -218,8 +221,8 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: const Row(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
           children: [
             Icon(LucideIcons.logOut, color: AppTheme.error, size: 20),
             SizedBox(width: 16),
@@ -243,21 +246,21 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
         child: Container(
           constraints: const BoxConstraints(minHeight: 56),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.8),
+            color: context.surfaceC.withValues(alpha: 0.8),
             border: Border(
-              bottom: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+              bottom: BorderSide(color: context.surfaceC.withValues(alpha: 0.2)),
             ),
             boxShadow: AppTheme.softShadow,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           child: Row(
             children: [
               if (isMobile)
                 IconButton(
-                  icon: const Icon(LucideIcons.menu, size: 20),
+                  icon: Icon(LucideIcons.menu, size: 20),
                   onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                 ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               const Expanded(
                 child: Text(
                   'Admin Dashboard',
@@ -265,28 +268,28 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           // Notifications
           IconButton(
             onPressed: () {},
-            icon: const Icon(LucideIcons.bell, size: 20),
+            icon: Icon(LucideIcons.bell, size: 20),
           ),
           if (!isMobile) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             // Admin Profile
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CircleAvatar(
                     radius: 14,
                     backgroundColor: AppTheme.secondaryColor,
-                    child: Icon(Icons.person, size: 16, color: Colors.white),
+                    child: Icon(Icons.person, size: 16, color: context.surfaceC),
                   ),
                   SizedBox(width: 8),
                   Flexible(
