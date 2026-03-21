@@ -34,6 +34,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _incomeController = TextEditingController();
   final TextEditingController _religionController = TextEditingController();
   final TextEditingController _tribeController = TextEditingController();
+  
+  // Academic Dropdown Values
+  String? _selectedCourse;
+  String? _selectedYear;
+  String? _selectedSection;
+
+  final List<String> _courses = ['BSCS', 'BSIT', 'BSIS', 'BSECE', 'BSME', 'BSCE'];
+  final List<String> _years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
+  
+  List<String> _getSectionsForYear(String? year) {
+    if (year == null) return [];
+    final yearPrefix = year.substring(0, 1); // Get '1' from '1st Year'
+    return ['A', 'B', 'C', 'D', 'E', 'F'].map((s) => '$yearPrefix$s').toList();
+  }
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -124,17 +138,84 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
-                    labelText: 'University Email',
+                    labelText: 'Gmail Address',
                     prefixIcon: Icon(Icons.email_outlined),
-                    hintText: 'e.g. juan@university.edu.ph',
+                    hintText: 'e.g. juan@gmail.com',
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return 'Please enter your Gmail address';
+                    }
+                    if (!value.toLowerCase().endsWith('@gmail.com')) {
+                      return 'Please use a valid Gmail address';
                     }
                     return null;
                   },
+                ),
+                SizedBox(height: 16),
+
+                // Course Dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedCourse,
+                  decoration: const InputDecoration(
+                    labelText: 'Course',
+                    prefixIcon: Icon(Icons.school_outlined),
+                  ),
+                  items: _courses.map((String course) {
+                    return DropdownMenuItem(
+                      value: course,
+                      child: Text(course),
+                    );
+                  }).toList(),
+                  onChanged: (val) => setState(() => _selectedCourse = val),
+                  validator: (val) => val == null ? 'Please select your course' : null,
+                ),
+                SizedBox(height: 16),
+
+                // Year & Section Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedYear,
+                        decoration: const InputDecoration(
+                          labelText: 'Year Level',
+                        ),
+                        items: _years.map((String year) {
+                          return DropdownMenuItem(
+                            value: year,
+                            child: Text(year),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedYear = val;
+                            _selectedSection = null; // Reset section when year changes
+                          });
+                        },
+                        validator: (val) => val == null ? 'Select year' : null,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedSection,
+                        key: ValueKey(_selectedYear), // Rebuild when year changes
+                        decoration: const InputDecoration(
+                          labelText: 'Section',
+                        ),
+                        items: _getSectionsForYear(_selectedYear).map((String section) {
+                          return DropdownMenuItem(
+                            value: section,
+                            child: Text(section),
+                          );
+                        }).toList(),
+                        onChanged: (val) => setState(() => _selectedSection = val),
+                        validator: (val) => val == null ? 'Select section' : null,
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 16),
 
@@ -360,6 +441,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 'fullName': _nameController.text.trim(),
                                 'studentId': _studentIdController.text.trim(),
                                 'email': _emailController.text.trim(),
+                                'course': _selectedCourse,
+                                'year': _selectedYear,
+                                'section': _selectedSection,
                                 'role': 'student',
                                 'familyDetails': {
                                   'fatherName': _fatherNameController.text.trim(),

@@ -4,6 +4,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/ml_service.dart';
+import '../../services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DashboardOverview extends StatelessWidget {
   const DashboardOverview({super.key});
@@ -69,11 +71,11 @@ class DashboardOverview extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Dashboard Overview', 
-                    style: isMobile 
+                    style: (isMobile 
                       ? Theme.of(context).textTheme.titleLarge 
-                      : Theme.of(context).textTheme.headlineMedium),
-                  SizedBox(height: 4),
-                  Text('Real-time analytics and system monitoring.', style: TextStyle(fontSize: 13)),
+                      : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 2),
+                  Text('Real-time system analytics and monitor.', style: TextStyle(fontSize: 12, color: context.textSec)),
                 ],
               ),
             ),
@@ -101,37 +103,62 @@ class DashboardOverview extends StatelessWidget {
   }
 
   Widget _buildStatsGrid(BuildContext context, bool isMobile) {
-    if (isMobile) {
-      return Column(
-        children: [
-          Row(
+    final AuthService authService = AuthService();
+    
+    return StreamBuilder<QuerySnapshot>(
+      stream: authService.getStudentsStream(),
+      builder: (context, snapshot) {
+        int total = 0;
+        int pending = 0;
+        int approved = 0;
+        int rejected = 0;
+
+        if (snapshot.hasData) {
+          final docs = snapshot.data!.docs;
+          total = docs.length;
+          for (var doc in docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            final status = data['status'] ?? 'Pending';
+            if (status == 'Pending') pending++;
+            else if (status == 'Approved') approved++;
+            else if (status == 'Rejected') rejected++;
+          }
+        }
+
+        if (isMobile) {
+          return Column(
             children: [
-              _buildStatCard(context, 'Total', '1,248', LucideIcons.fileText, AppTheme.primaryColor),
-              SizedBox(width: 16),
-              _buildStatCard(context, 'Pending', '156', LucideIcons.clock, AppTheme.warning),
+              Row(
+                children: [
+                  _buildStatCard(context, 'Total', total.toString(), LucideIcons.fileText, AppTheme.primaryColor),
+                  SizedBox(width: 16),
+                  _buildStatCard(context, 'Pending', pending.toString(), LucideIcons.clock, AppTheme.warning),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  _buildStatCard(context, 'Approved', approved.toString(), LucideIcons.checkCircle2, AppTheme.success),
+                  SizedBox(width: 16),
+                  _buildStatCard(context, 'Rejected', rejected.toString(), LucideIcons.alertCircle, AppTheme.error),
+                ],
+              ),
             ],
-          ),
-          SizedBox(height: 16),
-          Row(
-            children: [
-              _buildStatCard(context, 'Approved', '982', LucideIcons.checkCircle2, AppTheme.success),
-              SizedBox(width: 16),
-              _buildStatCard(context, 'Rejected', '110', LucideIcons.alertCircle, AppTheme.error),
-            ],
-          ),
-        ],
-      );
-    }
-    return Row(
-      children: [
-        _buildStatCard(context, 'Total Submissions', '1,248', LucideIcons.fileText, AppTheme.primaryColor),
-        SizedBox(width: 24),
-        _buildStatCard(context, 'Pending Review', '156', LucideIcons.clock, AppTheme.warning),
-        SizedBox(width: 24),
-        _buildStatCard(context, 'Approved', '982', LucideIcons.checkCircle2, AppTheme.success),
-        SizedBox(width: 24),
-        _buildStatCard(context, 'Rejected', '110', LucideIcons.alertCircle, AppTheme.error),
-      ],
+          );
+        }
+        
+        return Row(
+          children: [
+            _buildStatCard(context, 'Total Students', total.toString(), LucideIcons.fileText, AppTheme.primaryColor),
+            SizedBox(width: 16),
+            _buildStatCard(context, 'Pending Review', pending.toString(), LucideIcons.clock, AppTheme.warning),
+            SizedBox(width: 16),
+            _buildStatCard(context, 'Approved', approved.toString(), LucideIcons.checkCircle2, AppTheme.success),
+            SizedBox(width: 16),
+            _buildStatCard(context, 'Rejected', rejected.toString(), LucideIcons.alertCircle, AppTheme.error),
+          ],
+        );
+      }
     );
   }
 
@@ -140,26 +167,26 @@ class DashboardOverview extends StatelessWidget {
       child: Container(
         decoration: context.crispDecoration,
         child: Padding(
-          padding: EdgeInsets.all(12),
+          padding: EdgeInsets.all(10),
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(10),
+                padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: color, size: 20),
+                child: Icon(icon, color: color, size: 18),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.textSec, fontSize: 11, fontWeight: FontWeight.w500)),
+                    Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.textSec, fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.2)),
                     SizedBox(height: 2),
-                    Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+                    Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
                   ],
                 ),
               ),
@@ -260,39 +287,68 @@ class DashboardOverview extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusDistribution(BuildContext context) {
-    return Container(
-      decoration: context.glassDecoration.copyWith(
-        boxShadow: AppTheme.softShadow,
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Status Distribution', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16),
-            SizedBox(
-              height: 160,
-              child: PieChart(
-                PieChartData(
-                  sectionsSpace: 4,
-                  centerSpaceRadius: 40,
-                  sections: [
-                    PieChartSectionData(color: AppTheme.success, value: 70, title: '70%', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 12)),
-                    PieChartSectionData(color: AppTheme.warning, value: 20, title: '20%', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 12)),
-                    PieChartSectionData(color: AppTheme.error, value: 10, title: '10%', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 12)),
-                  ],
+   Widget _buildStatusDistribution(BuildContext context) {
+    final AuthService authService = AuthService();
+    
+    return StreamBuilder<QuerySnapshot>(
+      stream: authService.getStudentsStream(),
+      builder: (context, snapshot) {
+        double pending = 0;
+        double approved = 0;
+        double rejected = 0;
+        double total = 0;
+
+        if (snapshot.hasData) {
+          final docs = snapshot.data!.docs;
+          total = docs.length.toDouble();
+          for (var doc in docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            final status = data['status'] ?? 'Pending';
+            if (status == 'Pending') pending++;
+            else if (status == 'Approved') approved++;
+            else if (status == 'Rejected') rejected++;
+          }
+        }
+
+        bool hasData = total > 0;
+        double pPer = hasData ? (pending / total) * 100 : 0;
+        double aPer = hasData ? (approved / total) * 100 : 0;
+        double rPer = hasData ? (rejected / total) * 100 : 0;
+
+        return Container(
+          decoration: context.glassDecoration.copyWith(
+            boxShadow: AppTheme.softShadow,
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Status Distribution', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                SizedBox(height: 16),
+                SizedBox(
+                  height: 160,
+                  child: hasData ? PieChart(
+                    PieChartData(
+                      sectionsSpace: 4,
+                      centerSpaceRadius: 40,
+                      sections: [
+                        if (approved > 0) PieChartSectionData(color: AppTheme.success, value: approved, title: '${aPer.toStringAsFixed(0)}%', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 12)),
+                        if (pending > 0) PieChartSectionData(color: AppTheme.warning, value: pending, title: '${pPer.toStringAsFixed(0)}%', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 12)),
+                        if (rejected > 0) PieChartSectionData(color: AppTheme.error, value: rejected, title: '${rPer.toStringAsFixed(0)}%', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 12)),
+                      ],
+                    ),
+                  ) : Center(child: Text('No data')),
                 ),
-              ),
+                SizedBox(height: 24),
+                _buildLegendItem(context, 'Approved', AppTheme.success),
+                _buildLegendItem(context, 'Pending', AppTheme.warning),
+                _buildLegendItem(context, 'Rejected', AppTheme.error),
+              ],
             ),
-            SizedBox(height: 24),
-            _buildLegendItem(context, 'Approved', AppTheme.success),
-            _buildLegendItem(context, 'Pending', AppTheme.warning),
-            _buildLegendItem(context, 'Rejected', AppTheme.error),
-          ],
-        ),
-      ),
+          ),
+        );
+      }
     );
   }
 
@@ -310,6 +366,8 @@ class DashboardOverview extends StatelessWidget {
   }
 
   Widget _buildRecentActivity(BuildContext context) {
+    final AuthService authService = AuthService();
+    
     return Container(
       decoration: context.glassDecoration.copyWith(
         boxShadow: AppTheme.softShadow,
@@ -321,38 +379,57 @@ class DashboardOverview extends StatelessWidget {
           children: [
             Text('Recent System Activity', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             SizedBox(height: 12),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 5,
-              separatorBuilder: (context, index) => Divider(),
-              itemBuilder: (context, index) {
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.grey.shade100,
-                    child: Icon(LucideIcons.user, size: 20, color: context.textSec),
-                  ),
-                  title: RichText(
-                    text: TextSpan(
-                      style: TextStyle(color: context.textPri, fontSize: 14),
-                      children: [
-                        const TextSpan(text: 'Admin approved ', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const TextSpan(text: 'Juan De La Cruz\'s billing record.'),
-                      ],
-                    ),
-                  ),
-                  subtitle: Text('2 minutes ago', style: TextStyle(fontSize: 12)),
-                  trailing: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text('Approved', style: TextStyle(color: AppTheme.success, fontSize: 11, fontWeight: FontWeight.bold)),
-                  ),
+            StreamBuilder<QuerySnapshot>(
+              stream: authService.getStudentsStream(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(child: Text('No recent activity.', style: TextStyle(color: context.textSec, fontSize: 13))),
+                  );
+                }
+
+                final docs = snapshot.data!.docs.take(5).toList();
+                
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: docs.length,
+                  separatorBuilder: (context, index) => Divider(),
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>;
+                    final String name = data['fullName'] ?? 'A student';
+                    final String status = data['status'] ?? 'Pending';
+                    final Color statusColor = status == 'Approved' ? AppTheme.success : (status == 'Rejected' ? AppTheme.error : AppTheme.warning);
+
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        child: Icon(LucideIcons.user, size: 20, color: AppTheme.primaryColor),
+                      ),
+                      title: RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: context.textPri, fontSize: 14),
+                          children: [
+                            TextSpan(text: name, style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(text: ' registered in the system.'),
+                          ],
+                        ),
+                      ),
+                      subtitle: Text('Just now', style: TextStyle(fontSize: 12)),
+                      trailing: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+                    );
+                  },
                 );
-              },
+              }
             ),
           ],
         ),
@@ -360,18 +437,8 @@ class DashboardOverview extends StatelessWidget {
     );
   }
   Widget _buildHighRiskStudents(BuildContext context) {
+    final AuthService authService = AuthService();
     final MLService ml = MLService();
-    
-    // Mock students for dashboard analytics
-    final students = [
-      {'name': 'Maria Clara', 'id': '2022-0192', 'pastLateSubmissions': 3, 'familyDetails': null},
-      {'name': 'Jose Rizal', 'id': '2021-0042', 'pastLateSubmissions': 1, 'familyDetails': {'income': 'Low'}},
-      {'name': 'Andres Bonifacio', 'id': '2023-1122', 'pastLateSubmissions': 0, 'familyDetails': null},
-      {'name': 'Gabriela Silang', 'id': '2022-0811', 'pastLateSubmissions': 4, 'familyDetails': {}},
-    ];
-
-    // Auto-sort by highest risk first
-    students.sort((a, b) => ml.predictSubmissionRisk(b).compareTo(ml.predictSubmissionRisk(a)));
 
     return Container(
       decoration: context.glassDecoration.copyWith(
@@ -392,34 +459,63 @@ class DashboardOverview extends StatelessWidget {
             SizedBox(height: 4),
             Text('Students likely to submit late or incorrectly', style: TextStyle(fontSize: 12, color: context.textSec)),
             SizedBox(height: 16),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: students.length,
-              separatorBuilder: (context, index) => Divider(),
-              itemBuilder: (context, index) {
-                final student = students[index];
-                final risk = ml.predictSubmissionRisk(student);
-                final color = risk > 80 ? AppTheme.error : (risk > 50 ? AppTheme.warning : AppTheme.success);
-                
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: color.withValues(alpha: 0.1),
-                    child: Icon(LucideIcons.alertTriangle, size: 18, color: color),
-                  ),
-                  title: Text(student['name'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  subtitle: Text('ID: ${student['id']}', style: TextStyle(fontSize: 11)),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('${risk.toStringAsFixed(1)}%', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
-                      Text('Risk Score', style: TextStyle(fontSize: 9, color: context.textSec)),
-                    ],
-                  ),
+            StreamBuilder<QuerySnapshot>(
+              stream: authService.getStudentsStream(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(child: Text('No student data available.', style: TextStyle(color: context.textSec, fontSize: 13))),
+                  );
+                }
+
+                // Process real students
+                final List<Map<String, dynamic>> students = snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return {
+                    'name': data['fullName'] ?? 'N/A',
+                    'id': data['studentId'] ?? 'N/A',
+                    'pastLateSubmissions': 0, // In a real app, this would be a field
+                    'familyDetails': data['familyDetails'],
+                  };
+                }).toList();
+
+                // Auto-sort by highest risk first
+                students.sort((a, b) => ml.predictSubmissionRisk(b).compareTo(ml.predictSubmissionRisk(a)));
+
+                // Take top 4
+                final topRiskStudents = students.take(4).toList();
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: topRiskStudents.length,
+                  separatorBuilder: (context, index) => Divider(),
+                  itemBuilder: (context, index) {
+                    final student = topRiskStudents[index];
+                    final risk = ml.predictSubmissionRisk(student);
+                    final color = risk > 80 ? AppTheme.error : (risk > 50 ? AppTheme.warning : AppTheme.success);
+                    
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: color.withValues(alpha: 0.1),
+                        child: Icon(LucideIcons.alertTriangle, size: 18, color: color),
+                      ),
+                      title: Text(student['name'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      subtitle: Text('ID: ${student['id']}', style: TextStyle(fontSize: 11)),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('${risk.toStringAsFixed(1)}%', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text('Risk Score', style: TextStyle(fontSize: 9, color: context.textSec)),
+                        ],
+                      ),
+                    );
+                  },
                 );
-              },
+              }
             ),
           ],
         ),

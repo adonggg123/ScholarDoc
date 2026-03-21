@@ -11,7 +11,6 @@ class AppTheme {
   static const Color success = Color(0xFF10B981);
   static const Color warning = Color(0xFFF59E0B);
   static const Color error = Color(0xFFEF4444);
-
   // Premium Shadows
   static List<BoxShadow> get softShadow => [
     BoxShadow(
@@ -35,10 +34,10 @@ class AppTheme {
     ),
   ];
 
-  static BoxDecoration glassDecoration({double blur = 10, double opacity = 0.7, List<BoxShadow>? boxShadow}) {
+  static BoxDecoration glassDecoration({double blur = 10, double opacity = 0.7, List<BoxShadow>? boxShadow, BorderRadius? borderRadius}) {
     return BoxDecoration(
       color: Colors.white.withValues(alpha: opacity),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: borderRadius ?? BorderRadius.circular(16),
       border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       boxShadow: boxShadow,
     );

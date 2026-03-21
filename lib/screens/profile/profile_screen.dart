@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/ml_service.dart';
+import '../../services/auth_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,7 +15,30 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _saController = TextEditingController(text: '1234-5678-9012');
+  final AuthService _authService = AuthService();
   final MLService _mlService = MLService();
+  
+  Map<String, dynamic>? _profileData;
+  bool _isProfileLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final uid = _authService.currentUser?.uid;
+    if (uid != null) {
+      final doc = await _authService.getStudentProfile(uid);
+      if (doc.exists) {
+        setState(() {
+          _profileData = doc.data() as Map<String, dynamic>;
+          _isProfileLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,14 +64,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Icon(LucideIcons.user, size: 60, color: Colors.white),
             ),
             SizedBox(height: 16),
-            Text(
-              'Juan De La Cruz',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              'BS Computer Science - 3rd Year',
-              style: TextStyle(color: context.textSec),
-            ),
+            if (_isProfileLoading)
+              CircularProgressIndicator()
+            else ...[
+              Text(
+                _profileData?['fullName'] ?? 'Student Name',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                '${_profileData?['course'] ?? 'Course'} - ${_profileData?['year'] ?? 'Year Level'}',
+                style: TextStyle(color: context.textSec),
+              ),
+            ],
             SizedBox(height: 32),
             Form(
               key: _formKey,
@@ -56,11 +84,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildSectionTitle('Personal Information'),
                   SizedBox(height: 16),
-                  _buildProfileField('Full Name', 'Juan De La Cruz', LucideIcons.user),
+                  _buildProfileField('Full Name', _profileData?['fullName'] ?? 'Loading...', LucideIcons.user),
                   SizedBox(height: 16),
-                  _buildProfileField('Student ID', '2021-00421', LucideIcons.badgeCheck),
+                  _buildProfileField('Student ID', _profileData?['studentId'] ?? 'Loading...', LucideIcons.badgeCheck),
                   SizedBox(height: 16),
-                  _buildProfileField('Email', 'juan.dlc@university.edu.ph', LucideIcons.mail),
+                  _buildProfileField('Email', _profileData?['email'] ?? 'Loading...', LucideIcons.mail),
                   SizedBox(height: 32),
                   _buildSectionTitle('App Preferences'),
                   SizedBox(height: 16),

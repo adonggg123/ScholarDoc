@@ -90,6 +90,27 @@ class AuthService {
     await _auth.signOut();
   }
 
+  // Get student profile data from Firestore
+  Future<DocumentSnapshot> getStudentProfile(String uid) {
+    return _firestore.collection('students').doc(uid).get();
+  }
+
+  // Get stream of all students for Admin
+  Stream<QuerySnapshot> getStudentsStream() {
+    return _firestore
+        .collection('students')
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
+  // Get stream of all activity logs for Admin
+  Stream<QuerySnapshot> getAuditLogsStream() {
+    return _firestore
+        .collection('audit_logs')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
+  }
+
   // Get current user
   User? get currentUser => _auth.currentUser;
 }

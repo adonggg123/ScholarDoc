@@ -3,12 +3,17 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../submissions/upload_workflow_screen.dart';
+import '../../services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final AuthService authService = AuthService();
+    final String? uid = authService.currentUser?.uid;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -19,11 +24,21 @@ class HomeScreen extends StatelessWidget {
             backgroundColor: context.bgC,
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              title: Text(
-                'Hello, Juan!',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontSize: 24,
-                ),
+              title: FutureBuilder<DocumentSnapshot>(
+                future: uid != null ? authService.getStudentProfile(uid) : null,
+                builder: (context, snapshot) {
+                  String displayName = 'Student';
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    displayName = data['fullName']?.toString().split(' ').first ?? 'Student';
+                  }
+                  return Text(
+                    'Hello, $displayName!',
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontSize: 24,
+                    ),
+                  );
+                },
               ),
               centerTitle: false,
             ),

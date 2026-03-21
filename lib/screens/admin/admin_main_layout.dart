@@ -67,10 +67,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                     Expanded(
                       child: Container(
                         color: context.bgC,
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: _selectedIndex < _screens.length ? _screens[_selectedIndex] : _screens[0],
-                        ),
+                        child: _selectedIndex < _screens.length ? _screens[_selectedIndex] : _screens[0],
                       ),
                     ),
                   ],
