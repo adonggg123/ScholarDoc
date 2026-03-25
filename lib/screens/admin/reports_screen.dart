@@ -3,6 +3,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
+import '../../services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -189,6 +191,10 @@ class ReportsScreen extends StatelessWidget {
   }
 
   Widget _buildDemographicBreakdown(BuildContext context) {
+    final AuthService authService = AuthService();
+
+
+
     return Container(
       padding: EdgeInsets.all(24),
       decoration: context.glassDecoration.copyWith(
@@ -197,36 +203,91 @@ class ReportsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Approval by College', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text('Approval by Department', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           SizedBox(height: 4),
-          Text('Success rates across university departments.', style: TextStyle(fontSize: 12, color: context.textSec)),
+          Text('Program-specific performance analytics.', style: TextStyle(fontSize: 12, color: context.textSec)),
           SizedBox(height: 32),
-          SizedBox(
-            height: 200,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 2,
-                centerSpaceRadius: 50,
-                sections: [
-                  PieChartSectionData(color: AppTheme.primaryColor, value: 40, title: 'CAS', radius: 40, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 11)),
-                  PieChartSectionData(color: AppTheme.secondaryColor, value: 30, title: 'CCS', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 11)),
-                  PieChartSectionData(color: AppTheme.success, value: 20, title: 'COE', radius: 35, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 11)),
-                  PieChartSectionData(color: AppTheme.warning, value: 10, title: 'CBA', radius: 30, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 11)),
+          StreamBuilder<QuerySnapshot>(
+            stream: authService.getStudentsStream(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return SizedBox(
+                  height: 200,
+                  child: Center(child: Text('No student data available', style: TextStyle(color: context.textSec, fontSize: 12))),
+                );
+              }
+
+              // Aggregation logic
+              Map<String, int> deptCounts = {'BSIT': 0, 'BTLED': 0, 'BFPT': 0};
+              int total = 0;
+
+              for (var doc in snapshot.data!.docs) {
+                final data = doc.data() as Map<String, dynamic>;
+                final String course = data['course'] ?? '';
+                
+                String dept = 'Other';
+                if (course.contains('BSIT')) dept = 'BSIT';
+                else if (course.contains('BTLED')) dept = 'BTLED';
+                else if (course.contains('BFPT')) dept = 'BFPT';
+
+                if (deptCounts.containsKey(dept)) {
+                  deptCounts[dept] = deptCounts[dept]! + 1;
+                  total++;
+                }
+              }
+
+              if (total == 0) {
+                 return SizedBox(
+                  height: 200,
+                  child: Center(child: Text('No student data in current departments', style: TextStyle(color: context.textSec, fontSize: 12))),
+                );
+              }
+
+              return Column(
+                children: [
+                  SizedBox(
+                    height: 200,
+                    child: PieChart(
+                      PieChartData(
+                        sectionsSpace: 2,
+                        centerSpaceRadius: 50,
+                        sections: [
+                          _buildPieSection(context, 'BSIT', deptCounts['BSIT']!.toDouble(), total, AppTheme.primaryColor),
+                          _buildPieSection(context, 'BTLED', deptCounts['BTLED']!.toDouble(), total, AppTheme.secondaryColor),
+                          _buildPieSection(context, 'BFPT', deptCounts['BFPT']!.toDouble(), total, AppTheme.success),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 32),
+                  _collegeLegend('Dept. of Info. Technology (BSIT)', deptCounts['BSIT']!, total, AppTheme.primaryColor),
+                  _collegeLegend('Dept. of Technical Education (BTLED)', deptCounts['BTLED']!, total, AppTheme.secondaryColor),
+                  _collegeLegend('Dept. of Food Technology (BFPT)', deptCounts['BFPT']!, total, AppTheme.success),
                 ],
-              ),
-            ),
+              );
+            }
           ),
-          SizedBox(height: 32),
-          _collegeLegend('College of Arts and Sciences', '40%', AppTheme.primaryColor),
-          _collegeLegend('College of Computer Studies', '30%', AppTheme.secondaryColor),
-          _collegeLegend('College of Engineering', '20%', AppTheme.success),
-          _collegeLegend('College of Business Admin', '10%', AppTheme.warning),
         ],
       ),
     );
   }
 
-  Widget _collegeLegend(String name, String percentage, Color color) {
+  PieChartSectionData _buildPieSection(BuildContext context, String title, double value, int total, Color color) {
+    final double percentage = (value / total) * 100;
+    // Don't show labels for 0% sections to avoid clutter
+    if (percentage == 0) return PieChartSectionData(value: 0.1, color: color.withValues(alpha: 0.05), radius: 30, title: '');
+    
+    return PieChartSectionData(
+      color: color, 
+      value: value, 
+      title: title, 
+      radius: 35 + (percentage / 10), // Dynamic radius based on size
+      titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 10)
+    );
+  }
+
+  Widget _collegeLegend(String name, int count, int total, Color color) {
+    final String percentage = total > 0 ? '${((count / total) * 100).toStringAsFixed(0)}%' : '0%';
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(

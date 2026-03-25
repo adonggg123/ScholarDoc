@@ -40,7 +40,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _selectedYear;
   String? _selectedSection;
 
-  final List<String> _courses = ['BSCS', 'BSIT', 'BSIS', 'BSECE', 'BSME', 'BSCE'];
+  final List<String> _courses = [
+    'BSIT', 
+    'BTLED (major in TLE, ICT, and HE)', 
+    'BFPT'
+  ];
   final List<String> _years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
   
   List<String> _getSectionsForYear(String? year) {
