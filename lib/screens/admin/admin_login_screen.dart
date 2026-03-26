@@ -15,7 +15,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
-  
+
   bool _obscurePassword = true;
   bool _isLoading = false;
 
@@ -35,15 +35,15 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF1E293B), // Slate 800
-              Color(0xFF0F172A), // Slate 900
+              AppTheme.primaryColor,
+              AppTheme.primaryColor.withValues(alpha: 0.8),
             ],
           ),
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            bool isMobile = constraints.maxWidth < 900;
-            
+            bool isMobile = constraints.maxWidth < 1100;
+
             if (isMobile) {
               return SingleChildScrollView(
                 child: Column(
@@ -54,17 +54,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 ),
               );
             }
-            
+
             return Row(
               children: [
-                Expanded(
-                  flex: 3,
-                  child: _buildBrandingSection(context, false),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: _buildLoginForm(context, false),
-                ),
+                Expanded(flex: 3, child: _buildBrandingSection(context, false)),
+                Expanded(flex: 2, child: _buildLoginForm(context, false)),
               ],
             );
           },
@@ -75,52 +69,96 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   Widget _buildBrandingSection(BuildContext ctx, bool isMobile) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 64),
-      height: isMobile ? 300 : double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 32 : 80),
+      height: isMobile ? 350 : double.infinity,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: isMobile ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+        crossAxisAlignment: isMobile
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: Icon(
-              Icons.school,
-              size: isMobile ? 40 : 56,
               color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 40,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Image.asset(
+              'assets/app_logo.png',
+              height: isMobile ? 120 : 180,
+              errorBuilder: (context, error, stackTrace) => Icon(
+                Icons.school_rounded,
+                size: isMobile ? 64 : 96,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          ),
+          SizedBox(height: 48),
+          RichText(
+            textAlign: isMobile ? TextAlign.center : TextAlign.start,
+            text: TextSpan(
+              style: TextStyle(
+                fontSize: isMobile ? 40 : 64,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -1.5,
+              ),
+              children: [
+                TextSpan(
+                  text: 'Scholar',
+                  style: TextStyle(color: Colors.white),
+                ),
+                TextSpan(
+                  text: 'Doc',
+                  style: TextStyle(color: AppTheme.secondaryColor),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            'ADMINISTRATION COMMAND CENTER',
+            style: TextStyle(
+              color: AppTheme.accentColor,
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 6,
             ),
           ),
           SizedBox(height: 32),
-          Text(
-            'ScholarDoc',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: isMobile ? 32 : 56,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -1,
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
-          ),
-          Text(
-            'ADMINISTRATION PANEL',
-            style: TextStyle(
-              color: Colors.blue.shade400,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 4,
-            ),
-          ),
-          SizedBox(height: 24),
-          Text(
-            'Enterprise-grade scholarship management\nand student synchronization system.',
-            textAlign: isMobile ? TextAlign.center : TextAlign.start,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.6),
-              fontSize: 16,
-              height: 1.5,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Institutional Sync Active',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -147,7 +185,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
+                    color: AppTheme.primaryColor,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -161,19 +199,28 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   controller: _usernameController,
                   decoration: InputDecoration(
                     labelText: 'Username',
-                    prefixIcon: Icon(Icons.shield_outlined, size: 20),
+                    prefixIcon: Icon(
+                      Icons.shield_outlined,
+                      size: 20,
+                      color: AppTheme.primaryColor,
+                    ),
                     filled: true,
                     fillColor: Colors.grey.shade50,
                   ),
-                  validator: (value) => value!.isEmpty ? 'Field required' : null,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Field required' : null,
                 ),
-                      SizedBox(height: 24),
+                SizedBox(height: 24),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Secure Password',
-                    prefixIcon: Icon(Icons.key_outlined, size: 20),
+                    prefixIcon: Icon(
+                      Icons.key_outlined,
+                      size: 20,
+                      color: AppTheme.primaryColor,
+                    ),
                     fillColor: Colors.grey.shade50,
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -190,7 +237,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     ),
                     filled: true,
                   ),
-                  validator: (value) => value!.isEmpty ? 'Field required' : null,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Field required' : null,
                 ),
                 SizedBox(height: 24),
                 ElevatedButton(
@@ -208,13 +256,16 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               Navigator.pushReplacement(
                                 ctx,
                                 MaterialPageRoute(
-                                    builder: (context) => const AdminMainLayout()),
+                                  builder: (context) => const AdminMainLayout(),
+                                ),
                               );
                             } catch (e) {
                               if (!ctx.mounted) return;
                               ScaffoldMessenger.of(ctx).showSnackBar(
                                 SnackBar(
-                                  content: Text(e.toString().replaceAll('Exception: ', '')),
+                                  content: Text(
+                                    e.toString().replaceAll('Exception: ', ''),
+                                  ),
                                   backgroundColor: AppTheme.error,
                                   behavior: SnackBarBehavior.floating,
                                 ),
@@ -225,17 +276,30 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 18),
-                    backgroundColor: Color(0xFF1E293B),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    backgroundColor: AppTheme.primaryColor,
+                    shadowColor: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   child: _isLoading
                       ? SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
-                      : Text('Authorized Access Only'),
+                      : Text(
+                          'AUTHORIZED ACCESS ONLY',
+                          style: TextStyle(
+                            letterSpacing: 1.2,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
                 SizedBox(height: 24),
                 OutlinedButton(
@@ -244,7 +308,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: Text('Return to Student Portal'),
                 ),

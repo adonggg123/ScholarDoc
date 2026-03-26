@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF1D4ED8); // Trustworthy Academic Blue
-  static const Color secondaryColor = Color(0xFF3B82F6);
+  static const Color primaryColor = Color(0xFF1A3D6B); // Scholar Navy
+  static const Color secondaryColor = Color(0xFF43A047); // Doc Green
+  static const Color accentColor = Color(0xFFFBC02D); // Laurel Gold
   static const Color backgroundColor = Color(0xFFF9FAFB);
   static const Color surfaceColor = Colors.white;
   static const Color textPrimary = Color(0xFF1F2937);
   static const Color textSecondary = Color(0xFF6B7280);
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
+  static const Color success = Color(0xFF43A047);
+  static const Color warning = Color(0xFFFBC02D);
   static const Color error = Color(0xFFEF4444);
   // Premium Shadows
   static List<BoxShadow> get softShadow => [
@@ -27,7 +28,7 @@ class AppTheme {
 
   static List<BoxShadow> get premiumShadow => [
     BoxShadow(
-      color: primaryColor.withValues(alpha: 0.08),
+      color: primaryColor.withValues(alpha: 0.12),
       offset: const Offset(0, 10),
       blurRadius: 30,
       spreadRadius: -5,
