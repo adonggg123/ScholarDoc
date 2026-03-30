@@ -4,6 +4,9 @@ import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/ml_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/audit_service.dart';
+import '../auth/welcome_screen.dart';
+import 'student_activity_log_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,6 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _saController = TextEditingController(text: '1234-5678-9012');
   final AuthService _authService = AuthService();
   final MLService _mlService = MLService();
+  final AuditService _auditService = AuditService();
   
   Map<String, dynamic>? _profileData;
   bool _isProfileLoading = true;
@@ -47,10 +51,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text('My Profile'),
         actions: [
           IconButton(
-            onPressed: () {
-              // Logout logic
+            onPressed: () async {
+              // Execute logout
+              await _authService.logout();
+              
+              if (context.mounted) {
+                // Clear entire navigation stack and push to Welcome
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              }
             },
-            icon: Icon(LucideIcons.logOut, color: AppTheme.error),
+            icon: const Icon(LucideIcons.logOut, color: AppTheme.error),
           ),
         ],
       ),
@@ -136,14 +149,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
+                          // Note: In production, there would be an update to Firestore here for the SA number.
+
+                          // Log the profile update activity
+                          await _auditService.logActivity(
+                            action: 'Updated Profile (SA number)',
+                            userName: _profileData?['fullName'] ?? 'Student',
+                            role: 'Student',
+                            studentId: _profileData?['studentId'],
+                          );
+
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Profile updated successfully')),
                           );
                         }
                       },
                       child: Text('Update Profile'),
+                    ),
+                  ),
+                  SizedBox(height: 32),
+                  _buildSectionTitle('Security & Privacy'),
+                  SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const StudentActivityLogScreen(),
+                        ),
+                      );
+                    },
+                    icon: Icon(LucideIcons.history, size: 18),
+                    label: Text('View Account Activity'),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                      alignment: Alignment.centerLeft,
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ],

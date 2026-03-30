@@ -15,6 +15,16 @@ class StatusTrackingScreen extends StatefulWidget {
 
 class _StatusTrackingScreenState extends State<StatusTrackingScreen> {
   final AuthService _authService = AuthService();
+  late Stream<DocumentSnapshot> _studentStream;
+  
+  @override
+  void initState() {
+    super.initState();
+    final user = _authService.currentUser;
+    if (user != null) {
+      _studentStream = _authService.getStudentStream(user.uid);
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -34,7 +44,7 @@ class _StatusTrackingScreenState extends State<StatusTrackingScreen> {
         ],
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: _authService.getStudentStream(user.uid),
+        stream: _studentStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

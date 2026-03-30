@@ -4,6 +4,8 @@ import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/ml_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/audit_service.dart';
+import '../../services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SaVerificationScreen extends StatefulWidget {
@@ -16,39 +18,79 @@ class SaVerificationScreen extends StatefulWidget {
 class _SaVerificationScreenState extends State<SaVerificationScreen> {
   int _selectedStudentIndex = 0;
   final AuthService _authService = AuthService();
+  final AuditService _auditService = AuditService();
+  final NotificationService _notificationService = NotificationService();
+  late Stream<QuerySnapshot> _studentsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _studentsStream = _authService.getStudentsStream();
+  }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: _authService.getStudentsStream(),
+      stream: _studentsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
         
         if (snapshot.hasError) {
-          return Center(child: Text('Error loading data'));
+          return const Center(child: Text('Error loading data'));
         }
 
-        final docs = snapshot.data?.docs ?? [];
+        List<QueryDocumentSnapshot> docs = snapshot.data?.docs.toList() ?? [];
+        
         if (docs.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(LucideIcons.userX, size: 48, color: Colors.grey),
-                SizedBox(height: 16),
-                Text('No registered students found.', style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 16),
+                const Text('No registered students found.', style: TextStyle(color: Colors.grey)),
               ],
             ),
           );
         }
 
-        if (_selectedStudentIndex >= docs.length) {
-          _selectedStudentIndex = 0;
-        }
+        // --- AUTOMATED PRIORITIZATION LOGIC ---
+        final mlService = MLService();
+        // Calculate Priority Score
+        final List<Map<String, dynamic>> scoredDocs = docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final String saNumber = data['familyDetails']?['saNumber'] ?? '';
+          
+          int priorityScore = 0;
+          bool isSuspicious = false;
 
-        final selectedDoc = docs[_selectedStudentIndex];
+          // Artificial Intelligence Rule
+          if (saNumber.isNotEmpty) {
+            final aiCheck = mlService.detectSASuspiciousPattern(saNumber);
+            isSuspicious = aiCheck['isSuspicious'];
+            if (isSuspicious) {
+              priorityScore += 100; // Force suspicious apps to top
+            }
+          }
+          
+          return {
+            'doc': doc,
+            'score': priorityScore,
+            'isSuspicious': isSuspicious,
+          };
+        }).toList();
+
+        // Sort dynamically: Highest score first. If equal score, original descending date (default array ordering)
+        scoredDocs.sort((a, b) => (b['score'] as int).compareTo(a['score'] as int));
+
+        // Create the final sorted docs list
+        docs = scoredDocs.map((s) => s['doc'] as QueryDocumentSnapshot).toList();
+
+        // Safely determine the active index without modifying state during build
+        final int activeIndex = (_selectedStudentIndex >= docs.length) ? 0 : _selectedStudentIndex;
+        final selectedDoc = docs[activeIndex];
         final selectedData = selectedDoc.data() as Map<String, dynamic>;
 
         return LayoutBuilder(
@@ -61,24 +103,24 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'SA Number Verification', 
+                    'Verification Queue', 
                     style: isMobile 
                       ? Theme.of(context).textTheme.titleLarge 
                       : Theme.of(context).textTheme.headlineSmall
                   ),
-                  SizedBox(height: 2),
-                  Text('Verify accuracy of submitted Savings Account numbers.', style: TextStyle(fontSize: 12, color: context.textSec)),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 2),
+                  Text('Verify accuracy of submitted accounts. AI prioritizes high-risk documents.', style: TextStyle(fontSize: 12, color: context.textSec)),
+                  const SizedBox(height: 16),
                   if (isMobile) ...[
-                    _buildVerificationTable(context, docs, isMobile),
-                    SizedBox(height: 24),
+                    _buildVerificationTable(context, scoredDocs, isMobile),
+                    const SizedBox(height: 24),
                     _buildVerificationPanel(context, selectedData, isMobile),
                   ] else
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 3, child: _buildVerificationTable(context, docs, isMobile)),
-                        SizedBox(width: 24),
+                        Expanded(flex: 3, child: _buildVerificationTable(context, scoredDocs, isMobile)),
+                        const SizedBox(width: 24),
                         Expanded(flex: 2, child: _buildVerificationPanel(context, selectedData, isMobile)),
                       ],
                     ),
@@ -91,28 +133,52 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     );
   }
 
-  Widget _buildVerificationTable(BuildContext context, List<QueryDocumentSnapshot> docs, bool isMobile) {
+  Widget _buildVerificationTable(BuildContext context, List<Map<String, dynamic>> scoredDocs, bool isMobile) {
     return Container(
       decoration: context.glassDecoration,
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: docs.length,
+        itemCount: scoredDocs.length,
         separatorBuilder: (context, index) => Divider(color: context.surfaceC.withValues(alpha: 0.1), height: 1),
         itemBuilder: (context, index) {
-          final data = docs[index].data() as Map<String, dynamic>;
+          final doc = scoredDocs[index]['doc'] as QueryDocumentSnapshot;
+          final bool isSuspicious = scoredDocs[index]['isSuspicious'];
+          
+          final data = doc.data() as Map<String, dynamic>;
           final String name = data['fullName'] ?? 'N/A';
           final String saNumber = data['familyDetails']?['saNumber'] ?? 'N/A';
 
           return ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             leading: CircleAvatar(
-              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.05),
-              child: Icon(LucideIcons.user, size: 20, color: AppTheme.primaryColor),
+              backgroundColor: isSuspicious 
+                ? AppTheme.warning.withValues(alpha: 0.1) 
+                : AppTheme.primaryColor.withValues(alpha: 0.05),
+              child: Icon(
+                isSuspicious ? LucideIcons.alertTriangle : LucideIcons.user, 
+                size: 18, 
+                color: isSuspicious ? AppTheme.warning : AppTheme.primaryColor
+              ),
             ),
-            title: Text(name, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-            subtitle: Text('SA: $saNumber', style: TextStyle(fontSize: 12)),
-            trailing: Icon(LucideIcons.chevronRight, size: 18),
+            title: Row(
+              children: [
+                Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                if (isSuspicious) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.warning,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('HIGH PRIORITY', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ],
+            ),
+            subtitle: Text('SA: $saNumber', style: const TextStyle(fontSize: 12)),
+            trailing: const Icon(LucideIcons.chevronRight, size: 18),
             onTap: () {
               setState(() {
                 _selectedStudentIndex = index;
@@ -180,27 +246,39 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () => _updateStatus(
+                  context,
+                  data['uid'], // Firestore doc ID
+                  name,
+                  studentId,
+                  'Approved',
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.success, 
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text('Verify and Approve', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                child: const Text('Verify and Approve', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               height: 48,
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () => _updateStatus(
+                  context,
+                  data['uid'],
+                  name,
+                  studentId,
+                  'Rejected',
+                ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.error, 
                   side: const BorderSide(color: AppTheme.error, width: 1.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text('Flag for Correction', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                child: const Text('Flag for Correction', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -218,6 +296,56 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
         Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
       ],
     );
+  }
+
+  Future<void> _updateStatus(
+    BuildContext context,
+    String? uid,
+    String name,
+    String studentId,
+    String newStatus,
+  ) async {
+    if (uid == null) return;
+
+    try {
+      // 1. Update Student Record
+      await FirebaseFirestore.instance.collection('students').doc(uid).update({
+        'status': newStatus,
+      });
+
+      // 2. Log Activity
+      await _auditService.logActivity(
+        action: 'Verified student SA Number: $newStatus',
+        userName: 'Admin',
+        role: 'Admin',
+        studentId: studentId,
+      );
+
+      // 3. Send Notification
+      await _notificationService.sendNotification(
+        studentId: uid,
+        title: 'Document $newStatus',
+        message: newStatus == 'Approved' 
+            ? 'Great news! Your SA Number has been verified and your status is now Approved.'
+            : 'There was an issue with your submitted SA Number. Please check it and update your profile.',
+        type: newStatus == 'Approved' ? 'success' : 'error',
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Student $name is now $newStatus.'),
+            backgroundColor: newStatus == 'Approved' ? AppTheme.success : AppTheme.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update student verification.')),
+        );
+      }
+    }
   }
 
   Widget _buildAIBadge(BuildContext context, Map<String, dynamic> aiCheck) {

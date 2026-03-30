@@ -4,6 +4,8 @@ import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 
 import '../../services/auth_service.dart';
+import '../../services/audit_service.dart';
+import '../../services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class StudentRecordsScreen extends StatefulWidget {
@@ -15,9 +17,16 @@ class StudentRecordsScreen extends StatefulWidget {
 
 class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
   final AuthService _authService = AuthService();
+  final AuditService _auditService = AuditService();
+  final NotificationService _notificationService = NotificationService();
   String _searchQuery = '';
+  late Stream<QuerySnapshot> _studentsStream;
   
   @override
+  void initState() {
+    super.initState();
+    _studentsStream = _authService.getStudentsStream();
+  }
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -209,7 +218,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         child: ConstrainedBox(
           constraints: BoxConstraints(minWidth: isMobile ? 800 : 1000),
           child: StreamBuilder<QuerySnapshot>(
-            stream: _authService.getStudentsStream(),
+            stream: _studentsStream,
             builder: (context, snapshot) {
               if (snapshot.hasError) return Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Error: ${snapshot.error}')));
               
@@ -255,8 +264,16 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                       !studentId.toLowerCase().contains(_searchQuery)) {
                     return null;
                   }
-
-                  return _buildDataRow(context, name, studentId, '$course - $year', status, saNumber, isEven: index % 2 == 0);
+                  return _buildDataRow(
+                    context, 
+                    doc.id,
+                    name, 
+                    studentId, 
+                    '$course - $year', 
+                    status, 
+                    saNumber, 
+                    isEven: index % 2 == 0
+                  );
                 }).whereType<DataRow>().toList(),
               );
             }
@@ -266,7 +283,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     );
   }
 
-  DataRow _buildDataRow(BuildContext context, String name, String studentId, String courseYear, String status, String saNumber, {bool isEven = false}) {
+  DataRow _buildDataRow(BuildContext context, String docId, String name, String studentId, String courseYear, String status, String saNumber, {bool isEven = false}) {
     Color statusColor = AppTheme.warning;
     if (status == 'Approved') statusColor = AppTheme.success;
     if (status == 'Rejected') statusColor = AppTheme.error;
@@ -275,11 +292,11 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     return DataRow(
       color: WidgetStateProperty.all(isEven ? Colors.transparent : context.surfaceC.withValues(alpha: 0.1)),
       cells: [
-        DataCell(Text(name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+        DataCell(Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
         DataCell(Text(studentId, style: TextStyle(fontSize: 13, color: context.textSec))),
         DataCell(Text(courseYear, style: TextStyle(fontSize: 13, color: context.textSec))),
         DataCell(Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: statusColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
@@ -289,7 +306,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(width: 6, height: 6, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Text(status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
             ],
           ),
@@ -297,15 +314,72 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         DataCell(Text(saNumber, style: TextStyle(fontSize: 13, color: saNumber == 'Not Provided' ? Colors.grey : context.textPri))),
         DataCell(Row(
           children: [
-            _buildActionIcon(LucideIcons.eye, AppTheme.primaryColor, () {}),
-            SizedBox(width: 8),
-            _buildActionIcon(LucideIcons.checkSquare, AppTheme.success, () {}),
-            SizedBox(width: 8),
-            _buildActionIcon(LucideIcons.xSquare, AppTheme.error, () {}),
+            _buildActionIcon(LucideIcons.eye, AppTheme.primaryColor, () {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Viewing profiles will be implemented in the next phase!')));
+            }),
+            const SizedBox(width: 8),
+            _buildActionIcon(LucideIcons.checkSquare, AppTheme.success, () {
+              _updateStudentStatus(docId, name, studentId, 'Approved');
+            }),
+            const SizedBox(width: 8),
+            _buildActionIcon(LucideIcons.xSquare, AppTheme.error, () {
+              _updateStudentStatus(docId, name, studentId, 'Rejected');
+            }),
           ],
         )),
       ]
     );
+  }
+
+  Future<void> _updateStudentStatus(String docId, String name, String studentId, String newStatus) async {
+    try {
+      await FirebaseFirestore.instance.collection('students').doc(docId).update({
+        'status': newStatus,
+      });
+
+      await _auditService.logActivity(
+        action: 'Changed student status to $newStatus',
+        userName: 'Admin', // In production, get dynamic admin name
+        role: 'Admin',
+        studentId: studentId,
+      );
+
+      // --- SEND NOTIFICATION TO STUDENT ---
+      String notificationType = 'info';
+      String message = 'Your status has been updated to $newStatus.';
+      
+      if (newStatus == 'Approved') {
+        notificationType = 'success';
+        message = 'Your documents have been verified and approved. Congratulations!';
+      } else if (newStatus == 'Rejected') {
+        notificationType = 'error';
+        message = 'Your documents were flagged for correction. Please see feedback in your submissions tab.';
+      } else if (newStatus == 'Under Review') {
+        notificationType = 'warning';
+      }
+
+      await _notificationService.sendNotification(
+        studentId: docId, // Using the Firestore docId which is the Student's UID
+        title: 'Status Updated: $newStatus',
+        message: message,
+        type: notificationType,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Successfully marked $name as $newStatus.'),
+            backgroundColor: newStatus == 'Approved' ? AppTheme.success : AppTheme.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update status.')),
+        );
+      }
+    }
   }
 
   Widget _buildActionIcon(IconData icon, Color color, VoidCallback onTap) {
@@ -313,7 +387,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Container(
-        padding: EdgeInsets.all(6),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.05),
           border: Border.all(color: color.withValues(alpha: 0.1), width: 1),

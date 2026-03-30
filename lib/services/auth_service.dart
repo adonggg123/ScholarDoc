@@ -1,9 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'audit_service.dart';
+import 'notification_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AuditService _auditService = AuditService();
+  final NotificationService _notificationService = NotificationService();
 
   // Sign up student
   Future<UserCredential?> registerStudent({
@@ -27,6 +31,22 @@ class AuthService {
             .collection('students')
             .doc(userCredential.user!.uid)
             .set(studentData);
+            
+        // Log Activity
+        await _auditService.logActivity(
+          action: 'Registered new account',
+          userName: studentData['fullName'] ?? email,
+          role: 'Student',
+          studentId: studentData['studentId'],
+        );
+
+        // Send Welcome Notification
+        await _notificationService.sendNotification(
+          studentId: userCredential.user!.uid,
+          title: 'Welcome to ScholarDoc!',
+          message: 'Your account has been successfully created. We will notify you here of any status updates regarding your TES documents.',
+          type: 'success',
+        );
       }
 
       return userCredential;
@@ -59,6 +79,16 @@ class AuthService {
         throw Exception('Student record not found. Please register first.');
       }
 
+      final studentData = doc.data() as Map<String, dynamic>;
+      
+      // Log Activity
+      await _auditService.logActivity(
+        action: 'Logged in',
+        userName: studentData['fullName'] ?? email,
+        role: 'Student',
+        studentId: studentData['studentId'],
+      );
+
       return userCredential;
     } on FirebaseAuthException {
       rethrow;
@@ -79,6 +109,13 @@ class AuthService {
     await Future.delayed(const Duration(milliseconds: 500));
     
     if (username == 'Admin' && password == '123') {
+      // Log Admin Activity
+      await _auditService.logActivity(
+        action: 'Logged into Admin Dashboard',
+        userName: username,
+        role: 'Admin',
+      );
+      
       return true;
     } else {
       throw Exception('Invalid Admin credentials.');

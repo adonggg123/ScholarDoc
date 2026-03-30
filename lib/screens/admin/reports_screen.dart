@@ -6,8 +6,22 @@ import '../../theme/theme_provider.dart';
 import '../../services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ReportsScreen extends StatelessWidget {
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
+
+  @override
+  State<ReportsScreen> createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  final AuthService _authService = AuthService();
+  late Stream<QuerySnapshot> _studentsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _studentsStream = _authService.getStudentsStream();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +205,7 @@ class ReportsScreen extends StatelessWidget {
   }
 
   Widget _buildDemographicBreakdown(BuildContext context) {
-    final AuthService authService = AuthService();
+
 
 
 
@@ -208,7 +222,7 @@ class ReportsScreen extends StatelessWidget {
           Text('Program-specific performance analytics.', style: TextStyle(fontSize: 12, color: context.textSec)),
           SizedBox(height: 32),
           StreamBuilder<QuerySnapshot>(
-            stream: authService.getStudentsStream(),
+            stream: _studentsStream,
             builder: (context, snapshot) {
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return SizedBox(

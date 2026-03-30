@@ -7,8 +7,22 @@ import '../../services/ml_service.dart';
 import '../../services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class DashboardOverview extends StatelessWidget {
+class DashboardOverview extends StatefulWidget {
   const DashboardOverview({super.key});
+
+  @override
+  State<DashboardOverview> createState() => _DashboardOverviewState();
+}
+
+class _DashboardOverviewState extends State<DashboardOverview> {
+  final AuthService _authService = AuthService();
+  late Stream<QuerySnapshot> _studentsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _studentsStream = _authService.getStudentsStream();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,10 +117,10 @@ class DashboardOverview extends StatelessWidget {
   }
 
   Widget _buildStatsGrid(BuildContext context, bool isMobile) {
-    final AuthService authService = AuthService();
+
     
     return StreamBuilder<QuerySnapshot>(
-      stream: authService.getStudentsStream(),
+      stream: _studentsStream,
       builder: (context, snapshot) {
         int total = 0;
         int pending = 0;
@@ -288,10 +302,10 @@ class DashboardOverview extends StatelessWidget {
   }
 
    Widget _buildStatusDistribution(BuildContext context) {
-    final AuthService authService = AuthService();
+
     
     return StreamBuilder<QuerySnapshot>(
-      stream: authService.getStudentsStream(),
+      stream: _studentsStream,
       builder: (context, snapshot) {
         double pending = 0;
         double approved = 0;
@@ -366,7 +380,7 @@ class DashboardOverview extends StatelessWidget {
   }
 
   Widget _buildRecentActivity(BuildContext context) {
-    final AuthService authService = AuthService();
+
     
     return Container(
       decoration: context.glassDecoration.copyWith(
@@ -380,7 +394,7 @@ class DashboardOverview extends StatelessWidget {
             Text('Recent System Activity', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             SizedBox(height: 12),
             StreamBuilder<QuerySnapshot>(
-              stream: authService.getStudentsStream(),
+              stream: _studentsStream,
               builder: (context, snapshot) {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Padding(
@@ -437,7 +451,6 @@ class DashboardOverview extends StatelessWidget {
     );
   }
   Widget _buildHighRiskStudents(BuildContext context) {
-    final AuthService authService = AuthService();
     final MLService ml = MLService();
 
     return Container(
@@ -460,7 +473,7 @@ class DashboardOverview extends StatelessWidget {
             Text('Students likely to submit late or incorrectly', style: TextStyle(fontSize: 12, color: context.textSec)),
             SizedBox(height: 16),
             StreamBuilder<QuerySnapshot>(
-              stream: authService.getStudentsStream(),
+              stream: _studentsStream,
               builder: (context, snapshot) {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Padding(
