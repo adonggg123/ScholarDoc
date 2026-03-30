@@ -1,51 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
+import '../../services/auth_service.dart';
 
-class StatusTrackingScreen extends StatelessWidget {
+class StatusTrackingScreen extends StatefulWidget {
   const StatusTrackingScreen({super.key});
 
   @override
+  State<StatusTrackingScreen> createState() => _StatusTrackingScreenState();
+}
+
+class _StatusTrackingScreenState extends State<StatusTrackingScreen> {
+  final AuthService _authService = AuthService();
+  
+  @override
   Widget build(BuildContext context) {
+    final user = _authService.currentUser;
+    if (user == null) {
+      return const Center(child: Text('User not logged in'));
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Submissions'),
+        title: const Text('My Submissions'),
         actions: [
           IconButton(
             onPressed: () {},
-            icon: Icon(LucideIcons.filter),
+            icon: const Icon(LucideIcons.filter),
           ),
         ],
       ),
-      body: ListView(
-        padding: EdgeInsets.all(24),
-        children: [
-          _buildStatusItem(
-            context,
-            'Fall Semester 2023 Docs',
-            'Submitted on Oct 12, 2023',
-            'Pending Review',
-            AppTheme.warning,
-          ),
-          SizedBox(height: 16),
-          _buildStatusItem(
-            context,
-            'Spring Semester 2023 Docs',
-            'Submitted on Feb 15, 2023',
-            'Approved',
-            AppTheme.success,
-          ),
-          SizedBox(height: 16),
-          _buildStatusItem(
-            context,
-            'Midyear 2023 Docs',
-            'Submitted on June 20, 2023',
-            'Rejected',
-            AppTheme.error,
-            feedback: 'The school ID uploaded is blurred. Please resubmit a clearer photo.',
-          ),
-        ],
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: _authService.getStudentStream(user.uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error loading status data'));
+          }
+
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('No submission data found.'));
+          }
+
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final String status = data['status'] ?? 'Pending';
+          String submittedDate = 'N/A';
+          if (data['createdAt'] != null) {
+             final Timestamp ts = data['createdAt'];
+             submittedDate = DateFormat('MMM d, yyyy').format(ts.toDate());
+          }
+          final String? feedback = data['feedback'];
+
+          Color statusColor = AppTheme.warning;
+          if (status == 'Approved') statusColor = AppTheme.success;
+          if (status == 'Rejected') statusColor = AppTheme.error;
+
+          return ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              _buildStatusItem(
+                context,
+                'First Semester 2024 Documents',
+                'Submitted on $submittedDate',
+                status,
+                statusColor,
+                feedback: status == 'Rejected' ? feedback : null,
+              ),
+            ],
+          );
+        },
       ),
     );
   }

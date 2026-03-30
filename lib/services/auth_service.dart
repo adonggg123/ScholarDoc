@@ -95,6 +95,11 @@ class AuthService {
     return _firestore.collection('students').doc(uid).get();
   }
 
+  // Get stream of student profile data for real-time tracking
+  Stream<DocumentSnapshot> getStudentStream(String uid) {
+    return _firestore.collection('students').doc(uid).snapshots();
+  }
+
   // Get stream of all students for Admin
   Stream<QuerySnapshot> getStudentsStream() {
     return _firestore

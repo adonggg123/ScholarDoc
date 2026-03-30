@@ -76,69 +76,116 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (isMobile)
-            Image.asset(
-              'assets/app_logo1.png',
-              height: 560, // Maximum mobile scale
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Icon(
-                Icons.school_rounded,
-                size: 260,
-                color: Colors.white,
-              ),
-            )
-          else
-            Flexible(
-              child: Image.asset(
-                'assets/app_logo1.png',
-                height: 800, // Absolute maximum hero scale
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => Icon(
-                  Icons.school_rounded,
-                  size: 340,
-                  color: Colors.white,
+          // Elevated Logo with Subtle Background Glow
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: isMobile ? 180 : 250,
+                height: isMobile ? 180 : 250,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.secondaryColor.withValues(alpha: 0.15),
+                      blurRadius: 120,
+                      spreadRadius: 20,
+                    ),
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      blurRadius: 60,
+                      spreadRadius: 10,
+                    ),
+                  ],
                 ),
               ),
-            ),
-          Transform.translate(
-            offset: Offset(0, isMobile ? -30 : -48), // Scale negative offset for massive whitespace
-            child: Text(
-              'ADMIN COMMAND CENTER',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppTheme.accentColor,
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 3,
-              ),
-            ),
-          ),
-          SizedBox(height: isMobile ? 12 : 20),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: AppTheme.secondaryColor,
-                    shape: BoxShape.circle,
+              if (isMobile)
+                Image.asset(
+                  'assets/app_logo1.png',
+                  height: 180,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.school_rounded,
+                    size: 100,
+                    color: Colors.white,
+                  ),
+                )
+              else
+                Image.asset(
+                  'assets/app_logo1.png',
+                  height: 320,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.school_rounded,
+                    size: 160,
+                    color: Colors.white,
                   ),
                 ),
-                SizedBox(width: 6),
+            ],
+          ),
+          
+          // Translated Typography to counter image whitespace
+          Transform.translate(
+            offset: Offset(0, isMobile ? -12 : -16),
+            child: Column(
+              children: [
                 Text(
-                  'Live Sync Active',
+                  'ADMINISTRATION COMMAND CENTER',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                    color: AppTheme.accentColor.withValues(alpha: 0.9),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 4.5,
+                  ),
+                ),
+                SizedBox(height: 28),
+                
+                // Refined Glassmorphic Status Pill
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Active Pulse Dot
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.secondaryColor.withValues(alpha: 0.6),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Live Sync Active',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -164,53 +211,90 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Welcome Back',
+                  'Admin Secure Login',
                   style: TextStyle(
                     fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                     color: AppTheme.primaryColor,
                     letterSpacing: -0.5,
                   ),
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Authorized personnel only. Please sign in.',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  'Authorized institutional personnel only. Please sign in to access the command center.',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13, height: 1.4),
                 ),
-                SizedBox(height: 32),
+                SizedBox(height: 36),
                 TextFormField(
                   controller: _usernameController,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     labelText: 'Username',
+                    labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                     prefixIcon: Icon(
-                      Icons.shield_outlined,
-                      size: 20,
+                      Icons.person_outline,
+                      size: 22,
                       color: AppTheme.primaryColor,
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppTheme.secondaryColor, width: 2),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppTheme.error, width: 1.5),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppTheme.error, width: 2),
+                    ),
                     filled: true,
-                    fillColor: Colors.grey.shade50,
+                    fillColor: Colors.white,
+                    contentPadding: EdgeInsets.symmetric(vertical: 20),
                   ),
                   validator: (value) =>
-                      value!.isEmpty ? 'Field required' : null,
+                      value!.isEmpty ? 'Username is required' : null,
                 ),
-                SizedBox(height: 24),
+                SizedBox(height: 20),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     labelText: 'Secure Password',
+                    labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                     prefixIcon: Icon(
-                      Icons.key_outlined,
-                      size: 20,
+                      Icons.lock_outline,
+                      size: 22,
                       color: AppTheme.primaryColor,
                     ),
-                    fillColor: Colors.grey.shade50,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppTheme.secondaryColor, width: 2),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppTheme.error, width: 1.5),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppTheme.error, width: 2),
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         size: 20,
+                        color: Colors.grey.shade600,
                       ),
                       onPressed: () {
                         setState(() {
@@ -219,83 +303,109 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       },
                     ),
                     filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: EdgeInsets.symmetric(vertical: 20),
                   ),
                   validator: (value) =>
-                      value!.isEmpty ? 'Field required' : null,
+                      value!.isEmpty ? 'Password is required' : null,
                 ),
-                SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () async {
-                          if (_formKey.currentState!.validate()) {
-                            setState(() => _isLoading = true);
-                            try {
-                              await _authService.loginAdmin(
-                                username: _usernameController.text.trim(),
-                                password: _passwordController.text.trim(),
-                              );
-                              if (!ctx.mounted) return;
-                              Navigator.pushReplacement(
-                                ctx,
-                                MaterialPageRoute(
-                                  builder: (context) => const AdminMainLayout(),
-                                ),
-                              );
-                            } catch (e) {
-                              if (!ctx.mounted) return;
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    e.toString().replaceAll('Exception: ', ''),
-                                  ),
-                                  backgroundColor: AppTheme.error,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            } finally {
-                              if (mounted) setState(() => _isLoading = false);
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    backgroundColor: AppTheme.primaryColor,
-                    shadowColor: AppTheme.primaryColor.withValues(alpha: 0.3),
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                SizedBox(height: 32),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.primaryColor, // Navy
+                        AppTheme.secondaryColor, // Green
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.secondaryColor.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
                   ),
-                  child: _isLoading
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                  child: ElevatedButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () async {
+                            if (_formKey.currentState!.validate()) {
+                              setState(() => _isLoading = true);
+                              try {
+                                await _authService.loginAdmin(
+                                  username: _usernameController.text.trim(),
+                                  password: _passwordController.text.trim(),
+                                );
+                                if (!ctx.mounted) return;
+                                Navigator.pushReplacement(
+                                  ctx,
+                                  MaterialPageRoute(
+                                    builder: (context) => const AdminMainLayout(),
+                                  ),
+                                );
+                              } catch (e) {
+                                if (!ctx.mounted) return;
+                                ScaffoldMessenger.of(ctx).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      e.toString().replaceAll('Exception: ', ''),
+                                    ),
+                                    backgroundColor: AppTheme.error,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              } finally {
+                                if (mounted) setState(() => _isLoading = false);
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 22),
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            'AUTHORIZE ACCESS',
+                            style: TextStyle(
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.white,
+                            ),
                           ),
-                        )
-                      : Text(
-                          'AUTHORIZED ACCESS ONLY',
-                          style: TextStyle(
-                            letterSpacing: 1.2,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                  ),
                 ),
                 SizedBox(height: 24),
-                OutlinedButton(
+                OutlinedButton.icon(
                   onPressed: () {
                     Navigator.pop(ctx);
                   },
+                  icon: Icon(Icons.arrow_back_rounded, size: 18, color: AppTheme.primaryColor),
+                  label: Text('Return to Student Portal'),
                   style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    foregroundColor: AppTheme.primaryColor,
+                    padding: EdgeInsets.symmetric(vertical: 18),
+                    side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.2), width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text('Return to Student Portal'),
                 ),
               ],
             ),
