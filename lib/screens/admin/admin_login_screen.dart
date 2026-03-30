@@ -69,70 +69,53 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   Widget _buildBrandingSection(BuildContext ctx, bool isMobile) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 32 : 80),
-      height: isMobile ? 350 : double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 48, vertical: isMobile ? 48 : 0),
+      height: isMobile ? null : double.infinity,
       child: Column(
+        mainAxisSize: isMobile ? MainAxisSize.min : MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: isMobile
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            padding: EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 40,
-                  offset: Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Image.asset(
-              'assets/app_logo.png',
-              height: isMobile ? 120 : 180,
+          if (isMobile)
+            Image.asset(
+              'assets/app_logo1.png',
+              height: 560, // Maximum mobile scale
+              fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => Icon(
                 Icons.school_rounded,
-                size: isMobile ? 64 : 96,
-                color: AppTheme.primaryColor,
+                size: 260,
+                color: Colors.white,
+              ),
+            )
+          else
+            Flexible(
+              child: Image.asset(
+                'assets/app_logo1.png',
+                height: 800, // Absolute maximum hero scale
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => Icon(
+                  Icons.school_rounded,
+                  size: 340,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 48),
-          RichText(
-            textAlign: isMobile ? TextAlign.center : TextAlign.start,
-            text: TextSpan(
+          Transform.translate(
+            offset: Offset(0, isMobile ? -30 : -48), // Scale negative offset for massive whitespace
+            child: Text(
+              'ADMIN COMMAND CENTER',
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: isMobile ? 40 : 64,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -1.5,
+                color: AppTheme.accentColor,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 3,
               ),
-              children: [
-                TextSpan(
-                  text: 'Scholar',
-                  style: TextStyle(color: Colors.white),
-                ),
-                TextSpan(
-                  text: 'Doc',
-                  style: TextStyle(color: AppTheme.secondaryColor),
-                ),
-              ],
             ),
           ),
-          Text(
-            'ADMINISTRATION COMMAND CENTER',
-            style: TextStyle(
-              color: AppTheme.accentColor,
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 6,
-            ),
-          ),
-          SizedBox(height: 32),
+          SizedBox(height: isMobile ? 12 : 20),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(30),
@@ -142,20 +125,20 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: 6,
+                  height: 6,
                   decoration: BoxDecoration(
                     color: AppTheme.secondaryColor,
                     shape: BoxShape.circle,
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: 6),
                 Text(
-                  'Institutional Sync Active',
+                  'Live Sync Active',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
