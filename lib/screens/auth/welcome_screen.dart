@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import 'login_screen.dart';
@@ -16,40 +15,23 @@ class WelcomeScreen extends StatelessWidget {
         child: Center(
           child: SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.all(32.0),
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      LucideIcons.graduationCap,
-                      size: 64,
-                      color: AppTheme.primaryColor,
-                    ),
+                  Image.asset(
+                    'assets/app_logo1.png',
+                    width: 300,
+                    height: 300,
+                    fit: BoxFit.contain,
                   ),
-                  SizedBox(height: 32),
-                  Text(
-                    'ScholarDoc',
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                        ),
-                  ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 0),
                   Text(
                     'Your bridge to a brighter future through seamless scholarship management.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: context.textSec,
-                    ),
+                    style: TextStyle(fontSize: 16, color: context.textSec),
                   ),
-                  SizedBox(height: 64),
+                  const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -57,13 +39,14 @@ class WelcomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const LoginScreen()),
+                            builder: (context) => const LoginScreen(),
+                          ),
                         );
                       },
-                      child: Text('Log In'),
+                      child: const Text('Log In'),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
@@ -71,27 +54,14 @@ class WelcomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const RegisterScreen()),
+                            builder: (context) => const RegisterScreen(),
+                          ),
                         );
                       },
-                      child: Text('Create an Account'),
+                      child: const Text('Create an Account'),
                     ),
                   ),
-                  SizedBox(height: 24),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const AdminLoginScreen()),
-                      );
-                    },
-                    child: Text(
-                      'Admin Portal Entrance',
-                      style: TextStyle(color: context.textSec, fontSize: 13),
-                    ),
-                  ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),

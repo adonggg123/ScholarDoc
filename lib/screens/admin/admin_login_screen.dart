@@ -69,7 +69,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   Widget _buildBrandingSection(BuildContext ctx, bool isMobile) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 48, vertical: isMobile ? 48 : 0),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 24 : 48,
+        vertical: isMobile ? 48 : 0,
+      ),
       height: isMobile ? null : double.infinity,
       child: Column(
         mainAxisSize: isMobile ? MainAxisSize.min : MainAxisSize.max,
@@ -123,7 +126,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 ),
             ],
           ),
-          
+
           // Translated Typography to counter image whitespace
           Transform.translate(
             offset: Offset(0, isMobile ? -12 : -16),
@@ -140,14 +143,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   ),
                 ),
                 SizedBox(height: 28),
-                
+
                 // Refined Glassmorphic Status Pill
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1.5),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      width: 1.5,
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.1),
@@ -168,7 +174,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.secondaryColor.withValues(alpha: 0.6),
+                              color: AppTheme.secondaryColor.withValues(
+                                alpha: 0.6,
+                              ),
                               blurRadius: 8,
                               spreadRadius: 1,
                             ),
@@ -222,7 +230,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 SizedBox(height: 8),
                 Text(
                   'Authorized institutional personnel only. Please sign in to access the command center.',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13, height: 1.4),
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
                 ),
                 SizedBox(height: 36),
                 TextFormField(
@@ -230,7 +242,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     labelText: 'Username',
-                    labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                    labelStyle: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 14,
+                    ),
                     prefixIcon: Icon(
                       Icons.person_outline,
                       size: 22,
@@ -238,11 +253,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade300,
+                        width: 1.5,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppTheme.secondaryColor, width: 2),
+                      borderSide: BorderSide(
+                        color: AppTheme.secondaryColor,
+                        width: 2,
+                      ),
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -266,7 +287,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     labelText: 'Secure Password',
-                    labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                    labelStyle: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 14,
+                    ),
                     prefixIcon: Icon(
                       Icons.lock_outline,
                       size: 22,
@@ -274,11 +298,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade300,
+                        width: 1.5,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppTheme.secondaryColor, width: 2),
+                      borderSide: BorderSide(
+                        color: AppTheme.secondaryColor,
+                        width: 2,
+                      ),
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -344,7 +374,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 Navigator.pushReplacement(
                                   ctx,
                                   MaterialPageRoute(
-                                    builder: (context) => const AdminMainLayout(),
+                                    builder: (context) =>
+                                        const AdminMainLayout(),
                                   ),
                                 );
                               } catch (e) {
@@ -352,7 +383,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 ScaffoldMessenger.of(ctx).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      e.toString().replaceAll('Exception: ', ''),
+                                      e.toString().replaceAll(
+                                        'Exception: ',
+                                        '',
+                                      ),
                                     ),
                                     backgroundColor: AppTheme.error,
                                     behavior: SnackBarBehavior.floating,
@@ -389,22 +423,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               color: Colors.white,
                             ),
                           ),
-                  ),
-                ),
-                SizedBox(height: 24),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                  },
-                  icon: Icon(Icons.arrow_back_rounded, size: 18, color: AppTheme.primaryColor),
-                  label: Text('Return to Student Portal'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.primaryColor,
-                    padding: EdgeInsets.symmetric(vertical: 18),
-                    side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.2), width: 1.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
                   ),
                 ),
               ],

@@ -124,25 +124,25 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(6),
+            padding: EdgeInsets.zero,
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor,
+              color: context.surfaceC,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              LucideIcons.graduationCap,
-              color: context.surfaceC,
-              size: 18,
+            child: Image.asset(
+              'assets/app_logo.png',
+              width: 60,
+              height: 60,
+              fit: BoxFit.fill,
             ),
           ),
-          SizedBox(width: 12),
-          const Flexible(
+          Flexible(
             child: Text(
               'ScholarDoc',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.primaryColor,
+                color: context.textPri,
               ),
               overflow: TextOverflow.ellipsis,
             ),
