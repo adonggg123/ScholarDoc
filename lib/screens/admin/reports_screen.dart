@@ -3,8 +3,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
-import '../../services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/auth_service.dart';
+import '../../services/report_service.dart';
+import '../../utils/pdf_generator.dart';
+import 'package:intl/intl.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -15,12 +18,18 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   final AuthService _authService = AuthService();
+  final ReportService _reportService = ReportService();
   late Stream<QuerySnapshot> _studentsStream;
+  late Stream<QuerySnapshot> _reportsHistoryStream;
+  
+  String _throughputTimeframe = 'This Year';
+  bool _isGenerating = false;
 
   @override
   void initState() {
     super.initState();
     _studentsStream = _authService.getStudentsStream();
+    _reportsHistoryStream = _reportService.getReportsStream();
   }
 
   @override
@@ -78,17 +87,70 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
         ),
         if (!isMobile)
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: Icon(LucideIcons.printer),
-            label: Text('Export PDF'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          ),
+          _buildExportButton(context),
       ],
     );
+  }
+
+  Widget _buildExportButton(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: _isGenerating ? null : _handleExportPdf,
+      icon: _isGenerating 
+        ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+        : Icon(LucideIcons.printer),
+      label: Text(_isGenerating ? 'Generating...' : 'Export PDF'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primaryColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  Future<void> _handleExportPdf() async {
+    setState(() => _isGenerating = true);
+    try {
+      // 1. Get Institutional Stats
+      final stats = await _reportService.getInstitutionalStats();
+      
+      // 2. Get Department Counts (from students collection directly for simplicity here)
+      final studentSnap = await FirebaseFirestore.instance.collection('students').get();
+      Map<String, int> deptCounts = {'BSIT': 0, 'BTLED': 0, 'BFPT': 0};
+      for (var doc in studentSnap.docs) {
+        final course = doc['course'] ?? '';
+        if (course.contains('BSIT')) deptCounts['BSIT'] = (deptCounts['BSIT'] ?? 0) + 1;
+        else if (course.contains('BTLED')) deptCounts['BTLED'] = (deptCounts['BTLED'] ?? 0) + 1;
+        else if (course.contains('BFPT')) deptCounts['BFPT'] = (deptCounts['BFPT'] ?? 0) + 1;
+      }
+
+      final title = 'Full Institutional Analysis Report';
+      
+      // 3. Generate PDF
+      await PdfGenerator.generateInstitutionalReport(
+        stats: stats,
+        deptCounts: deptCounts,
+        title: title,
+      );
+
+      // 4. Save to History
+      await _reportService.addReportRecord(
+        title: title,
+        fileName: 'Institutional_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Report generated successfully!'), backgroundColor: AppTheme.success),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to generate report: $e'), backgroundColor: AppTheme.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGenerating = false);
+    }
   }
 
   Widget _buildSystemPerformance(BuildContext context) {
@@ -105,10 +167,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
             children: [
               Text('Application Throughput', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               DropdownButton<String>(
-                value: 'This Year',
+                value: _throughputTimeframe,
                 underline: SizedBox(),
                 items: ['This Week', 'This Month', 'This Year'].map((e) => DropdownMenuItem(value: e, child: Text(e, style: TextStyle(fontSize: 12)))).toList(),
-                onChanged: (v) {},
+                onChanged: (v) {
+                  if (v != null) setState(() => _throughputTimeframe = v);
+                },
               ),
             ],
           ),
@@ -117,46 +181,104 @@ class _ReportsScreenState extends State<ReportsScreen> {
           SizedBox(height: 32),
           SizedBox(
             height: 250,
-            child: BarChart(
-              BarChartData(
-                alignment: BarChartAlignment.spaceAround,
-                maxY: 200,
-                barTouchData: BarTouchData(enabled: false),
-                titlesData: FlTitlesData(
-                  show: true,
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        TextStyle style = TextStyle(color: context.textSec, fontWeight: FontWeight.bold, fontSize: 11);
-                        String text;
-                        switch (value.toInt()) {
-                          case 0: text = 'Q1'; break;
-                          case 1: text = 'Q2'; break;
-                          case 2: text = 'Q3'; break;
-                          case 3: text = 'Q4'; break;
-                          default: text = '';
-                        }
-                        return Padding(padding: EdgeInsets.only(top: 8), child: Text(text, style: style));
-                      },
+            child: StreamBuilder<Map<String, List<int>>>(
+              stream: _reportService.getThroughputData(_throughputTimeframe),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Chart error: ${snapshot.error}', style: TextStyle(fontSize: 10, color: AppTheme.error)));
+                }
+                
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor.withValues(alpha: 0.5)));
+                }
+
+                final submissions = snapshot.data!['submissions']!;
+                final approved = snapshot.data!['approved']!;
+
+                // Calculate dynamic Max Y for better visibility
+                double maxVal = 0;
+                for (var v in [...submissions, ...approved]) {
+                  if (v.toDouble() > maxVal) maxVal = v.toDouble();
+                }
+                double dynamicMaxY = (maxVal < 10) ? 10 : (maxVal * 1.2).ceilToDouble();
+
+                return BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: dynamicMaxY,
+                    barTouchData: BarTouchData(
+                      enabled: true,
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor: (_) => AppTheme.primaryColor.withValues(alpha: 0.8),
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          String label = rodIndex == 0 ? 'Submissions' : 'Approved';
+                          return BarTooltipItem(
+                            '$label\n',
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                            children: [
+                              TextSpan(
+                                text: rod.toY.toInt().toString(),
+                                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 30,
+                          getTitlesWidget: (value, meta) => Text(value.toInt().toString(), style: TextStyle(color: context.textSec, fontSize: 10)),
+                        ),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            TextStyle style = TextStyle(color: context.textSec, fontWeight: FontWeight.bold, fontSize: 11);
+                            String text;
+                            if (_throughputTimeframe == 'This Year') {
+                              switch (value.toInt()) {
+                                case 0: text = 'Q1'; break;
+                                case 1: text = 'Q2'; break;
+                                case 3: text = 'Q4'; break;
+                                default: text = '';
+                              }
+                            } else if (_throughputTimeframe == 'This Month') {
+                              text = 'W${value.toInt() + 1}';
+                            } else {
+                              switch (value.toInt()) {
+                                case 0: text = 'Mon-Tue'; break;
+                                case 2: text = 'Fri'; break;
+                                case 3: text = 'Sat-Sun'; break;
+                                default: text = '';
+                              }
+                            }
+                            return Padding(padding: EdgeInsets.only(top: 8), child: Text(text, style: style));
+                          },
+                        ),
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withValues(alpha: 0.1), strokeWidth: 1),
+                    ),
+                    barGroups: [
+                      _makeGroupData(0, submissions[0].toDouble(), approved[0].toDouble()),
+                      _makeGroupData(1, submissions[1].toDouble(), approved[1].toDouble()),
+                      _makeGroupData(2, submissions[2].toDouble(), approved[2].toDouble()),
+                      _makeGroupData(3, submissions[3].toDouble(), approved[3].toDouble()),
+                    ],
                   ),
-                ),
-                borderData: FlBorderData(show: false),
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withValues(alpha: 0.1), strokeWidth: 1),
-                ),
-                barGroups: [
-                  _makeGroupData(0, 150, 120),
-                  _makeGroupData(1, 180, 150),
-                  _makeGroupData(2, 130, 90),
-                  _makeGroupData(3, 190, 175),
-                ],
-              ),
+                );
+              }
             ),
           ),
           SizedBox(height: 16),
@@ -321,37 +443,69 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildReportList(BuildContext context) {
-    final reports = [
-      {'title': 'Q3 2025 Submission Integrity Report', 'date': 'Pending Generation', 'icon': LucideIcons.bot, 'color': AppTheme.secondaryColor},
-      {'title': 'Annual Institutional Demographic Summary', 'date': 'Generated: Oct 12, 2025', 'icon': LucideIcons.users, 'color': AppTheme.primaryColor},
-      {'title': 'Late Submissions Trend Report', 'date': 'Generated: Sep 05, 2025', 'icon': LucideIcons.clock, 'color': AppTheme.warning},
-      {'title': 'Identified Fraud & Duplicate Log', 'date': 'Generated: Aug 28, 2025', 'icon': LucideIcons.fileWarning, 'color': AppTheme.error},
-    ];
+    return StreamBuilder<QuerySnapshot>(
+      stream: _reportsHistoryStream,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Container(
+            padding: EdgeInsets.all(48),
+            decoration: context.glassDecoration,
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(LucideIcons.fileSearch, size: 48, color: context.textSec.withValues(alpha: 0.3)),
+                  SizedBox(height: 16),
+                  Text('No reports generated yet.', style: TextStyle(color: context.textSec)),
+                  SizedBox(height: 8),
+                  Text('Click "Export PDF" to create your first institutional report.', 
+                    style: TextStyle(fontSize: 12, color: context.textSec.withValues(alpha: 0.6))),
+                ],
+              ),
+            ),
+          );
+        }
 
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: reports.length,
-      separatorBuilder: (context, index) => SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final r = reports[index];
-        return Container(
-          decoration: context.glassDecoration,
-          child: ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            leading: CircleAvatar(
-              backgroundColor: (r['color'] as Color).withValues(alpha: 0.1),
-              child: Icon(r['icon'] as IconData, color: r['color'] as Color, size: 20),
-            ),
-            title: Text(r['title'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            subtitle: Text(r['date'] as String, style: TextStyle(fontSize: 12, color: context.textSec)),
-            trailing: IconButton(
-              icon: Icon(LucideIcons.download, size: 20, color: context.textSec),
-              onPressed: () {},
-            ),
-          ),
+        final reports = snapshot.data!.docs;
+
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: reports.length,
+          separatorBuilder: (context, index) => SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final doc = reports[index];
+            final data = doc.data() as Map<String, dynamic>;
+            final String title = data['title'] ?? 'Unknown Report';
+            final Timestamp? ts = data['createdAt'];
+            final String dateStr = ts != null 
+                ? 'Generated: ${DateFormat('MMM dd, yyyy').format(ts.toDate())}' 
+                : 'Pending Generation';
+            
+            return Container(
+              decoration: context.glassDecoration,
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                leading: CircleAvatar(
+                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  child: Icon(LucideIcons.fileText, color: AppTheme.primaryColor, size: 20),
+                ),
+                title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                subtitle: Text(dateStr, style: TextStyle(fontSize: 12, color: context.textSec)),
+                trailing: IconButton(
+                  icon: Icon(LucideIcons.download, size: 20, color: context.textSec),
+                  onPressed: () {
+                    // In a real app with cloud storage, this would download the file.
+                    // For now, we show a success message since the file was just generated locally.
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('File history retrieved. Re-export to get a fresh copy.')),
+                    );
+                  },
+                ),
+              ),
+            );
+          },
         );
-      },
+      }
     );
   }
 }

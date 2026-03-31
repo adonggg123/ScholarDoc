@@ -5,7 +5,10 @@ import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/ml_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/audit_service.dart';
+import '../../services/report_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class DashboardOverview extends StatefulWidget {
   const DashboardOverview({super.key});
@@ -16,12 +19,19 @@ class DashboardOverview extends StatefulWidget {
 
 class _DashboardOverviewState extends State<DashboardOverview> {
   final AuthService _authService = AuthService();
+  final AuditService _auditService = AuditService();
+  final ReportService _reportService = ReportService();
+  
   late Stream<QuerySnapshot> _studentsStream;
+  late Stream<QuerySnapshot> _auditLogsStream;
+  late Stream<List<double>> _submissionTrendStream;
 
   @override
   void initState() {
     super.initState();
     _studentsStream = _authService.getStudentsStream();
+    _auditLogsStream = _auditService.getAuditLogsStream(limit: 5);
+    _submissionTrendStream = _reportService.getMonthlySubmissionTrend();
   }
 
   @override
@@ -100,25 +110,8 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                 ],
               ),
             ),
-            if (!isMobile)
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: Icon(LucideIcons.download),
-                label: Text('Export Report'),
-              ),
           ],
         ),
-        if (isMobile) ...[
-          SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: Icon(LucideIcons.download),
-              label: Text('Export Report'),
-            ),
-          ),
-        ],
       ],
     );
   }
@@ -331,95 +324,96 @@ class _DashboardOverviewState extends State<DashboardOverview> {
           SizedBox(height: 24),
           SizedBox(
             height: 220,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) => FlLine(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    strokeWidth: 1,
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 35,
-                      getTitlesWidget: (value, meta) => Text(
-                        value.toInt().toString(),
-                        style: TextStyle(color: context.textSec, fontSize: 10),
-                      ),
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        const months = [
-                          'Jan',
-                          'Feb',
-                          'Mar',
-                          'Apr',
-                          'May',
-                          'Jun',
-                        ];
-                        if (value >= 0 && value < months.length) {
-                          return Padding(
-                            padding: EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              months[value.toInt()],
-                              style: TextStyle(
-                                color: context.textSec,
-                                fontSize: 10,
-                              ),
-                            ),
-                          );
-                        }
-                        return Text('');
-                      },
-                    ),
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: const [
-                      FlSpot(0, 3),
-                      FlSpot(1, 1),
-                      FlSpot(2, 4),
-                      FlSpot(3, 2),
-                      FlSpot(4, 5),
-                      FlSpot(5, 3),
-                    ],
-                    isCurved: true,
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-                    ),
-                    barWidth: 4,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
+            child: StreamBuilder<List<double>>(
+              stream: _submissionTrendStream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor.withValues(alpha: 0.3)));
+                }
+
+                final dataPoints = snapshot.data!;
+                final List<FlSpot> spots = [];
+                for (int i = 0; i < dataPoints.length; i++) {
+                  spots.add(FlSpot(i.toDouble(), dataPoints[i]));
+                }
+
+                return LineChart(
+                  LineChartData(
+                    gridData: FlGridData(
                       show: true,
-                      gradient: LinearGradient(
-                        colors: [
-                          AppTheme.primaryColor.withValues(alpha: 0.2),
-                          AppTheme.primaryColor.withValues(alpha: 0),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (value) => FlLine(
+                        color: Colors.grey.withValues(alpha: 0.1),
+                        strokeWidth: 1,
                       ),
                     ),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 35,
+                          getTitlesWidget: (value, meta) => Text(
+                            value.toInt().toString(),
+                            style: TextStyle(color: context.textSec, fontSize: 10),
+                          ),
+                        ),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            final now = DateTime.now();
+                            final months = [];
+                            for (int i = 5; i >= 0; i--) {
+                              months.add(DateFormat('MMM').format(DateTime(now.year, now.month - i, 1)));
+                            }
+                            if (value >= 0 && value < months.length) {
+                              return Padding(
+                                padding: EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  months[value.toInt()],
+                                  style: TextStyle(
+                                    color: context.textSec,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              );
+                            }
+                            return Text('');
+                          },
+                        ),
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: spots.isEmpty ? [FlSpot(0, 0)] : spots,
+                        isCurved: true,
+                        gradient: const LinearGradient(
+                          colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                        ),
+                        barWidth: 4,
+                        isStrokeCapRound: true,
+                        dotData: const FlDotData(show: false),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.primaryColor.withValues(alpha: 0.2),
+                              AppTheme.primaryColor.withValues(alpha: 0),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ],
@@ -564,21 +558,21 @@ class _DashboardOverviewState extends State<DashboardOverview> {
             ),
             SizedBox(height: 12),
             StreamBuilder<QuerySnapshot>(
-              stream: _studentsStream,
+              stream: _auditLogsStream,
               builder: (context, snapshot) {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     child: Center(
                       child: Text(
-                        'No recent activity.',
+                        'No system logs available.',
                         style: TextStyle(color: context.textSec, fontSize: 13),
                       ),
                     ),
                   );
                 }
 
-                final docs = snapshot.data!.docs.take(5).toList();
+                final docs = snapshot.data!.docs;
 
                 return ListView.separated(
                   shrinkWrap: true,
@@ -587,63 +581,37 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                   separatorBuilder: (context, index) => Divider(),
                   itemBuilder: (context, index) {
                     final data = docs[index].data() as Map<String, dynamic>;
-                    final String name = data['fullName'] ?? 'A student';
-                    final String status = data['status'] ?? 'Pending';
-                    final Color statusColor = status == 'Approved'
-                        ? AppTheme.success
-                        : (status == 'Rejected'
-                              ? AppTheme.error
-                              : AppTheme.warning);
+                    final String adminName = data['adminName'] ?? 'System';
+                    final String action = data['action'] ?? 'Performed an action';
+                    final String role = data['role'] ?? 'System';
+                    final Timestamp? ts = data['timestamp'];
+                    final String timeStr = ts != null 
+                        ? DateFormat('hh:mm a').format(ts.toDate()) 
+                        : 'Just now';
 
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
-                        backgroundColor: AppTheme.primaryColor.withValues(
-                          alpha: 0.1,
-                        ),
+                        backgroundColor: (role == 'Admin' ? AppTheme.primaryColor : AppTheme.secondaryColor).withValues(alpha: 0.1),
                         child: Icon(
-                          LucideIcons.user,
-                          size: 20,
-                          color: AppTheme.primaryColor,
+                          role == 'Admin' ? LucideIcons.shieldCheck : LucideIcons.user,
+                          size: 18,
+                          color: role == 'Admin' ? AppTheme.primaryColor : AppTheme.secondaryColor,
                         ),
                       ),
                       title: RichText(
                         text: TextSpan(
-                          style: TextStyle(
-                            color: context.textPri,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: context.textPri, fontSize: 13),
                           children: [
-                            TextSpan(
-                              text: name,
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: ' registered in the system.'),
+                            TextSpan(text: adminName, style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(text: ' $action'),
                           ],
                         ),
                       ),
-                      subtitle: Text(
-                        'Just now',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      trailing: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          status,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                      subtitle: Text(timeStr, style: TextStyle(fontSize: 11, color: context.textSec)),
+                      trailing: role == 'Admin' 
+                        ? Icon(LucideIcons.check, size: 14, color: AppTheme.success) 
+                        : null,
                     );
                   },
                 );

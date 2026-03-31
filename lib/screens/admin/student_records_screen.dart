@@ -7,6 +7,7 @@ import '../../services/auth_service.dart';
 import '../../services/audit_service.dart';
 import '../../services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class StudentRecordsScreen extends StatefulWidget {
   const StudentRecordsScreen({super.key});
@@ -19,28 +20,336 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
   final AuthService _authService = AuthService();
   final AuditService _auditService = AuditService();
   final NotificationService _notificationService = NotificationService();
+  final TextEditingController _searchController = TextEditingController();
+
   String _searchQuery = '';
+  String _statusFilter = 'All';
+  String _courseFilter = 'All';
+
   late Stream<QuerySnapshot> _studentsStream;
-  
+
+  static const List<String> _statusOptions = ['All', 'Pending', 'Approved', 'Rejected', 'Under Review'];
+  static const List<String> _courseOptions = ['All', 'BSIT', 'BTLED', 'BFPT'];
+  static const List<String> _yearOptions = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+  static const List<String> _courseAddOptions = ['BSIT', 'BTLED', 'BFPT'];
+  static const List<String> _semesterOptions = [
+    'AY 2023-2024, 1st Sem',
+    'AY 2023-2024, 2nd Sem',
+    'AY 2024-2025, 1st Sem',
+    'AY 2024-2025, 2nd Sem',
+    'AY 2025-2026, 1st Sem',
+    'AY 2025-2026, 2nd Sem',
+  ];
+
+  String _selectedSemester = 'AY 2023-2024, 1st Sem';
+
   @override
   void initState() {
     super.initState();
     _studentsStream = _authService.getStudentsStream();
   }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _showAddStudentDialog() {
+    final formKey = GlobalKey<FormState>();
+    final nameCtrl = TextEditingController();
+    final idCtrl = TextEditingController();
+    final saCtrl = TextEditingController();
+    String selectedCourse = _courseAddOptions.first;
+    String selectedYear = _yearOptions.first;
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(LucideIcons.userPlus, size: 18, color: AppTheme.primaryColor),
+                  ),
+                  SizedBox(width: 12),
+                  Text('Add New Student', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: SizedBox(
+                width: 480,
+                child: Form(
+                  key: formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 8),
+                        _dialogField(
+                          controller: nameCtrl,
+                          label: 'Full Name',
+                          hint: 'e.g. Juan Dela Cruz',
+                          icon: LucideIcons.user,
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Full name is required' : null,
+                        ),
+                        SizedBox(height: 16),
+                        _dialogField(
+                          controller: idCtrl,
+                          label: 'Student ID',
+                          hint: 'e.g. 2023-00001',
+                          icon: LucideIcons.hash,
+                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Student ID is required' : null,
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: _dialogDropdown(
+                                label: 'Course',
+                                value: selectedCourse,
+                                items: _courseAddOptions,
+                                onChanged: (val) => setDialogState(() => selectedCourse = val!),
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: _dialogDropdown(
+                                label: 'Year Level',
+                                value: selectedYear,
+                                items: _yearOptions,
+                                onChanged: (val) => setDialogState(() => selectedYear = val!),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        _dialogField(
+                          controller: saCtrl,
+                          label: 'SA Number (Optional)',
+                          hint: 'e.g. 1234-5678-9012',
+                          icon: LucideIcons.creditCard,
+                          validator: null,
+                        ),
+                        SizedBox(height: 8),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(LucideIcons.info, size: 14, color: Colors.amber.shade700),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Student will be added with Pending status and must complete registration.',
+                                  style: TextStyle(fontSize: 11, color: Colors.amber.shade800),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.pop(dialogContext),
+                  child: Text('Cancel', style: TextStyle(color: context.textSec)),
+                ),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          setDialogState(() => isLoading = true);
+                          try {
+                            final newDoc = await FirebaseFirestore.instance.collection('students').add({
+                              'fullName': nameCtrl.text.trim(),
+                              'studentId': idCtrl.text.trim(),
+                              'course': selectedCourse,
+                              'year': selectedYear,
+                              'status': 'Pending',
+                              'familyDetails': {
+                                'saNumber': saCtrl.text.trim(),
+                              },
+                              'createdAt': FieldValue.serverTimestamp(),
+                            });
+
+                            // Set uid to match the document ID
+                            await newDoc.update({'uid': newDoc.id});
+
+                            await _auditService.logActivity(
+                              action: 'Added new student record: ${nameCtrl.text.trim()}',
+                              userName: 'Admin',
+                              role: 'Admin',
+                              studentId: idCtrl.text.trim(),
+                            );
+
+                            if (mounted) {
+                              Navigator.pop(dialogContext);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('${nameCtrl.text.trim()} has been added successfully.'),
+                                  backgroundColor: AppTheme.success,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setDialogState(() => isLoading = false);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to add student. Please try again.'),
+                                  backgroundColor: AppTheme.error,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  child: isLoading
+                      ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text('Add Student', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).whenComplete(() {
+      nameCtrl.dispose();
+      idCtrl.dispose();
+      saCtrl.dispose();
+    });
+  }
+
+  Widget _dialogField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(fontSize: 13, color: Colors.grey),
+            prefixIcon: Icon(icon, size: 16, color: AppTheme.primaryColor),
+            filled: true,
+            fillColor: Colors.grey.withValues(alpha: 0.05),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: AppTheme.primaryColor, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: AppTheme.error),
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _dialogDropdown({
+    required String label,
+    required String value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: value,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey.withValues(alpha: 0.05),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: AppTheme.primaryColor, width: 1.5),
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
+          items: items
+              .map((e) => DropdownMenuItem(value: e, child: Text(e, style: TextStyle(fontSize: 13))))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         bool isMobile = constraints.maxWidth < 900;
-        
+
         return SingleChildScrollView(
           padding: EdgeInsets.all(isMobile ? 12 : 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(context, isMobile),
-              SizedBox(height: 32),
-              _buildFilterBar(context, isMobile),
               SizedBox(height: 24),
+              _buildFilterBar(context, isMobile),
+              SizedBox(height: 16),
+              _buildActiveFilterChips(context),
+              SizedBox(height: 16),
               _buildStudentTable(context, isMobile),
             ],
           ),
@@ -63,7 +372,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               SizedBox(
                 height: 40,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _showAddStudentDialog,
                   style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 12)),
                   child: Icon(LucideIcons.userPlus, size: 18),
                 ),
@@ -76,7 +385,14 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('Student Records', style: Theme.of(context).textTheme.headlineMedium),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Student Records', style: Theme.of(context).textTheme.headlineMedium),
+            SizedBox(height: 2),
+            Text('Manage and review all registered students.', style: TextStyle(fontSize: 13, color: context.textSec)),
+          ],
+        ),
         Row(
           children: [
             _buildSemesterDropdown(context),
@@ -84,7 +400,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             SizedBox(
               height: 40,
               child: ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: _showAddStudentDialog,
                 icon: Icon(LucideIcons.userPlus, size: 18),
                 label: Text('Add Student', style: TextStyle(fontSize: 13)),
                 style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 16)),
@@ -97,116 +413,285 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
   }
 
   Widget _buildSemesterDropdown(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: context.surfaceC,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Text('AY 2023-2024, 1st Sem', 
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13), 
-              maxLines: 1, 
-              overflow: TextOverflow.ellipsis
-            ),
+    return PopupMenuButton<String>(
+      initialValue: _selectedSemester,
+      onSelected: (val) => setState(() => _selectedSemester = val),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      itemBuilder: (context) => _semesterOptions.map((sem) {
+        final bool isSelected = sem == _selectedSemester;
+        return PopupMenuItem<String>(
+          value: sem,
+          child: Row(
+            children: [
+              if (isSelected)
+                Icon(LucideIcons.check, size: 14, color: AppTheme.primaryColor)
+              else
+                SizedBox(width: 14),
+              SizedBox(width: 8),
+              Text(
+                sem,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? AppTheme.primaryColor : null,
+                ),
+              ),
+            ],
           ),
-          SizedBox(width: 8),
-          Icon(Icons.arrow_drop_down, color: context.textSec, size: 18),
-        ],
+        );
+      }).toList(),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: context.surfaceC,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(LucideIcons.calendarDays, size: 14, color: AppTheme.primaryColor),
+            SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                _selectedSemester,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: context.textPri,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(width: 6),
+            Icon(Icons.arrow_drop_down, color: context.textSec, size: 18),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildFilterBar(BuildContext context, bool isMobile) {
     if (isMobile) {
-      return Card(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  prefixIcon: Icon(LucideIcons.search, size: 20),
-                  filled: true,
-                  fillColor: context.bgC,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  contentPadding: EdgeInsets.symmetric(vertical: 0),
-                ),
+      return Container(
+        padding: EdgeInsets.all(12),
+        decoration: context.glassDecoration,
+        child: Column(
+          children: [
+            TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+              decoration: InputDecoration(
+                hintText: 'Search by name, ID, or SA number...',
+                prefixIcon: Icon(LucideIcons.search, size: 18, color: AppTheme.primaryColor),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(LucideIcons.x, size: 16),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: context.bgC.withValues(alpha: 0.5),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12),
               ),
-              SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(child: _buildDropdownFilter(context, 'Status')),
-                  SizedBox(width: 12),
-                  Expanded(child: _buildDropdownFilter(context, 'Course')),
-                ],
-              ),
-            ],
-          ),
+            ),
+            SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _buildFilterDropdown(context, 'Status', _statusOptions, _statusFilter, (val) => setState(() => _statusFilter = val!))),
+                SizedBox(width: 10),
+                Expanded(child: _buildFilterDropdown(context, 'Course', _courseOptions, _courseFilter, (val) => setState(() => _courseFilter = val!))),
+              ],
+            ),
+          ],
         ),
       );
     }
+
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: context.glassDecoration,
       child: Row(
         children: [
           Expanded(
             child: SizedBox(
-              height: 38,
+              height: 40,
               child: TextField(
+                controller: _searchController,
                 style: TextStyle(fontSize: 13),
+                onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
                 decoration: InputDecoration(
                   hintText: 'Search by name, ID, or SA number...',
                   prefixIcon: Icon(LucideIcons.search, size: 16, color: AppTheme.primaryColor),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(LucideIcons.x, size: 14),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
                   filled: true,
                   fillColor: context.bgC.withValues(alpha: 0.5),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                   contentPadding: EdgeInsets.symmetric(horizontal: 12),
                 ),
-                onChanged: (value) {
-                  setState(() => _searchQuery = value.toLowerCase());
-                },
               ),
             ),
           ),
           SizedBox(width: 12),
-          _buildDropdownFilter(context, 'Status'),
-          SizedBox(width: 12),
-          _buildDropdownFilter(context, 'Course'),
-          SizedBox(width: 8),
-          IconButton(
-            icon: Icon(LucideIcons.slidersHorizontal, size: 18, color: context.textSec),
-            onPressed: () {},
-            tooltip: 'Advanced Filters',
-          ),
+          _buildFilterDropdown(context, 'Status', _statusOptions, _statusFilter, (val) => setState(() => _statusFilter = val!)),
+          SizedBox(width: 10),
+          _buildFilterDropdown(context, 'Course', _courseOptions, _courseFilter, (val) => setState(() => _courseFilter = val!)),
+          SizedBox(width: 4),
+          if (_statusFilter != 'All' || _courseFilter != 'All' || _searchQuery.isNotEmpty)
+            Tooltip(
+              message: 'Clear all filters',
+              child: IconButton(
+                icon: Icon(LucideIcons.filterX, size: 18, color: AppTheme.error),
+                onPressed: _clearAllFilters,
+              ),
+            )
+          else
+            IconButton(
+              icon: Icon(LucideIcons.slidersHorizontal, size: 18, color: context.textSec),
+              onPressed: null,
+              tooltip: 'No active filters',
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildDropdownFilter(BuildContext context, String label) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: context.surfaceC.withValues(alpha: 0.5),
-        border: Border.all(color: context.surfaceC.withValues(alpha: 0.2)),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label, style: TextStyle(color: context.textSec, fontSize: 13, fontWeight: FontWeight.w500)),
-          SizedBox(width: 6),
-          Icon(Icons.arrow_drop_down, size: 18, color: context.textSec),
-        ],
+  Widget _buildFilterDropdown(
+    BuildContext context,
+    String label,
+    List<String> options,
+    String currentValue,
+    ValueChanged<String?> onChanged,
+  ) {
+    final bool isActive = currentValue != 'All';
+    return PopupMenuButton<String>(
+      initialValue: currentValue,
+      onSelected: onChanged,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      itemBuilder: (context) => options.map((option) {
+        final bool isSelected = option == currentValue;
+        return PopupMenuItem<String>(
+          value: option,
+          child: Row(
+            children: [
+              if (isSelected)
+                Icon(LucideIcons.check, size: 14, color: AppTheme.primaryColor)
+              else
+                SizedBox(width: 14),
+              SizedBox(width: 8),
+              Text(
+                option,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? AppTheme.primaryColor : null,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppTheme.primaryColor.withValues(alpha: 0.08)
+              : context.surfaceC.withValues(alpha: 0.5),
+          border: Border.all(
+            color: isActive
+                ? AppTheme.primaryColor.withValues(alpha: 0.3)
+                : context.surfaceC.withValues(alpha: 0.2),
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              isActive ? currentValue : label,
+              style: TextStyle(
+                color: isActive ? AppTheme.primaryColor : context.textSec,
+                fontSize: 13,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+            SizedBox(width: 4),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 18,
+              color: isActive ? AppTheme.primaryColor : context.textSec,
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildActiveFilterChips(BuildContext context) {
+    final List<Widget> chips = [];
+
+    if (_searchQuery.isNotEmpty) {
+      chips.add(_buildChip(context, 'Search: "$_searchQuery"', () {
+        _searchController.clear();
+        setState(() => _searchQuery = '');
+      }));
+    }
+    if (_statusFilter != 'All') {
+      chips.add(_buildChip(context, 'Status: $_statusFilter', () => setState(() => _statusFilter = 'All')));
+    }
+    if (_courseFilter != 'All') {
+      chips.add(_buildChip(context, 'Course: $_courseFilter', () => setState(() => _courseFilter = 'All')));
+    }
+
+    if (chips.isEmpty) return SizedBox.shrink();
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        ...chips,
+        ActionChip(
+          label: Text('Clear All', style: TextStyle(fontSize: 12, color: AppTheme.error)),
+          avatar: Icon(LucideIcons.x, size: 12, color: AppTheme.error),
+          backgroundColor: AppTheme.error.withValues(alpha: 0.08),
+          side: BorderSide(color: AppTheme.error.withValues(alpha: 0.2)),
+          onPressed: _clearAllFilters,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChip(BuildContext context, String label, VoidCallback onRemove) {
+    return Chip(
+      label: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+      deleteIcon: Icon(LucideIcons.x, size: 12),
+      onDeleted: onRemove,
+      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.08),
+      side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+      deleteIconColor: context.textSec,
+    );
+  }
+
+  void _clearAllFilters() {
+    _searchController.clear();
+    setState(() {
+      _searchQuery = '';
+      _statusFilter = 'All';
+      _courseFilter = 'All';
+    });
   }
 
   Widget _buildStudentTable(BuildContext context, bool isMobile) {
@@ -220,18 +705,76 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
           child: StreamBuilder<QuerySnapshot>(
             stream: _studentsStream,
             builder: (context, snapshot) {
-              if (snapshot.hasError) return Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Error: ${snapshot.error}')));
-              
-              // If we have no data yet (first load), show a stable loading indicator
+              if (snapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Text('Error: ${snapshot.error}'),
+                  ),
+                );
+              }
+
               if (!snapshot.hasData) {
                 return const SizedBox(
                   height: 300,
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
-              
-              final docs = snapshot.data!.docs;
-              if (docs.isEmpty) return const SizedBox(height: 200, child: Center(child: Text('No students registered yet.')));
+
+              final allDocs = snapshot.data!.docs;
+              if (allDocs.isEmpty) {
+                return const SizedBox(height: 200, child: Center(child: Text('No students registered yet.')));
+              }
+
+              // Apply filters
+              final filteredDocs = allDocs.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                final String name = (data['fullName'] ?? '').toLowerCase();
+                final String studentId = (data['studentId'] ?? '').toLowerCase();
+                final String saNumber = (data['familyDetails']?['saNumber'] ?? '').toLowerCase();
+                final String status = data['status'] ?? 'Pending';
+                final String course = data['course'] ?? '';
+
+                // Search filter
+                if (_searchQuery.isNotEmpty) {
+                  final bool matchesSearch = name.contains(_searchQuery) ||
+                      studentId.contains(_searchQuery) ||
+                      saNumber.contains(_searchQuery);
+                  if (!matchesSearch) return false;
+                }
+
+                // Status filter
+                if (_statusFilter != 'All' && status != _statusFilter) return false;
+
+                // Course filter
+                if (_courseFilter != 'All' && !course.contains(_courseFilter)) return false;
+
+                return true;
+              }).toList();
+
+              if (filteredDocs.isEmpty) {
+                return SizedBox(
+                  height: 220,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(LucideIcons.search, size: 40, color: Colors.grey.withValues(alpha: 0.4)),
+                        SizedBox(height: 12),
+                        Text(
+                          'No students match your filters.',
+                          style: TextStyle(color: context.textSec, fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        TextButton(
+                          onPressed: _clearAllFilters,
+                          child: Text('Clear all filters'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
 
               return DataTable(
                 horizontalMargin: 20,
@@ -248,7 +791,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   DataColumn(label: Text('SA Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.textPri, letterSpacing: 0.2))),
                   DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.textPri, letterSpacing: 0.2))),
                 ],
-                rows: docs.asMap().entries.map((entry) {
+                rows: filteredDocs.asMap().entries.map((entry) {
                   final int index = entry.key;
                   final doc = entry.value;
                   final data = doc.data() as Map<String, dynamic>;
@@ -259,31 +802,35 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   final String status = data['status'] ?? 'Pending';
                   final String saNumber = data['familyDetails']?['saNumber'] ?? 'Not Provided';
 
-                  if (_searchQuery.isNotEmpty && 
-                      !name.toLowerCase().contains(_searchQuery) &&
-                      !studentId.toLowerCase().contains(_searchQuery)) {
-                    return null;
-                  }
                   return _buildDataRow(
-                    context, 
+                    context,
                     doc.id,
-                    name, 
-                    studentId, 
-                    '$course - $year', 
-                    status, 
-                    saNumber, 
-                    isEven: index % 2 == 0
+                    name,
+                    studentId,
+                    '$course - $year',
+                    status,
+                    saNumber,
+                    isEven: index % 2 == 0,
                   );
-                }).whereType<DataRow>().toList(),
+                }).toList(),
               );
-            }
+            },
           ),
         ),
       ),
     );
   }
 
-  DataRow _buildDataRow(BuildContext context, String docId, String name, String studentId, String courseYear, String status, String saNumber, {bool isEven = false}) {
+  DataRow _buildDataRow(
+    BuildContext context,
+    String docId,
+    String name,
+    String studentId,
+    String courseYear,
+    String status,
+    String saNumber, {
+    bool isEven = false,
+  }) {
     Color statusColor = AppTheme.warning;
     if (status == 'Approved') statusColor = AppTheme.success;
     if (status == 'Rejected') statusColor = AppTheme.error;
@@ -311,11 +858,26 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             ],
           ),
         )),
-        DataCell(Text(saNumber, style: TextStyle(fontSize: 13, color: saNumber == 'Not Provided' ? Colors.grey : context.textPri))),
+        DataCell(Text(
+          saNumber,
+          style: TextStyle(
+            fontSize: 13,
+            color: saNumber == 'Not Provided' ? Colors.grey : context.textPri,
+          ),
+        )),
         DataCell(Row(
           children: [
             _buildActionIcon(LucideIcons.eye, AppTheme.primaryColor, () {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Viewing profiles will be implemented in the next phase!')));
+              final studentData = {
+                'fullName': name,
+                'studentId': studentId,
+                'course': courseYear.split(' - ')[0],
+                'year': courseYear.split(' - ')[1],
+                'status': status,
+                'familyDetails': {'saNumber': saNumber},
+                // We'd ideally pass the actual Timestamp from the Stream here
+              };
+              _showStudentProfile(studentData, docId);
             }),
             const SizedBox(width: 8),
             _buildActionIcon(LucideIcons.checkSquare, AppTheme.success, () {
@@ -327,7 +889,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             }),
           ],
         )),
-      ]
+      ],
     );
   }
 
@@ -339,15 +901,14 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
       await _auditService.logActivity(
         action: 'Changed student status to $newStatus',
-        userName: 'Admin', // In production, get dynamic admin name
+        userName: 'Admin',
         role: 'Admin',
         studentId: studentId,
       );
 
-      // --- SEND NOTIFICATION TO STUDENT ---
       String notificationType = 'info';
       String message = 'Your status has been updated to $newStatus.';
-      
+
       if (newStatus == 'Approved') {
         notificationType = 'success';
         message = 'Your documents have been verified and approved. Congratulations!';
@@ -359,7 +920,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
       }
 
       await _notificationService.sendNotification(
-        studentId: docId, // Using the Firestore docId which is the Student's UID
+        studentId: docId,
         title: 'Status Updated: $newStatus',
         message: message,
         type: notificationType,
@@ -380,6 +941,246 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         );
       }
     }
+  }
+
+  void _showStudentProfile(Map<String, dynamic> data, String docId) async {
+    final String name = data['fullName'] ?? 'Unknown Student';
+    final String studentId = data['studentId'] ?? 'N/A';
+    final String course = data['course'] ?? 'N/A';
+    final String year = data['year'] ?? 'N/A';
+    final String status = data['status'] ?? 'Pending';
+    final String saNumber = data['familyDetails']?['saNumber'] ?? 'Not Provided';
+    final Timestamp? createdAt = data['createdAt'];
+    final String registeredOn = createdAt != null ? DateFormat('MMMM dd, yyyy').format(createdAt.toDate()) : 'N/A';
+
+    // Log the profile view
+    await _auditService.logActivity(
+      action: 'Viewed student profile: $name',
+      userName: 'Admin',
+      role: 'Admin',
+      studentId: studentId,
+    );
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        maxChildSize: 0.95,
+        minChildSize: 0.5,
+        builder: (_, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20, spreadRadius: 5)],
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+              ),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  children: [
+                    // Header Section
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          child: const Icon(LucideIcons.user, size: 40, color: AppTheme.primaryColor),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Text('Student ID: $studentId', style: TextStyle(color: context.textSec, fontSize: 14)),
+                              const SizedBox(height: 12),
+                              _buildStatusBadge(status),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Information Grid
+                    const Text('Institutional Overview', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 2.2,
+                      children: [
+                        _buildProfileInfoCard(LucideIcons.graduationCap, 'Program / Course', course),
+                        _buildProfileInfoCard(LucideIcons.calendar, 'Year Level', year),
+                        _buildProfileInfoCard(LucideIcons.creditCard, 'SA Number (TES)', saNumber),
+                        _buildProfileInfoCard(LucideIcons.clock, 'Registration Date', registeredOn),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Verification Documents (Mocked for UI flow)
+                    const Text('Verification Documents', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    _buildDocumentItem('Validated Student ID (Front)', 'verified'),
+                    _buildDocumentItem('Validated Student ID (Back)', 'verified'),
+                    _buildDocumentItem('Billing Statement / COR', 'pending'),
+                    const SizedBox(height: 32),
+
+                    // Compliance Action
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Administrative Actions', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text('Use these controls to finalize document verification for this student.', 
+                            style: TextStyle(fontSize: 12, color: context.textSec)),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    _updateStudentStatus(docId, name, studentId, 'Approved');
+                                  },
+                                  icon: const Icon(LucideIcons.checkCircle, size: 18),
+                                  label: const Text('Approve Enrollment'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.success,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    _updateStudentStatus(docId, name, studentId, 'Rejected');
+                                  },
+                                  icon: const Icon(LucideIcons.xCircle, size: 18),
+                                  label: const Text('Flag for Revision'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.error,
+                                    side: const BorderSide(color: AppTheme.error),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color color = AppTheme.warning;
+    if (status == 'Approved') color = AppTheme.success;
+    if (status == 'Rejected') color = AppTheme.error;
+    if (status == 'Under Review') color = AppTheme.secondaryColor;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          const SizedBox(width: 8),
+          Text(status, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileInfoCard(IconData icon, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppTheme.primaryColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontSize: 10, color: context.textSec, fontWeight: FontWeight.w600)),
+                Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentItem(String title, String status) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: context.surfaceC,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Row(
+        children: [
+          Icon(LucideIcons.fileText, color: context.textSec, size: 20),
+          const SizedBox(width: 12),
+          Text(title, style: const TextStyle(fontSize: 14)),
+          const Spacer(),
+          if (status == 'verified')
+            const Icon(LucideIcons.check, color: AppTheme.success, size: 18)
+          else
+            const Text('Processing', style: TextStyle(fontSize: 11, color: AppTheme.warning, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
   }
 
   Widget _buildActionIcon(IconData icon, Color color, VoidCallback onTap) {

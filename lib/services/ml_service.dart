@@ -104,9 +104,9 @@ class MLService {
     }
 
     // Simulated complexity factor: Missing fields increases risk of bad submissions
-    if (studentData['familyDetails'] == null ||
-        studentData['familyDetails'].isEmpty) {
-      riskScore += 30.0;
+    final familyDetails = studentData['familyDetails'];
+    if (familyDetails == null || familyDetails is! Map || familyDetails['saNumber'] == null || familyDetails['saNumber'] == 'Not Provided') {
+      riskScore += 45.0; // Higher weight for missing SA Number
     }
 
     if (studentData.containsKey('role') && studentData['role'] != 'student') {

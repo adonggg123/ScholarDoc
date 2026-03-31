@@ -30,15 +30,23 @@ class AuditService {
 
       await _firestore.collection('audit_logs').add({
         'action': action,
-        'adminName': userName, // Reusing existing field name to prevent breaking changes on old logs
+        'adminName': userName,
         'role': role,
         'studentId': studentId ?? 'N/A',
-        'ipAddress': platformInfo, // Using platform string since Web/App IPs are complex to fetch purely client-side
+        'ipAddress': platformInfo,
         'timestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
       debugPrint('Failed to log audit activity: $e');
-      // We don't want audit failures to break the user's workflow, just silently print to console.
     }
+  }
+
+  /// Stream of latest system audit logs
+  Stream<QuerySnapshot> getAuditLogsStream({int limit = 10}) {
+    return _firestore
+        .collection('audit_logs')
+        .orderBy('timestamp', descending: true)
+        .limit(limit)
+        .snapshots();
   }
 }
