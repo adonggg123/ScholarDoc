@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
-import '../admin/admin_login_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
