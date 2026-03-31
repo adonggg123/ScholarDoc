@@ -35,7 +35,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
     return LayoutBuilder(
       builder: (context, constraints) {
         bool isMobile = constraints.maxWidth < 1100;
-        
+
         return Scaffold(
           key: _scaffoldKey,
           drawer: isMobile ? _buildDrawer() : null,
@@ -51,7 +51,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                       decoration: BoxDecoration(
                         color: context.surfaceC.withValues(alpha: 0.7),
                         border: Border(
-                          right: BorderSide(color: context.surfaceC.withValues(alpha: 0.2)),
+                          right: BorderSide(
+                            color: context.surfaceC.withValues(alpha: 0.2),
+                          ),
                         ),
                         boxShadow: AppTheme.softShadow,
                       ),
@@ -67,7 +69,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                     Expanded(
                       child: Container(
                         color: context.bgC,
-                        child: _selectedIndex < _screens.length ? _screens[_selectedIndex] : _screens[0],
+                        child: _selectedIndex < _screens.length
+                            ? _screens[_selectedIndex]
+                            : _screens[0],
                       ),
                     ),
                   ],
@@ -81,9 +85,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
   }
 
   Widget _buildDrawer() {
-    return Drawer(
-      child: _buildSidebarContent(),
-    );
+    return Drawer(child: _buildSidebarContent());
   }
 
   Widget _buildSidebarContent() {
@@ -127,7 +129,11 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
               color: AppTheme.primaryColor,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(LucideIcons.graduationCap, color: context.surfaceC, size: 18),
+            child: Icon(
+              LucideIcons.graduationCap,
+              color: context.surfaceC,
+              size: 18,
+            ),
           ),
           SizedBox(width: 12),
           const Flexible(
@@ -166,15 +172,19 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
             duration: const Duration(milliseconds: 200),
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+              color: isSelected
+                  ? AppTheme.primaryColor.withValues(alpha: 0.1)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: isSelected ? [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ] : null,
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
             ),
             child: Row(
               children: [
@@ -182,7 +192,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                   duration: const Duration(milliseconds: 200),
                   padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -198,7 +210,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                     style: TextStyle(
                       fontSize: 13,
                       color: isSelected ? context.textPri : context.textSec,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -226,7 +240,10 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
             Flexible(
               child: Text(
                 'Logout',
-                style: TextStyle(color: AppTheme.error, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: AppTheme.error,
+                  fontWeight: FontWeight.w500,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -245,7 +262,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
           decoration: BoxDecoration(
             color: context.surfaceC.withValues(alpha: 0.8),
             border: Border(
-              bottom: BorderSide(color: context.surfaceC.withValues(alpha: 0.2)),
+              bottom: BorderSide(
+                color: context.surfaceC.withValues(alpha: 0.2),
+              ),
             ),
             boxShadow: AppTheme.softShadow,
           ),
@@ -265,46 +284,52 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-          SizedBox(width: 8),
-          // Notifications
-          IconButton(
-            onPressed: () {},
-            icon: Icon(LucideIcons.bell, size: 20),
-          ),
-          if (!isMobile) ...[
-            SizedBox(width: 8),
-            // Admin Profile
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                borderRadius: BorderRadius.circular(20),
+              SizedBox(width: 8),
+              // Notifications
+              IconButton(
+                onPressed: () {},
+                icon: Icon(LucideIcons.bell, size: 20),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: AppTheme.secondaryColor,
-                    child: Icon(Icons.person, size: 16, color: context.surfaceC),
-                  ),
-                  SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      'Admin User',
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                      overflow: TextOverflow.ellipsis,
+              if (!isMobile) ...[
+                SizedBox(width: 8),
+                // Admin Profile
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey.withValues(alpha: 0.2),
                     ),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  Icon(Icons.arrow_drop_down),
-                ],
-              ),
-            ),
-          ],
-        ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 14,
+                        backgroundColor: AppTheme.secondaryColor,
+                        child: Icon(
+                          Icons.person,
+                          size: 16,
+                          color: context.surfaceC,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'Admin User',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Icon(Icons.arrow_drop_down),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
-    ),
-  ),
-);
-}
+    );
+  }
 }

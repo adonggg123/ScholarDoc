@@ -29,7 +29,7 @@ class _DashboardOverviewState extends State<DashboardOverview> {
     return LayoutBuilder(
       builder: (context, constraints) {
         bool isMobile = constraints.maxWidth < 900;
-        
+
         return SingleChildScrollView(
           padding: EdgeInsets.all(isMobile ? 12 : 20),
           child: Column(
@@ -84,12 +84,19 @@ class _DashboardOverviewState extends State<DashboardOverview> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Dashboard Overview', 
-                    style: (isMobile 
-                      ? Theme.of(context).textTheme.titleLarge 
-                      : Theme.of(context).textTheme.headlineSmall)?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Dashboard Overview',
+                    style:
+                        (isMobile
+                                ? Theme.of(context).textTheme.titleLarge
+                                : Theme.of(context).textTheme.headlineSmall)
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 2),
-                  Text('Real-time system analytics and monitor.', style: TextStyle(fontSize: 12, color: context.textSec)),
+                  Text(
+                    'Real-time system analytics and monitor.',
+                    style: TextStyle(fontSize: 12, color: context.textSec),
+                  ),
                 ],
               ),
             ),
@@ -117,8 +124,6 @@ class _DashboardOverviewState extends State<DashboardOverview> {
   }
 
   Widget _buildStatsGrid(BuildContext context, bool isMobile) {
-
-    
     return StreamBuilder<QuerySnapshot>(
       stream: _studentsStream,
       builder: (context, snapshot) {
@@ -133,9 +138,12 @@ class _DashboardOverviewState extends State<DashboardOverview> {
           for (var doc in docs) {
             final data = doc.data() as Map<String, dynamic>;
             final status = data['status'] ?? 'Pending';
-            if (status == 'Pending') pending++;
-            else if (status == 'Approved') approved++;
-            else if (status == 'Rejected') rejected++;
+            if (status == 'Pending')
+              pending++;
+            else if (status == 'Approved')
+              approved++;
+            else if (status == 'Rejected')
+              rejected++;
           }
         }
 
@@ -144,39 +152,93 @@ class _DashboardOverviewState extends State<DashboardOverview> {
             children: [
               Row(
                 children: [
-                  _buildStatCard(context, 'Total', total.toString(), LucideIcons.fileText, AppTheme.primaryColor),
+                  _buildStatCard(
+                    context,
+                    'Total',
+                    total.toString(),
+                    LucideIcons.fileText,
+                    AppTheme.primaryColor,
+                  ),
                   SizedBox(width: 16),
-                  _buildStatCard(context, 'Pending', pending.toString(), LucideIcons.clock, AppTheme.warning),
+                  _buildStatCard(
+                    context,
+                    'Pending',
+                    pending.toString(),
+                    LucideIcons.clock,
+                    AppTheme.warning,
+                  ),
                 ],
               ),
               SizedBox(height: 16),
               Row(
                 children: [
-                  _buildStatCard(context, 'Approved', approved.toString(), LucideIcons.checkCircle2, AppTheme.success),
+                  _buildStatCard(
+                    context,
+                    'Approved',
+                    approved.toString(),
+                    LucideIcons.checkCircle2,
+                    AppTheme.success,
+                  ),
                   SizedBox(width: 16),
-                  _buildStatCard(context, 'Rejected', rejected.toString(), LucideIcons.alertCircle, AppTheme.error),
+                  _buildStatCard(
+                    context,
+                    'Rejected',
+                    rejected.toString(),
+                    LucideIcons.alertCircle,
+                    AppTheme.error,
+                  ),
                 ],
               ),
             ],
           );
         }
-        
+
         return Row(
           children: [
-            _buildStatCard(context, 'Total Students', total.toString(), LucideIcons.fileText, AppTheme.primaryColor),
+            _buildStatCard(
+              context,
+              'Total Students',
+              total.toString(),
+              LucideIcons.fileText,
+              AppTheme.primaryColor,
+            ),
             SizedBox(width: 16),
-            _buildStatCard(context, 'Pending Review', pending.toString(), LucideIcons.clock, AppTheme.warning),
+            _buildStatCard(
+              context,
+              'Pending Review',
+              pending.toString(),
+              LucideIcons.clock,
+              AppTheme.warning,
+            ),
             SizedBox(width: 16),
-            _buildStatCard(context, 'Approved', approved.toString(), LucideIcons.checkCircle2, AppTheme.success),
+            _buildStatCard(
+              context,
+              'Approved',
+              approved.toString(),
+              LucideIcons.checkCircle2,
+              AppTheme.success,
+            ),
             SizedBox(width: 16),
-            _buildStatCard(context, 'Rejected', rejected.toString(), LucideIcons.alertCircle, AppTheme.error),
+            _buildStatCard(
+              context,
+              'Rejected',
+              rejected.toString(),
+              LucideIcons.alertCircle,
+              AppTheme.error,
+            ),
           ],
         );
-      }
+      },
     );
   }
 
-  Widget _buildStatCard(BuildContext context, String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         decoration: context.crispDecoration,
@@ -198,9 +260,28 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.textSec, fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.2)),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: context.textSec,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
                     SizedBox(height: 2),
-                    Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+                    Text(
+                      value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -221,19 +302,32 @@ class _DashboardOverviewState extends State<DashboardOverview> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Submission Trends', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                'Submission Trends',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryColor.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text('Last 6 Months', style: TextStyle(fontSize: 11, color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'Last 6 Months',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
           SizedBox(height: 8),
-          Text('Weekly document submission counts', style: TextStyle(color: context.textSec, fontSize: 13)),
+          Text(
+            'Weekly document submission counts',
+            style: TextStyle(color: context.textSec, fontSize: 13),
+          ),
           SizedBox(height: 24),
           SizedBox(
             height: 220,
@@ -242,12 +336,19 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.withValues(alpha: 0.1), strokeWidth: 1),
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: Colors.grey.withValues(alpha: 0.1),
+                    strokeWidth: 1,
+                  ),
                 ),
                 titlesData: FlTitlesData(
                   show: true,
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -262,11 +363,24 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                        const months = [
+                          'Jan',
+                          'Feb',
+                          'Mar',
+                          'Apr',
+                          'May',
+                          'Jun',
+                        ];
                         if (value >= 0 && value < months.length) {
                           return Padding(
                             padding: EdgeInsets.only(top: 8.0),
-                            child: Text(months[value.toInt()], style: TextStyle(color: context.textSec, fontSize: 10)),
+                            child: Text(
+                              months[value.toInt()],
+                              style: TextStyle(
+                                color: context.textSec,
+                                fontSize: 10,
+                              ),
+                            ),
                           );
                         }
                         return Text('');
@@ -277,16 +391,28 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                 borderData: FlBorderData(show: false),
                 lineBarsData: [
                   LineChartBarData(
-                    spots: const [FlSpot(0, 3), FlSpot(1, 1), FlSpot(2, 4), FlSpot(3, 2), FlSpot(4, 5), FlSpot(5, 3)],
+                    spots: const [
+                      FlSpot(0, 3),
+                      FlSpot(1, 1),
+                      FlSpot(2, 4),
+                      FlSpot(3, 2),
+                      FlSpot(4, 5),
+                      FlSpot(5, 3),
+                    ],
                     isCurved: true,
-                    gradient: const LinearGradient(colors: [AppTheme.primaryColor, AppTheme.secondaryColor]),
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                    ),
                     barWidth: 4,
                     isStrokeCapRound: true,
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
                       gradient: LinearGradient(
-                        colors: [AppTheme.primaryColor.withValues(alpha: 0.2), AppTheme.primaryColor.withValues(alpha: 0)],
+                        colors: [
+                          AppTheme.primaryColor.withValues(alpha: 0.2),
+                          AppTheme.primaryColor.withValues(alpha: 0),
+                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -301,9 +427,7 @@ class _DashboardOverviewState extends State<DashboardOverview> {
     );
   }
 
-   Widget _buildStatusDistribution(BuildContext context) {
-
-    
+  Widget _buildStatusDistribution(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
       stream: _studentsStream,
       builder: (context, snapshot) {
@@ -318,9 +442,12 @@ class _DashboardOverviewState extends State<DashboardOverview> {
           for (var doc in docs) {
             final data = doc.data() as Map<String, dynamic>;
             final status = data['status'] ?? 'Pending';
-            if (status == 'Pending') pending++;
-            else if (status == 'Approved') approved++;
-            else if (status == 'Rejected') rejected++;
+            if (status == 'Pending')
+              pending++;
+            else if (status == 'Approved')
+              approved++;
+            else if (status == 'Rejected')
+              rejected++;
           }
         }
 
@@ -338,21 +465,59 @@ class _DashboardOverviewState extends State<DashboardOverview> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Status Distribution', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                Text(
+                  'Status Distribution',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 16),
                 SizedBox(
                   height: 160,
-                  child: hasData ? PieChart(
-                    PieChartData(
-                      sectionsSpace: 4,
-                      centerSpaceRadius: 40,
-                      sections: [
-                        if (approved > 0) PieChartSectionData(color: AppTheme.success, value: approved, title: '${aPer.toStringAsFixed(0)}%', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 12)),
-                        if (pending > 0) PieChartSectionData(color: AppTheme.warning, value: pending, title: '${pPer.toStringAsFixed(0)}%', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 12)),
-                        if (rejected > 0) PieChartSectionData(color: AppTheme.error, value: rejected, title: '${rPer.toStringAsFixed(0)}%', radius: 45, titleStyle: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold, fontSize: 12)),
-                      ],
-                    ),
-                  ) : Center(child: Text('No data')),
+                  child: hasData
+                      ? PieChart(
+                          PieChartData(
+                            sectionsSpace: 4,
+                            centerSpaceRadius: 40,
+                            sections: [
+                              if (approved > 0)
+                                PieChartSectionData(
+                                  color: AppTheme.success,
+                                  value: approved,
+                                  title: '${aPer.toStringAsFixed(0)}%',
+                                  radius: 45,
+                                  titleStyle: TextStyle(
+                                    color: context.surfaceC,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              if (pending > 0)
+                                PieChartSectionData(
+                                  color: AppTheme.warning,
+                                  value: pending,
+                                  title: '${pPer.toStringAsFixed(0)}%',
+                                  radius: 45,
+                                  titleStyle: TextStyle(
+                                    color: context.surfaceC,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              if (rejected > 0)
+                                PieChartSectionData(
+                                  color: AppTheme.error,
+                                  value: rejected,
+                                  title: '${rPer.toStringAsFixed(0)}%',
+                                  radius: 45,
+                                  titleStyle: TextStyle(
+                                    color: context.surfaceC,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        )
+                      : Center(child: Text('No data')),
                 ),
                 SizedBox(height: 24),
                 _buildLegendItem(context, 'Approved', AppTheme.success),
@@ -362,7 +527,7 @@ class _DashboardOverviewState extends State<DashboardOverview> {
             ),
           ),
         );
-      }
+      },
     );
   }
 
@@ -371,7 +536,11 @@ class _DashboardOverviewState extends State<DashboardOverview> {
       padding: EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
           SizedBox(width: 8),
           Text(label, style: TextStyle(fontSize: 13)),
         ],
@@ -380,8 +549,6 @@ class _DashboardOverviewState extends State<DashboardOverview> {
   }
 
   Widget _buildRecentActivity(BuildContext context) {
-
-    
     return Container(
       decoration: context.glassDecoration.copyWith(
         boxShadow: AppTheme.softShadow,
@@ -391,7 +558,10 @@ class _DashboardOverviewState extends State<DashboardOverview> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Recent System Activity', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(
+              'Recent System Activity',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 12),
             StreamBuilder<QuerySnapshot>(
               stream: _studentsStream,
@@ -399,12 +569,17 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Center(child: Text('No recent activity.', style: TextStyle(color: context.textSec, fontSize: 13))),
+                    child: Center(
+                      child: Text(
+                        'No recent activity.',
+                        style: TextStyle(color: context.textSec, fontSize: 13),
+                      ),
+                    ),
                   );
                 }
 
                 final docs = snapshot.data!.docs.take(5).toList();
-                
+
                 return ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -414,42 +589,72 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                     final data = docs[index].data() as Map<String, dynamic>;
                     final String name = data['fullName'] ?? 'A student';
                     final String status = data['status'] ?? 'Pending';
-                    final Color statusColor = status == 'Approved' ? AppTheme.success : (status == 'Rejected' ? AppTheme.error : AppTheme.warning);
+                    final Color statusColor = status == 'Approved'
+                        ? AppTheme.success
+                        : (status == 'Rejected'
+                              ? AppTheme.error
+                              : AppTheme.warning);
 
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
-                        backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        child: Icon(LucideIcons.user, size: 20, color: AppTheme.primaryColor),
+                        backgroundColor: AppTheme.primaryColor.withValues(
+                          alpha: 0.1,
+                        ),
+                        child: Icon(
+                          LucideIcons.user,
+                          size: 20,
+                          color: AppTheme.primaryColor,
+                        ),
                       ),
                       title: RichText(
                         text: TextSpan(
-                          style: TextStyle(color: context.textPri, fontSize: 14),
+                          style: TextStyle(
+                            color: context.textPri,
+                            fontSize: 14,
+                          ),
                           children: [
-                            TextSpan(text: name, style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(
+                              text: name,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                             TextSpan(text: ' registered in the system.'),
                           ],
                         ),
                       ),
-                      subtitle: Text('Just now', style: TextStyle(fontSize: 12)),
+                      subtitle: Text(
+                        'Just now',
+                        style: TextStyle(fontSize: 12),
+                      ),
                       trailing: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: statusColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          status,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     );
                   },
                 );
-              }
+              },
             ),
           ],
         ),
       ),
     );
   }
+
   Widget _buildHighRiskStudents(BuildContext context) {
     final MLService ml = MLService();
 
@@ -466,11 +671,17 @@ class _DashboardOverviewState extends State<DashboardOverview> {
               children: [
                 Icon(LucideIcons.brainCircuit, color: AppTheme.error, size: 18),
                 SizedBox(width: 8),
-                Text('AI Risk Prediction', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                Text(
+                  'AI Risk Prediction',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
               ],
             ),
             SizedBox(height: 4),
-            Text('Students likely to submit late or incorrectly', style: TextStyle(fontSize: 12, color: context.textSec)),
+            Text(
+              'Students likely to submit late or incorrectly',
+              style: TextStyle(fontSize: 12, color: context.textSec),
+            ),
             SizedBox(height: 16),
             StreamBuilder<QuerySnapshot>(
               stream: _studentsStream,
@@ -478,23 +689,35 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Center(child: Text('No student data available.', style: TextStyle(color: context.textSec, fontSize: 13))),
+                    child: Center(
+                      child: Text(
+                        'No student data available.',
+                        style: TextStyle(color: context.textSec, fontSize: 13),
+                      ),
+                    ),
                   );
                 }
 
                 // Process real students
-                final List<Map<String, dynamic>> students = snapshot.data!.docs.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  return {
-                    'name': data['fullName'] ?? 'N/A',
-                    'id': data['studentId'] ?? 'N/A',
-                    'pastLateSubmissions': 0, // In a real app, this would be a field
-                    'familyDetails': data['familyDetails'],
-                  };
-                }).toList();
+                final List<Map<String, dynamic>> students = snapshot.data!.docs
+                    .map((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      return {
+                        'name': data['fullName'] ?? 'N/A',
+                        'id': data['studentId'] ?? 'N/A',
+                        'pastLateSubmissions':
+                            0, // In a real app, this would be a field
+                        'familyDetails': data['familyDetails'],
+                      };
+                    })
+                    .toList();
 
                 // Auto-sort by highest risk first
-                students.sort((a, b) => ml.predictSubmissionRisk(b).compareTo(ml.predictSubmissionRisk(a)));
+                students.sort(
+                  (a, b) => ml
+                      .predictSubmissionRisk(b)
+                      .compareTo(ml.predictSubmissionRisk(a)),
+                );
 
                 // Take top 4
                 final topRiskStudents = students.take(4).toList();
@@ -507,28 +730,56 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                   itemBuilder: (context, index) {
                     final student = topRiskStudents[index];
                     final risk = ml.predictSubmissionRisk(student);
-                    final color = risk > 80 ? AppTheme.error : (risk > 50 ? AppTheme.warning : AppTheme.success);
-                    
+                    final color = risk > 80
+                        ? AppTheme.error
+                        : (risk > 50 ? AppTheme.warning : AppTheme.success);
+
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
                         backgroundColor: color.withValues(alpha: 0.1),
-                        child: Icon(LucideIcons.alertTriangle, size: 18, color: color),
+                        child: Icon(
+                          LucideIcons.alertTriangle,
+                          size: 18,
+                          color: color,
+                        ),
                       ),
-                      title: Text(student['name'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      subtitle: Text('ID: ${student['id']}', style: TextStyle(fontSize: 11)),
+                      title: Text(
+                        student['name'] as String,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'ID: ${student['id']}',
+                        style: TextStyle(fontSize: 11),
+                      ),
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('${risk.toStringAsFixed(1)}%', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
-                          Text('Risk Score', style: TextStyle(fontSize: 9, color: context.textSec)),
+                          Text(
+                            '${risk.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              color: color,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            'Risk Score',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: context.textSec,
+                            ),
+                          ),
                         ],
                       ),
                     );
                   },
                 );
-              }
+              },
             ),
           ],
         ),

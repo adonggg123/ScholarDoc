@@ -17,6 +17,7 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
   final AuthService _authService = AuthService();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  DateTime? _selectedDate;
   late Stream<QuerySnapshot> _auditStream;
   
   @override
@@ -79,6 +80,34 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
               // To securely filter logs for the user, we will filter by `userName` matching their profile's email or name
               // Since student profiles might just be fetching, we'll try to match exact User Data
               // For demonstration purposes of this feature: we filter where role == 'Student' OR action affects this student.
+
+              // Apply Date Filter
+              final now = DateTime.now();
+              if (_selectedDate == null) {
+                // Default: 24h filter
+                docs = docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final timestamp = data['timestamp'];
+                  if (timestamp is Timestamp) {
+                    final dateTime = timestamp.toDate();
+                    return now.difference(dateTime).inHours < 24;
+                  }
+                  return true;
+                }).toList();
+              } else {
+                // Explicit Date Filter: matching the same calendar day
+                docs = docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final timestamp = data['timestamp'];
+                  if (timestamp is Timestamp) {
+                    final dateTime = timestamp.toDate();
+                    return dateTime.year == _selectedDate!.year &&
+                           dateTime.month == _selectedDate!.month &&
+                           dateTime.day == _selectedDate!.day;
+                  }
+                  return false;
+                }).toList();
+              }
 
               // 2. Search Filter
               if (_searchQuery.isNotEmpty) {
@@ -154,28 +183,99 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(LucideIcons.history, size: 18, color: AppTheme.secondaryColor),
-              const SizedBox(width: 8),
-              const Text('Search Activity', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Row(
+                children: [
+                  Icon(LucideIcons.history, size: 18, color: AppTheme.secondaryColor),
+                  const SizedBox(width: 8),
+                  const Text('Search Activity', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ],
+              ),
+              if (_selectedDate == null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                  ),
+                  child: const Text(
+                    'Last 24h',
+                    style: TextStyle(fontSize: 10, color: Colors.amber, fontWeight: FontWeight.bold),
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 16),
-          // Search Field
-          TextField(
-            controller: _searchController,
-            onChanged: (val) => setState(() => _searchQuery = val),
-            decoration: InputDecoration(
-              hintText: 'Search actions (e.g. "Login", "Profile")...',
-              prefixIcon: const Icon(LucideIcons.search, size: 20),
-              filled: true,
-              fillColor: Colors.grey.withValues(alpha: 0.05),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+          // Search Field and Date Picker
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (val) => setState(() => _searchQuery = val),
+                  decoration: InputDecoration(
+                    hintText: 'Search actions (e.g. "Login", "Profile")...',
+                    prefixIcon: const Icon(LucideIcons.search, size: 20),
+                    filled: true,
+                    fillColor: Colors.grey.withValues(alpha: 0.05),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  ),
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0),
-            ),
+              const SizedBox(width: 12),
+              InkWell(
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate ?? DateTime.now(),
+                    firstDate: DateTime(2025),
+                    lastDate: DateTime.now(),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: ColorScheme.light(
+                            primary: AppTheme.secondaryColor,
+                            onPrimary: Colors.white,
+                            surface: context.surfaceC,
+                            onSurface: context.textPri,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    setState(() => _selectedDate = picked);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _selectedDate != null ? AppTheme.secondaryColor : Colors.grey.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    LucideIcons.calendar,
+                    size: 20,
+                    color: _selectedDate != null ? Colors.white : context.textSec,
+                  ),
+                ),
+              ),
+              if (_selectedDate != null) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () => setState(() => _selectedDate = null),
+                  icon: const Icon(LucideIcons.x, size: 18),
+                  tooltip: 'Clear Date Filter',
+                )
+              ],
+            ],
           ),
         ],
       ),

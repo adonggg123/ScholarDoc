@@ -15,23 +15,23 @@ class AppTheme {
   // Premium Shadows
   static List<BoxShadow> get softShadow => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.03),
-      offset: const Offset(0, 2),
-      blurRadius: 4,
+      color: Colors.black.withValues(alpha: 0.02),
+      offset: const Offset(0, 4),
+      blurRadius: 8,
     ),
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.02),
-      offset: const Offset(0, 10),
-      blurRadius: 20,
+      color: Colors.black.withValues(alpha: 0.01),
+      offset: const Offset(0, 15),
+      blurRadius: 30,
     ),
   ];
 
   static List<BoxShadow> get premiumShadow => [
     BoxShadow(
-      color: primaryColor.withValues(alpha: 0.12),
-      offset: const Offset(0, 10),
-      blurRadius: 30,
-      spreadRadius: -5,
+      color: primaryColor.withValues(alpha: 0.08),
+      offset: const Offset(0, 20),
+      blurRadius: 40,
+      spreadRadius: -10,
     ),
   ];
 
