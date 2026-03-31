@@ -147,7 +147,7 @@ class ReportService {
       List<double> counts = List.filled(6, 0.0);
       
       for (var doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
         final timestamp = (data['createdAt'] as Timestamp?)?.toDate();
         if (timestamp != null) {
           int monthDiff = (now.year - timestamp.year) * 12 + now.month - timestamp.month;
