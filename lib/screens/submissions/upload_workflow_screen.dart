@@ -3,6 +3,9 @@ import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../services/ml_service.dart';
+import '../../services/auth_service.dart';
+import '../../services/audit_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UploadWorkflowScreen extends StatefulWidget {
   const UploadWorkflowScreen({super.key});
@@ -19,6 +22,8 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
   bool _isDuplicate = false;
 
   final MLService _mlService = MLService();
+  final AuthService _authService = AuthService();
+  final AuditService _auditService = AuditService();
 
   void _simulateUpload() async {
     setState(() {
@@ -85,19 +90,59 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
       body: Stepper(
         type: StepperType.horizontal,
         currentStep: _currentStep,
-        onStepContinue: () {
+        onStepContinue: () async {
           if (_currentStep < 2) {
             setState(() {
               _currentStep += 1;
             });
           } else {
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Documents submitted successfully!'),
-                backgroundColor: AppTheme.success,
-              ),
-            );
+            setState(() => _isUploading = true);
+            try {
+              final user = _authService.currentUser;
+              if (user != null) {
+                // Fetch student ID to include in the audit
+                final doc = await _authService.getStudentProfile(user.uid);
+                final data = doc.data() as Map<String, dynamic>?;
+                final String studentId = data?['studentId'] ?? 'Unknown ID';
+                final String fullName = data?['fullName'] ?? 'Student';
+
+                await _authService.updateStudentProfile(user.uid, {
+                  'status': 'Pending',
+                  'createdAt': FieldValue.serverTimestamp(),
+                  'submittedAt': FieldValue.serverTimestamp(),
+                  'requiresResubmission': false,
+                  'adminRemarks': null, 
+                });
+
+                await _auditService.logActivity(
+                  action: 'Submitted documents for scholarship verification',
+                  userName: fullName,
+                  role: 'Student',
+                  studentId: studentId,
+                );
+              }
+              
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Documents submitted successfully!'),
+                    backgroundColor: AppTheme.success,
+                  ),
+                );
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to submit documents: $e'),
+                    backgroundColor: AppTheme.error,
+                  ),
+                );
+              }
+            } finally {
+              if (mounted) setState(() => _isUploading = false);
+            }
           }
         },
         onStepCancel: () {

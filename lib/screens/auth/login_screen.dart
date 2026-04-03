@@ -15,13 +15,16 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _studentIdController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
     _studentIdController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -68,6 +71,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
+                SizedBox(height: 16),
+                // Password Input
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    hintText: 'Enter your password',
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your password';
+                    }
+                    return null;
+                  },
+                ),
                 SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -77,21 +101,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.lock_person_outlined, size: 18, color: AppTheme.primaryColor),
+                      Icon(Icons.info_outline, size: 18, color: AppTheme.primaryColor),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Login using your Student ID as your password.',
+                          'For new accounts, use your Student ID as your password.',
                           style: TextStyle(fontSize: 12, color: context.textSec, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
-
-
-                SizedBox(height: 32),
 
                 // Login Button
                 ElevatedButton(
@@ -103,6 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             try {
                               await _authService.loginStudent(
                                 studentId: _studentIdController.text.trim(),
+                                password: _passwordController.text.trim(),
                               );
                               if (!context.mounted) return;
                               Navigator.pushAndRemoveUntil(

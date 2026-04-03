@@ -43,15 +43,18 @@ class Announcement {
 class AnnouncementService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Get active announcements
   Stream<List<Announcement>> getActiveAnnouncements() {
+    // Note: Removed .orderBy() from Firestore query to avoid needing a composite index.
+    // Instead, we sort the data client-side.
     return _firestore
         .collection('announcements')
         .where('isActive', isEqualTo: true)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Announcement.fromFirestore(doc)).toList());
+        .map((snapshot) {
+      final docs = snapshot.docs.map((doc) => Announcement.fromFirestore(doc)).toList();
+      docs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return docs;
+    });
   }
 
   // Get all announcements

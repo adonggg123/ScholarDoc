@@ -66,11 +66,13 @@ class AuthService {
     }
   }
 
-  // Login student using only Student ID
+  // Login student
   Future<UserCredential?> loginStudent({
     required String studentId,
+    required String password,
   }) async {
     final String trimmedId = studentId.trim();
+    final String trimmedPassword = password.trim();
     final String authEmail = _getAuthEmail(trimmedId);
 
     UserCredential? userCredential;
@@ -79,7 +81,7 @@ class AuthService {
     try {
       userCredential = await _auth.signInWithEmailAndPassword(
         email: authEmail,
-        password: trimmedId,
+        password: trimmedPassword,
       );
     } on FirebaseAuthException catch (e) {
       if (e.code != 'user-not-found' && e.code != 'wrong-password' && e.code != 'invalid-credential') {
@@ -108,14 +110,14 @@ class AuthService {
           throw Exception('Account data is incomplete. Please contact your administrator.');
         }
 
-        // Try logging in with the original Gmail + ID as password (legacy accounts)
+        // Try logging in with the original Gmail + password
         try {
           userCredential = await _auth.signInWithEmailAndPassword(
             email: gmail,
-            password: trimmedId,
+            password: trimmedPassword,
           );
         } on FirebaseAuthException {
-          throw Exception('Login failed. Your account may have used a different password. Please contact your administrator.');
+          throw Exception('Login failed. Please verify your ID and password.');
         }
       } on FirebaseAuthException {
         rethrow;

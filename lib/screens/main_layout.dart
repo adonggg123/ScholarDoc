@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import 'dashboard/home_screen.dart';
 import 'submissions/status_tracking_screen.dart';
+import 'submissions/upload_workflow_screen.dart';
 import 'notifications/notification_screen.dart';
 import 'profile/profile_screen.dart';
 
@@ -73,7 +74,10 @@ class _MainLayoutState extends State<MainLayout> {
       floatingActionButton: _currentIndex == 0 || _currentIndex == 1
           ? FloatingActionButton.extended(
               onPressed: () {
-                // Navigate to workflow screen (Implemented later)
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UploadWorkflowScreen()),
+                );
               },
               backgroundColor: AppTheme.primaryColor,
               icon: Icon(LucideIcons.uploadCloud, color: Colors.white),
