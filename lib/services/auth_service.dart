@@ -9,22 +9,31 @@ class AuthService {
   final AuditService _auditService = AuditService();
   final NotificationService _notificationService = NotificationService();
 
+  // Helper to generate a unique email based on student ID (for Firebase Auth)
+  String _getAuthEmail(String studentId) {
+    return '${studentId.trim().replaceAll(' ', '_')}@scholardoc.local';
+  }
+
   // Sign up student
   Future<UserCredential?> registerStudent({
-    required String email,
-    required String password,
+    required String gmail, // Used for notifications, not login
+    required String studentId,
     required Map<String, dynamic> studentData,
   }) async {
     try {
-      // 1. Create user in Firebase Auth
+      final String authEmail = _getAuthEmail(studentId);
+      final String authPassword = studentId.trim();
+
+      // 1. Create user in Firebase Auth using ID as Password
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+        email: authEmail,
+        password: authPassword,
       );
 
       // 2. Save student details to Firestore under 'students' collection
       if (userCredential.user != null) {
         studentData['uid'] = userCredential.user!.uid;
+        studentData['authEmail'] = authEmail; // Track the internal auth email
         studentData['createdAt'] = FieldValue.serverTimestamp();
         
         await _firestore
@@ -34,17 +43,17 @@ class AuthService {
             
         // Log Activity
         await _auditService.logActivity(
-          action: 'Registered new account',
-          userName: studentData['fullName'] ?? email,
+          action: 'Registered new account (ID: $studentId)',
+          userName: studentData['fullName'] ?? gmail,
           role: 'Student',
-          studentId: studentData['studentId'],
+          studentId: studentId,
         );
 
         // Send Welcome Notification
         await _notificationService.sendNotification(
           studentId: userCredential.user!.uid,
           title: 'Welcome to ScholarDoc!',
-          message: 'Your account has been successfully created. We will notify you here of any status updates regarding your TES documents.',
+          message: 'Your account has been created successfully. Use your Student ID ($studentId) to login next time.',
           type: 'success',
         );
       }
@@ -53,48 +62,88 @@ class AuthService {
     } on FirebaseAuthException {
       rethrow;
     } catch (e) {
-      throw Exception('An error occurred during registration.');
+      throw Exception('Registration failed: ${e.toString()}');
     }
   }
 
-  // Login student
+  // Login student using only Student ID
   Future<UserCredential?> loginStudent({
-    required String email,
-    required String password,
+    required String studentId,
   }) async {
+    final String trimmedId = studentId.trim();
+    final String authEmail = _getAuthEmail(trimmedId);
+
+    UserCredential? userCredential;
+
+    // --- Step 1: Try new ID-based email (accounts registered after the update) ---
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+      userCredential = await _auth.signInWithEmailAndPassword(
+        email: authEmail,
+        password: trimmedId,
       );
-
-      // Verify the user exists in the students collection
-      DocumentSnapshot doc = await _firestore
-          .collection('students')
-          .doc(userCredential.user!.uid)
-          .get();
-
-      if (!doc.exists) {
-        await _auth.signOut();
-        throw Exception('Student record not found. Please register first.');
+    } on FirebaseAuthException catch (e) {
+      if (e.code != 'user-not-found' && e.code != 'wrong-password' && e.code != 'invalid-credential') {
+        rethrow;
       }
-
-      final studentData = doc.data() as Map<String, dynamic>;
-      
-      // Log Activity
-      await _auditService.logActivity(
-        action: 'Logged in',
-        userName: studentData['fullName'] ?? email,
-        role: 'Student',
-        studentId: studentData['studentId'],
-      );
-
-      return userCredential;
-    } on FirebaseAuthException {
-      rethrow;
-    } catch (e) {
-      throw Exception('Login failed.');
+      // Fall through to legacy fallback below
     }
+
+    // --- Step 2: Fallback — look up student by ID in Firestore and try their Gmail ---
+    if (userCredential == null) {
+      try {
+        final query = await _firestore
+            .collection('students')
+            .where('studentId', isEqualTo: trimmedId)
+            .limit(1)
+            .get();
+
+        if (query.docs.isEmpty) {
+          throw Exception('No account found for Student ID "$trimmedId". Please register first.');
+        }
+
+        final data = query.docs.first.data();
+        final String? gmail = data['email'] as String?;
+
+        if (gmail == null || gmail.isEmpty) {
+          throw Exception('Account data is incomplete. Please contact your administrator.');
+        }
+
+        // Try logging in with the original Gmail + ID as password (legacy accounts)
+        try {
+          userCredential = await _auth.signInWithEmailAndPassword(
+            email: gmail,
+            password: trimmedId,
+          );
+        } on FirebaseAuthException {
+          throw Exception('Login failed. Your account may have used a different password. Please contact your administrator.');
+        }
+      } on FirebaseAuthException {
+        rethrow;
+      }
+    }
+
+    // --- Step 3: Verify the user record exists in Firestore students collection ---
+    final DocumentSnapshot doc = await _firestore
+        .collection('students')
+        .doc(userCredential!.user!.uid)
+        .get();
+
+    if (!doc.exists) {
+      await _auth.signOut();
+      throw Exception('Student record not found. Please register first.');
+    }
+
+    final studentData = doc.data() as Map<String, dynamic>;
+
+    // Log Activity
+    await _auditService.logActivity(
+      action: 'Logged in using Student ID',
+      userName: studentData['fullName'] ?? 'Student',
+      role: 'Student',
+      studentId: trimmedId,
+    );
+
+    return userCredential;
   }
 
   // Admin login (Default account credentials check)

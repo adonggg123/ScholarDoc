@@ -14,17 +14,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _studentIdController = TextEditingController();
   final AuthService _authService = AuthService();
   
-  bool _obscurePassword = true;
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _studentIdController.dispose();
     super.dispose();
   }
 
@@ -56,66 +53,44 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 48),
 
-                // Email Input
+                // Student ID Input
                 TextFormField(
-                  controller: _emailController,
+                  controller: _studentIdController,
                   decoration: const InputDecoration(
-                    labelText: 'Student Email / ID',
-                    prefixIcon: Icon(Icons.person_outline),
+                    labelText: 'Student ID Number',
+                    prefixIcon: Icon(Icons.badge_outlined),
                     hintText: 'e.g. 2023-12345',
                   ),
-                  keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your student ID or email';
+                      return 'Please enter your student ID';
                     }
                     return null;
                   },
+                ),
+                SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.lock_person_outlined, size: 18, color: AppTheme.primaryColor),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Login using your Student ID as your password.',
+                          style: TextStyle(fontSize: 12, color: context.textSec, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(height: 20),
 
-                // Password Input
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 16),
 
-                // Forgot Password
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      // Navigate to forgot password screen (Mock)
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.primaryColor,
-                    ),
-                    child: Text('Forgot Password?'),
-                  ),
-                ),
                 SizedBox(height: 32),
 
                 // Login Button
@@ -127,8 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             setState(() => _isLoading = true);
                             try {
                               await _authService.loginStudent(
-                                email: _emailController.text.trim(),
-                                password: _passwordController.text.trim(),
+                                studentId: _studentIdController.text.trim(),
                               );
                               if (!context.mounted) return;
                               Navigator.pushAndRemoveUntil(

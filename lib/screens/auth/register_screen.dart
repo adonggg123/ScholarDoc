@@ -22,8 +22,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
   
   final TextEditingController _fatherNameController = TextEditingController();
@@ -64,21 +62,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  final List<String> _courses = [
-    'BSIT', 
-    'BTLED (major in TLE, ICT, and HE)', 
-    'BFPT'
-  ];
+  final List<String> _courses = ['BSIT', 'BTLED', 'BFPT'];
+  final List<String> _btledMajors = ['TLE', 'ICT', 'HE'];
   final List<String> _years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
-  
+  String? _selectedMajor; 
   List<String> _getSectionsForYear(String? year) {
     if (year == null) return [];
     final yearPrefix = year.substring(0, 1); // Get '1' from '1st Year'
     return ['A', 'B', 'C', 'D', 'E', 'F'].map((s) => '$yearPrefix$s').toList();
   }
 
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
   @override
@@ -86,8 +79,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _studentIdController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
-    _confirmController.dispose();
     _contactController.dispose();
     _fatherNameController.dispose();
     _fatherAgeController.dispose();
@@ -234,10 +225,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Text(course),
                     );
                   }).toList(),
-                  onChanged: (val) => setState(() => _selectedCourse = val),
+                  onChanged: (val) => setState(() {
+                    _selectedCourse = val;
+                    _selectedMajor = null; // Reset major when course changes
+                  }),
                   validator: (val) => val == null ? 'Please select your course' : null,
                 ),
                 SizedBox(height: 16),
+
+                // BTLED Major Dropdown (only visible when BTLED is selected)
+                if (_selectedCourse == 'BTLED') ...[
+                  DropdownButtonFormField<String>(
+                    key: const ValueKey('btled_major'),
+                    value: _selectedMajor,
+                    decoration: InputDecoration(
+                      labelText: 'BTLED Major',
+                      prefixIcon: Icon(Icons.menu_book_outlined),
+                      hintText: 'Select your major',
+                      fillColor: AppTheme.primaryColor.withValues(alpha: 0.04),
+                      filled: true,
+                    ),
+                    items: _btledMajors.map((String major) {
+                      return DropdownMenuItem(
+                        value: major,
+                        child: Text('Major in $major'),
+                      );
+                    }).toList(),
+                    onChanged: (val) => setState(() => _selectedMajor = val),
+                    validator: (val) => val == null ? 'Please select your BTLED major' : null,
+                  ),
+                  SizedBox(height: 16),
+                ],
 
                 // Year & Section Row
                 Row(
@@ -285,66 +303,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 SizedBox(height: 16),
 
-                // Password Input
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (value.length < 8) {
-                      return 'Password must be at least 8 characters long';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 16),
-
-                // Confirm Password Input
-                TextFormField(
-                  controller: _confirmController,
-                  obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    prefixIcon: Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, size: 18, color: AppTheme.primaryColor),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Your Student ID will serve as your default login password.',
+                          style: TextStyle(fontSize: 12, color: context.textSec, fontWeight: FontWeight.w500),
+                        ),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
+                    ],
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    return null;
-                  },
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 
                 // Section Divider: Family Information
                 Row(
@@ -494,13 +474,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ? null
                       : () async {
                           if (_formKey.currentState!.validate()) {
-                            if (_passwordController.text != _confirmController.text) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Passwords do not match'), backgroundColor: AppTheme.error),
-                              );
-                              return;
-                            }
-                            
                             setState(() => _isLoading = true);
                             try {
                               Map<String, dynamic> studentData = {
@@ -508,14 +481,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 'studentId': _studentIdController.text.trim(),
                                 'email': _emailController.text.trim(),
                                 'course': _selectedCourse,
+                                'major': _selectedCourse == 'BTLED' ? _selectedMajor : null,
+                                'courseDisplay': _selectedCourse == 'BTLED'
+                                    ? 'BTLED (major in $_selectedMajor)'
+                                    : _selectedCourse,
                                 'year': _selectedYear,
                                 'section': _selectedSection,
                                 'scholarshipId': _selectedScholarship?.id,
                                 'scholarshipName': _selectedScholarship?.name,
                                 'contactNumber': _contactController.text.trim(),
                                 'role': 'student',
-                                'status': 'Pending', // New field for status tracking
-                                'documents': {}, // To track individual doc status later
+                                'status': 'Pending',
+                                'documents': {},
                                 'familyDetails': {
                                   'fatherName': _fatherNameController.text.trim(),
                                   'fatherAge': _fatherAgeController.text.trim(),
@@ -530,8 +507,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               };
 
                               await _authService.registerStudent(
-                                email: _emailController.text.trim(),
-                                password: _passwordController.text.trim(),
+                                gmail: _emailController.text.trim(),
+                                studentId: _studentIdController.text.trim(),
                                 studentData: studentData,
                               );
                               

@@ -99,18 +99,18 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
             bool isMobile = constraints.maxWidth < 900;
             
             return SingleChildScrollView(
-              padding: EdgeInsets.all(isMobile ? 12 : 24),
+              padding: EdgeInsets.all(isMobile ? 10 : 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Verification Queue', 
                     style: isMobile 
-                      ? Theme.of(context).textTheme.titleLarge 
-                      : Theme.of(context).textTheme.headlineSmall
+                      ? Theme.of(context).textTheme.titleMedium 
+                      : Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)
                   ),
                   const SizedBox(height: 2),
-                  Text('Verify accuracy of submitted accounts. AI prioritizes high-risk documents.', style: TextStyle(fontSize: 12, color: context.textSec)),
+                  Text('Verify accuracy of submitted accounts. AI prioritizes high-risk documents.', style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 16),
                   if (isMobile) ...[
                     _buildVerificationTable(context, scoredDocs, isMobile),
@@ -136,7 +136,19 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
 
   Widget _buildVerificationTable(BuildContext context, List<Map<String, dynamic>> scoredDocs, bool isMobile) {
     return Container(
-      decoration: context.glassDecoration,
+      decoration: context.crispDecoration.copyWith(
+        border: Border.all(
+          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade300,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDark ? 0.3 : 0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          ),
+        ],
+      ),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -151,20 +163,20 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
           final String saNumber = data['familyDetails']?['saNumber'] ?? 'N/A';
 
           return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: CircleAvatar(
               backgroundColor: isSuspicious 
                 ? AppTheme.warning.withValues(alpha: 0.1) 
                 : AppTheme.primaryColor.withValues(alpha: 0.05),
               child: Icon(
                 isSuspicious ? LucideIcons.alertTriangle : LucideIcons.user, 
-                size: 18, 
+                size: 16, 
                 color: isSuspicious ? AppTheme.warning : AppTheme.primaryColor
               ),
             ),
             title: Row(
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                Text(name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: context.textPri)),
                 if (isSuspicious) ...[
                   const SizedBox(width: 8),
                   Container(
@@ -173,13 +185,13 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                       color: AppTheme.warning,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text('HIGH PRIORITY', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                    child: const Text('HIGH PRIORITY', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
                   ),
                 ],
               ],
             ),
-            subtitle: Text('SA: $saNumber', style: const TextStyle(fontSize: 12)),
-            trailing: const Icon(LucideIcons.chevronRight, size: 18),
+            subtitle: Text('SA: $saNumber', style: TextStyle(fontSize: 12, color: context.textSec, fontWeight: FontWeight.w500)),
+            trailing: Icon(LucideIcons.chevronRight, size: 18, color: context.textPri),
             onTap: () {
               setState(() {
                 _selectedStudentIndex = index;
@@ -203,9 +215,21 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     final aiCheck = ml.detectSASuspiciousPattern(saNumber);
 
     return Container(
-      decoration: context.glassDecoration,
+      decoration: context.crispDecoration.copyWith(
+        border: Border.all(
+          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade300,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDark ? 0.3 : 0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          ),
+        ],
+      ),
       child: Padding(
-        padding: EdgeInsets.all(isMobile ? 16 : 20),
+        padding: EdgeInsets.all(isMobile ? 12 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -220,48 +244,62 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                       border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2), width: 1.5),
                     ),
                     child: CircleAvatar(
-                      radius: 28, 
+                      radius: 24, 
                       backgroundColor: AppTheme.secondaryColor,
-                      child: Icon(LucideIcons.user, size: 24, color: context.surfaceC),
+                      child: Icon(LucideIcons.user, size: 20, color: context.surfaceC),
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Text(name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
-                  Text('$course - $year', style: TextStyle(color: context.textSec, fontSize: 12, fontWeight: FontWeight.w500)),
+                  SizedBox(height: 8),
+                  Text(name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.5, color: context.textPri)),
+                  Text('$course - $year', style: TextStyle(color: context.textSec, fontSize: 13, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 16),
             Divider(),
-            SizedBox(height: 20),
+            SizedBox(height: 16),
             _dataField(context, 'Student ID', studentId),
-            SizedBox(height: 12),
+            SizedBox(height: 10),
             _dataField(context, 'Submitted SA Number', saNumber),
-            SizedBox(height: 8),
+            SizedBox(height: 6),
             _buildAIBadge(context, aiCheck),
-            SizedBox(height: 12),
+            SizedBox(height: 10),
             _dataField(context, 'Bank Branch', 'Main University Branch'),
-            SizedBox(height: 8),
+            SizedBox(height: 6),
             _buildDuplicateBadge(context),
-            SizedBox(height: 24),
-            Text('Admin Remarks', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
+            SizedBox(height: 16),
+            Text('Admin Remarks', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: context.textPri)),
+            SizedBox(height: 6),
             TextFormField(
               controller: _remarksController,
-              maxLines: 3,
-              style: TextStyle(fontSize: 13),
+              maxLines: 2,
+              style: TextStyle(fontSize: 13, color: context.textPri, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 hintText: 'e.g. Please re-upload your SA number, current one is blurred.',
-                hintStyle: TextStyle(fontSize: 12),
-                fillColor: context.surfaceC.withValues(alpha: 0.5),
+                hintStyle: TextStyle(fontSize: 12, color: context.textSec),
+                fillColor: context.surfaceC,
                 filled: true,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), 
+                  borderSide: BorderSide(
+                    color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade300, 
+                    width: 1.5
+                  )
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10), 
+                  borderSide: BorderSide(
+                    color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade300, 
+                    width: 1.5
+                  )
+                ),
               ),
             ),
-            SizedBox(height: 24),
+            SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              height: 48,
+              height: 40,
               child: ElevatedButton(
                 onPressed: () => _updateStatus(
                   context,
@@ -273,15 +311,15 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.success, 
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('Verify and Approve', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                child: const Text('Verify and Approve', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
-              height: 48,
+              height: 40,
               child: OutlinedButton(
                 onPressed: () => _updateStatus(
                   context,
@@ -293,15 +331,15 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.warning, 
                   side: const BorderSide(color: AppTheme.warning, width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('Request Resubmission', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                child: const Text('Request Resubmission', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
             SizedBox(
               width: double.infinity,
-              height: 48,
+              height: 36,
               child: TextButton(
                 onPressed: () => _updateStatus(
                   context,
@@ -314,7 +352,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                 style: TextButton.styleFrom(
                   foregroundColor: AppTheme.error, 
                 ),
-                child: const Text('Permanent Rejection', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                child: const Text('Permanent Rejection', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -327,9 +365,9 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 12, color: context.textSec)),
+        Text(label, style: TextStyle(fontSize: 12, color: context.textSec, fontWeight: FontWeight.w500)),
         SizedBox(height: 4),
-        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: context.textPri)),
       ],
     );
   }
@@ -392,22 +430,22 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
   Widget _buildAIBadge(BuildContext context, Map<String, dynamic> aiCheck) {
     final bool isSuspicious = aiCheck['isSuspicious'];
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: (isSuspicious ? AppTheme.warning : AppTheme.success).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: (isSuspicious ? AppTheme.warning : AppTheme.success).withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.bot, size: 14, color: isSuspicious ? AppTheme.warning : AppTheme.success),
-          SizedBox(width: 8),
+          Icon(LucideIcons.bot, size: 12, color: isSuspicious ? AppTheme.warning : AppTheme.success),
+          SizedBox(width: 6),
           Expanded(
             child: Text(
               'AI Score: ${aiCheck['confidence']}% - ${aiCheck['message']}',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
                 color: isSuspicious ? AppTheme.warning : AppTheme.success,
               ),
@@ -420,20 +458,20 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
 
   Widget _buildDuplicateBadge(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: AppTheme.success.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.fileCheck2, size: 14, color: AppTheme.success),
-          SizedBox(width: 8),
+          Icon(LucideIcons.fileCheck2, size: 12, color: AppTheme.success),
+          SizedBox(width: 6),
           Text(
             'Duplicate Hash Network Check: PASSED',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.success),
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.success),
           ),
         ],
       ),

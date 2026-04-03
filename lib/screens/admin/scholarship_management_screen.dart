@@ -94,7 +94,19 @@ class _ScholarshipManagementScreenState extends State<ScholarshipManagementScree
 
   Widget _buildScholarshipCard(Scholarship s) {
     return Container(
-      decoration: context.crispDecoration,
+      decoration: context.crispDecoration.copyWith(
+        border: Border.all(
+          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade300,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: context.isDark ? 0.3 : 0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+          ),
+        ],
+      ),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,20 +119,25 @@ class _ScholarshipManagementScreenState extends State<ScholarshipManagementScree
                 decoration: BoxDecoration(
                   color: s.isActive ? AppTheme.success.withValues(alpha: 0.1) : AppTheme.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: s.isActive ? AppTheme.success.withValues(alpha: 0.3) : AppTheme.error.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
                 ),
                 child: Text(
                   s.isActive ? 'Active' : 'Inactive',
                   style: TextStyle(
                     color: s.isActive ? AppTheme.success : AppTheme.error,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ),
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(LucideIcons.edit2, size: 16),
+                    icon: Icon(LucideIcons.edit2, size: 16, color: context.textSec),
                     onPressed: () => _showScholarshipDialog(scholarship: s),
                   ),
                   IconButton(
@@ -132,21 +149,21 @@ class _ScholarshipManagementScreenState extends State<ScholarshipManagementScree
             ],
           ),
           const SizedBox(height: 12),
-          Text(s.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(s.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: context.textPri)),
           const SizedBox(height: 4),
           Text(s.description, 
             maxLines: 2, 
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, color: context.textSec)),
+            style: TextStyle(fontSize: 13, color: context.textSec, height: 1.4)),
           const Spacer(),
           const Divider(),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(LucideIcons.fileText, size: 14, color: AppTheme.primaryColor),
+              Icon(LucideIcons.fileText, size: 16, color: context.textPri),
               const SizedBox(width: 8),
               Text('${s.requiredDocuments.length} Required Documents', 
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.textPri)),
             ],
           ),
         ],
