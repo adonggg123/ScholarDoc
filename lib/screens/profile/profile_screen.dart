@@ -17,7 +17,12 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _saController = TextEditingController(text: '1234-5678-9012');
+  final _saController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _contactController = TextEditingController();
+  final _sectionController = TextEditingController();
+  final _emailController = TextEditingController();
+  
   final AuthService _authService = AuthService();
   final MLService _mlService = MLService();
   final AuditService _auditService = AuditService();
@@ -36,12 +41,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (uid != null) {
       final doc = await _authService.getStudentProfile(uid);
       if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
         setState(() {
-          _profileData = doc.data() as Map<String, dynamic>;
+          _profileData = data;
+          _nameController.text = data['fullName'] ?? '';
+          _emailController.text = data['email'] ?? '';
+          _contactController.text = data['contactNumber'] ?? '';
+          _sectionController.text = data['section'] ?? '';
+          _saController.text = data['saNumber'] ?? '1234-5678-9012';
           _isProfileLoading = false;
         });
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _saController.dispose();
+    _nameController.dispose();
+    _contactController.dispose();
+    _sectionController.dispose();
+    _emailController.dispose();
+    super.dispose();
   }
 
   @override
@@ -97,11 +118,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildSectionTitle('Personal Information'),
                   SizedBox(height: 16),
-                  _buildProfileField('Full Name', _profileData?['fullName'] ?? 'Loading...', LucideIcons.user),
+                  _buildEditableField('Full Name', _nameController, LucideIcons.user),
                   SizedBox(height: 16),
-                  _buildProfileField('Student ID', _profileData?['studentId'] ?? 'Loading...', LucideIcons.badgeCheck),
+                  _buildEditableField('Contact Number', _contactController, LucideIcons.phone),
                   SizedBox(height: 16),
-                  _buildProfileField('Email', _profileData?['email'] ?? 'Loading...', LucideIcons.mail),
+                  _buildEditableField('Section', _sectionController, LucideIcons.layers),
+                  SizedBox(height: 16),
+                  _buildProfileField('Scholarship Program', _profileData?['scholarshipName'] ?? 'Not Assigned', LucideIcons.star),
+                  SizedBox(height: 16),
+                  _buildProfileField('Student ID', _profileData?['studentId'] ?? '...', LucideIcons.badgeCheck),
+                  SizedBox(height: 16),
+                  _buildProfileField('Email', _profileData?['email'] ?? '...', LucideIcons.mail),
                   SizedBox(height: 32),
                   _buildSectionTitle('App Preferences'),
                   SizedBox(height: 16),
@@ -151,20 +178,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: ElevatedButton(
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // Note: In production, there would be an update to Firestore here for the SA number.
-
-                          // Log the profile update activity
-                          await _auditService.logActivity(
-                            action: 'Updated Profile (SA number)',
-                            userName: _profileData?['fullName'] ?? 'Student',
-                            role: 'Student',
-                            studentId: _profileData?['studentId'],
-                          );
-
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Profile updated successfully')),
-                          );
+                          final uid = _authService.currentUser?.uid;
+                          if (uid != null) {
+                            try {
+                              Map<String, dynamic> updates = {
+                                'fullName': _nameController.text.trim(),
+                                'contactNumber': _contactController.text.trim(),
+                                'section': _sectionController.text.trim(),
+                                'saNumber': _saController.text.trim(),
+                              };
+                              
+                              await _authService.updateStudentProfile(uid, updates);
+                              
+                              // Log the profile update activity
+                              await _auditService.logActivity(
+                                action: 'Updated Profile (SA number)',
+                                userName: _nameController.text.trim(),
+                                role: 'Student',
+                                studentId: _profileData?['studentId'],
+                              );
+                              
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Profile updated successfully'),
+                                  backgroundColor: AppTheme.success,
+                                ),
+                              );
+                              
+                              // Refresh profile data
+                              _loadProfile();
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.error),
+                              );
+                            }
+                          }
                         }
                       },
                       child: Text('Update Profile'),
@@ -231,6 +281,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(value, style: TextStyle(fontWeight: FontWeight.w500)),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditableField(String label, TextEditingController controller, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 12, color: context.textSec)),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, size: 18),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          validator: (value) => value == null || value.isEmpty ? 'Cannot be empty' : null,
         ),
       ],
     );

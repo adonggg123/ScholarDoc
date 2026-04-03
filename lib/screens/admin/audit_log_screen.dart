@@ -107,11 +107,39 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Activity Log (Audit Trail)', 
-                    style: isMobile 
-                      ? Theme.of(context).textTheme.titleLarge 
-                      : Theme.of(context).textTheme.headlineMedium
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Activity Log (Audit Trail)', 
+                              style: isMobile 
+                                ? Theme.of(context).textTheme.titleLarge 
+                                : Theme.of(context).textTheme.headlineMedium
+                            ),
+                          ],
+                        ),
+                      ),
+                      Tooltip(
+                        message: 'Refresh logs',
+                        child: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _auditStream = _authService.getAuditLogsStream();
+                            });
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Activity logs refreshed.'), behavior: SnackBarBehavior.floating, width: 280),
+                              );
+                            }
+                          },
+                          icon: Icon(LucideIcons.refreshCw, size: 18, color: AppTheme.primaryColor),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   const Text('Track all administrative actions and system updates for transparency.'),

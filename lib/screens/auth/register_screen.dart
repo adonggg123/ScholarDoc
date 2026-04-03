@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/auth_service.dart';
+import '../../services/scholarship_service.dart';
 import 'login_screen.dart';
 import '../main_layout.dart';
 
@@ -15,6 +16,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
+  final ScholarshipService _scholarshipService = ScholarshipService();
   
   // Controllers
   final TextEditingController _nameController = TextEditingController();
@@ -22,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
+  final TextEditingController _contactController = TextEditingController();
   
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _fatherAgeController = TextEditingController();
@@ -35,10 +38,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _religionController = TextEditingController();
   final TextEditingController _tribeController = TextEditingController();
   
-  // Academic Dropdown Values
+  // Academic & Scholarship Dropdown Values
   String? _selectedCourse;
   String? _selectedYear;
   String? _selectedSection;
+  Scholarship? _selectedScholarship;
+  List<Scholarship> _scholarships = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadScholarships();
+  }
+
+  Future<void> _loadScholarships() async {
+    // Just to ensure we have defaults for testing
+    await _scholarshipService.initializeDefaults();
+    
+    _scholarshipService.getActiveScholarships().listen((list) {
+      if (mounted) {
+        setState(() {
+          _scholarships = list;
+        });
+      }
+    });
+  }
 
   final List<String> _courses = [
     'BSIT', 
@@ -64,6 +88,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
+    _contactController.dispose();
     _fatherNameController.dispose();
     _fatherAgeController.dispose();
     _fatherOccController.dispose();
@@ -153,6 +178,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     }
                     if (!value.toLowerCase().endsWith('@gmail.com')) {
                       return 'Please use a valid Gmail address';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16),
+
+                // Scholarship Selection
+                DropdownButtonFormField<Scholarship>(
+                  value: _selectedScholarship,
+                  decoration: const InputDecoration(
+                    labelText: 'Scholarship Program',
+                    prefixIcon: Icon(Icons.stars_outlined),
+                    hintText: 'Select your scholarship',
+                  ),
+                  items: _scholarships.map((Scholarship s) {
+                    return DropdownMenuItem(
+                      value: s,
+                      child: Text(s.name),
+                    );
+                  }).toList(),
+                  onChanged: (val) => setState(() => _selectedScholarship = val),
+                  validator: (val) => val == null ? 'Please select a scholarship' : null,
+                ),
+                SizedBox(height: 16),
+
+                // Contact Information
+                TextFormField(
+                  controller: _contactController,
+                  decoration: const InputDecoration(
+                    labelText: 'Contact Number',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                    hintText: 'e.g. 09123456789',
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your contact number';
                     }
                     return null;
                   },
@@ -448,7 +510,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 'course': _selectedCourse,
                                 'year': _selectedYear,
                                 'section': _selectedSection,
+                                'scholarshipId': _selectedScholarship?.id,
+                                'scholarshipName': _selectedScholarship?.name,
+                                'contactNumber': _contactController.text.trim(),
                                 'role': 'student',
+                                'status': 'Pending', // New field for status tracking
+                                'documents': {}, // To track individual doc status later
                                 'familyDetails': {
                                   'fatherName': _fatherNameController.text.trim(),
                                   'fatherAge': _fatherAgeController.text.trim(),

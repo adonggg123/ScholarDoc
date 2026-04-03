@@ -6,14 +6,52 @@ import '../submissions/upload_workflow_screen.dart';
 import '../../services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class HomeScreen extends StatelessWidget {
+import '../../services/announcement_service.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final AuthService authService = AuthService();
-    final String? uid = authService.currentUser?.uid;
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  final AuthService _authService = AuthService();
+  final AnnouncementService _announcementService = AnnouncementService();
+  
+  Map<String, dynamic>? _profileData;
+  List<Announcement> _announcements = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final uid = _authService.currentUser?.uid;
+    if (uid != null) {
+      final doc = await _authService.getStudentProfile(uid);
+      if (doc.exists && mounted) {
+        setState(() {
+          _profileData = doc.data() as Map<String, dynamic>;
+        });
+      }
+    }
+    
+    _announcementService.getActiveAnnouncements().listen((list) {
+      if (mounted) {
+        setState(() {
+          _announcements = list;
+          _isLoading = false;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -24,21 +62,13 @@ class HomeScreen extends StatelessWidget {
             backgroundColor: context.bgC,
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              title: FutureBuilder<DocumentSnapshot>(
-                future: uid != null ? authService.getStudentProfile(uid) : null,
-                builder: (context, snapshot) {
-                  String displayName = 'Student';
-                  if (snapshot.hasData && snapshot.data!.exists) {
-                    final data = snapshot.data!.data() as Map<String, dynamic>;
-                    displayName = data['fullName']?.toString().split(' ').first ?? 'Student';
-                  }
-                  return Text(
-                    'Hello, $displayName!',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontSize: 24,
-                    ),
-                  );
-                },
+              title: Text(
+                _profileData != null 
+                    ? 'Hello, ${_profileData!['fullName']?.toString().split(' ').first}!' 
+                    : 'Hello!',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  fontSize: 24,
+                ),
               ),
               centerTitle: false,
             ),
@@ -104,12 +134,16 @@ class HomeScreen extends StatelessWidget {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
+                if (_isLoading) return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+                if (_announcements.isEmpty) return Center(child: Padding(padding: EdgeInsets.all(20), child: Text('No recent updates.', style: TextStyle(color: context.textSec))));
+                
+                final a = _announcements[index];
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-                  child: _buildUpdateItem(context, index),
+                  child: _buildAnnouncementWidget(context, a),
                 );
               },
-              childCount: 3,
+              childCount: _isLoading ? 1 : (_announcements.isEmpty ? 1 : _announcements.length),
             ),
           ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
@@ -119,14 +153,23 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildStatusCard(BuildContext context) {
+    final String scholarshipName = _profileData?['scholarshipName'] ?? 'No Scholarship Assigned';
+    final String status = _profileData?['status'] ?? 'Pending';
+    final String? remarks = _profileData?['adminRemarks'];
+    final String submittedDate = (_profileData?['submittedAt'] as Timestamp?)?.toDate().toString().split(' ')[0] ?? 'N/A';
+    
+    Color statusColor = AppTheme.warning;
+    if (status == 'Approved') statusColor = AppTheme.success;
+    if (status == 'Rejected') statusColor = AppTheme.error;
+
     return Card(
       child: Container(
         padding: EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppTheme.primaryColor.withValues(alpha: 0.05),
-              AppTheme.primaryColor.withValues(alpha: 0.1),
+              statusColor.withValues(alpha: 0.05),
+              statusColor.withValues(alpha: 0.1),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -138,64 +181,76 @@ class HomeScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'TES Scholarship',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: AppTheme.primaryColor,
-                          ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Academic Year 2023-2024',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        scholarshipName,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Submitted on $submittedDate',
+                        style: TextStyle(color: context.textSec, fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppTheme.warning.withValues(alpha: 0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'Pending Review',
+                    status,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.warning,
+                          color: statusColor,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                 ),
               ],
             ),
+            if (remarks != null && remarks.isNotEmpty) ...[
+              SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(LucideIcons.messageSquare, size: 14, color: statusColor),
+                        SizedBox(width: 8),
+                        Text('Admin Remarks', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: statusColor)),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Text(remarks, style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
             SizedBox(height: 24),
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
-                value: 0.6,
+                value: status == 'Approved' ? 1.0 : 0.5,
                 backgroundColor: Colors.grey.shade200,
-                color: AppTheme.primaryColor,
+                color: statusColor,
                 minHeight: 8,
               ),
-            ),
-            SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '3 of 5 documents verified',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                Text(
-                  '60%',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
-                ),
-              ],
             ),
           ],
         ),
@@ -230,41 +285,39 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUpdateItem(BuildContext context, int index) {
-    final titles = [
-      'Document Approved',
-      'Resubmission Required',
-      'New Guidelines Posted'
-    ];
-    final subtitles = [
-      'Your Birth Certificate has been verified.',
-      'Signature missing on Billing Record.',
-      'Please check updated submission requirements.'
-    ];
-    final icons = [
-      LucideIcons.checkCircle2,
-      LucideIcons.alertCircle,
-      LucideIcons.info
-    ];
-    final colors = [AppTheme.success, AppTheme.error, AppTheme.secondaryColor];
+  Widget _buildAnnouncementWidget(BuildContext context, Announcement a) {
+    Color typeColor = Colors.blue;
+    IconData typeIcon = LucideIcons.info;
+    if (a.type == 'Deadline') { typeColor = AppTheme.error; typeIcon = LucideIcons.calendarClock; }
+    else if (a.type == 'Update') { typeColor = AppTheme.success; typeIcon = LucideIcons.refreshCw; }
 
-    return Card(
-      child: ListTile(
-        contentPadding: EdgeInsets.all(16),
-        leading: Container(
-          padding: EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: colors[index].withValues(alpha: 0.1),
-            shape: BoxShape.circle,
+    return Container(
+      decoration: context.crispDecoration,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: typeColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(typeIcon, color: typeColor, size: 24),
           ),
-          child: Icon(icons[index], color: colors[index], size: 24),
-        ),
-        title: Text(
-          titles[index],
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(subtitles[index]),
-        trailing: Icon(Icons.chevron_right, color: context.textSec),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(a.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                const SizedBox(height: 4),
+                Text(a.content, style: TextStyle(color: context.textSec, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right, color: context.textSec),
+        ],
       ),
     );
   }

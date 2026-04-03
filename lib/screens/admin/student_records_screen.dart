@@ -24,12 +24,16 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
   String _searchQuery = '';
   String _statusFilter = 'All';
+  String _scholarshipFilter = 'All';
   String _courseFilter = 'All';
+  String _sortBy = 'Name (A-Z)';
 
   late Stream<QuerySnapshot> _studentsStream;
 
   static const List<String> _statusOptions = ['All', 'Pending', 'Approved', 'Rejected', 'Under Review'];
   static const List<String> _courseOptions = ['All', 'BSIT', 'BTLED', 'BFPT'];
+  static const List<String> _scholarshipOptions = ['All', 'TES', 'TDP', 'DBP', 'SANTEH', 'STUFAH'];
+  static const List<String> _sortOptions = ['Name (A-Z)', 'Latest First', 'By Status'];
   static const List<String> _yearOptions = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
   static const List<String> _courseAddOptions = ['BSIT', 'BTLED', 'BFPT'];
   static const List<String> _semesterOptions = [
@@ -377,6 +381,20 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   child: Icon(LucideIcons.userPlus, size: 18),
                 ),
               ),
+              SizedBox(width: 8),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _studentsStream = _authService.getStudentsStream();
+                  });
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Records refreshed'), behavior: SnackBarBehavior.floating, width: 200),
+                    );
+                  }
+                },
+                icon: Icon(LucideIcons.refreshCw, size: 16, color: AppTheme.primaryColor),
+              ),
             ],
           ),
         ],
@@ -404,6 +422,23 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                 icon: Icon(LucideIcons.userPlus, size: 18),
                 label: Text('Add Student', style: TextStyle(fontSize: 13)),
                 style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 16)),
+              ),
+            ),
+            SizedBox(width: 8),
+            Tooltip(
+              message: 'Refresh records',
+              child: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _studentsStream = _authService.getStudentsStream();
+                  });
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Student records refreshed.'), behavior: SnackBarBehavior.floating, width: 280),
+                    );
+                  }
+                },
+                icon: Icon(LucideIcons.refreshCw, size: 18, color: AppTheme.primaryColor),
               ),
             ),
           ],
@@ -505,14 +540,16 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               children: [
                 Expanded(child: _buildFilterDropdown(context, 'Status', _statusOptions, _statusFilter, (val) => setState(() => _statusFilter = val!))),
                 SizedBox(width: 10),
-                Expanded(child: _buildFilterDropdown(context, 'Course', _courseOptions, _courseFilter, (val) => setState(() => _courseFilter = val!))),
+                Expanded(child: _buildFilterDropdown(context, 'Scholarship', _scholarshipOptions, _scholarshipFilter, (val) => setState(() => _scholarshipFilter = val!))),
               ],
             ),
+            SizedBox(height: 10),
+            _buildFilterDropdown(context, 'Course', _courseOptions, _courseFilter, (val) => setState(() => _courseFilter = val!)),
           ],
         ),
       );
     }
-
+ 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: context.glassDecoration,
@@ -548,9 +585,13 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
           SizedBox(width: 12),
           _buildFilterDropdown(context, 'Status', _statusOptions, _statusFilter, (val) => setState(() => _statusFilter = val!)),
           SizedBox(width: 10),
+          _buildFilterDropdown(context, 'Scholarship', _scholarshipOptions, _scholarshipFilter, (val) => setState(() => _scholarshipFilter = val!)),
+          SizedBox(width: 10),
           _buildFilterDropdown(context, 'Course', _courseOptions, _courseFilter, (val) => setState(() => _courseFilter = val!)),
+          SizedBox(width: 10),
+          _buildFilterDropdown(context, 'Sort By', _sortOptions, _sortBy, (val) => setState(() => _sortBy = val!)),
           SizedBox(width: 4),
-          if (_statusFilter != 'All' || _courseFilter != 'All' || _searchQuery.isNotEmpty)
+          if (_statusFilter != 'All' || _scholarshipFilter != 'All' || _courseFilter != 'All' || _searchQuery.isNotEmpty)
             Tooltip(
               message: 'Clear all filters',
               child: IconButton(
@@ -652,6 +693,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     if (_statusFilter != 'All') {
       chips.add(_buildChip(context, 'Status: $_statusFilter', () => setState(() => _statusFilter = 'All')));
     }
+    if (_scholarshipFilter != 'All') {
+      chips.add(_buildChip(context, 'Scholarship: $_scholarshipFilter', () => setState(() => _scholarshipFilter = 'All')));
+    }
     if (_courseFilter != 'All') {
       chips.add(_buildChip(context, 'Course: $_courseFilter', () => setState(() => _courseFilter = 'All')));
     }
@@ -690,6 +734,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     setState(() {
       _searchQuery = '';
       _statusFilter = 'All';
+      _scholarshipFilter = 'All';
       _courseFilter = 'All';
     });
   }
@@ -731,8 +776,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                 final data = doc.data() as Map<String, dynamic>;
                 final String name = (data['fullName'] ?? '').toLowerCase();
                 final String studentId = (data['studentId'] ?? '').toLowerCase();
-                final String saNumber = (data['familyDetails']?['saNumber'] ?? '').toLowerCase();
+                final String saNumber = (data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? '').toLowerCase();
                 final String status = data['status'] ?? 'Pending';
+                final String scholarship = data['scholarshipName'] ?? '';
                 final String course = data['course'] ?? '';
 
                 // Search filter
@@ -746,11 +792,31 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                 // Status filter
                 if (_statusFilter != 'All' && status != _statusFilter) return false;
 
+                // Scholarship filter
+                if (_scholarshipFilter != 'All' && !scholarship.contains(_scholarshipFilter)) return false;
+
                 // Course filter
-                if (_courseFilter != 'All' && !course.contains(_courseFilter)) return false;
+                if (_courseFilter != 'All' && course != _courseFilter) return false;
 
                 return true;
               }).toList();
+
+              // Apply sorting
+              filteredDocs.sort((a, b) {
+                final dataA = a.data() as Map<String, dynamic>;
+                final dataB = b.data() as Map<String, dynamic>;
+                
+                if (_sortBy == 'Name (A-Z)') {
+                  return (dataA['fullName'] ?? '').compareTo(dataB['fullName'] ?? '');
+                } else if (_sortBy == 'Latest First') {
+                  final timeA = (dataA['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+                  final timeB = (dataB['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+                  return timeB.compareTo(timeA);
+                } else if (_sortBy == 'By Status') {
+                  return (dataA['status'] ?? '').compareTo(dataB['status'] ?? '');
+                }
+                return 0;
+              });
 
               if (filteredDocs.isEmpty) {
                 return SizedBox(

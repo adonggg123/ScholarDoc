@@ -1,0 +1,251 @@
+import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
+import '../../services/scholarship_service.dart';
+
+class ScholarshipManagementScreen extends StatefulWidget {
+  const ScholarshipManagementScreen({super.key});
+
+  @override
+  State<ScholarshipManagementScreen> createState() => _ScholarshipManagementScreenState();
+}
+
+class _ScholarshipManagementScreenState extends State<ScholarshipManagementScreen> {
+  final ScholarshipService _scholarshipService = ScholarshipService();
+  late Stream<List<Scholarship>> _scholarshipsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _scholarshipsStream = _scholarshipService.getAllScholarships();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Scholarship Management', 
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                    Text('Manage programs and document requirements.', 
+                      style: TextStyle(color: context.textSec, fontSize: 13)),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => _showScholarshipDialog(),
+                  icon: const Icon(LucideIcons.plus, size: 18),
+                  label: const Text('Add Program'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            Expanded(
+              child: StreamBuilder<List<Scholarship>>(
+                stream: _scholarshipsStream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(LucideIcons.graduationCap, size: 64, color: Colors.grey.shade300),
+                          const SizedBox(height: 16),
+                          Text('No scholarships found.', style: TextStyle(color: context.textSec)),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final scholarships = snapshot.data!;
+                  return GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 400,
+                      childAspectRatio: 1.5,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                    ),
+                    itemCount: scholarships.length,
+                    itemBuilder: (context, index) {
+                      final s = scholarships[index];
+                      return _buildScholarshipCard(s);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScholarshipCard(Scholarship s) {
+    return Container(
+      decoration: context.crispDecoration,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: s.isActive ? AppTheme.success.withValues(alpha: 0.1) : AppTheme.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  s.isActive ? 'Active' : 'Inactive',
+                  style: TextStyle(
+                    color: s.isActive ? AppTheme.success : AppTheme.error,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(LucideIcons.edit2, size: 16),
+                    onPressed: () => _showScholarshipDialog(scholarship: s),
+                  ),
+                  IconButton(
+                    icon: const Icon(LucideIcons.trash2, size: 16, color: AppTheme.error),
+                    onPressed: () => _confirmDelete(s),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(s.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(s.description, 
+            maxLines: 2, 
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: context.textSec)),
+          const Spacer(),
+          const Divider(),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(LucideIcons.fileText, size: 14, color: AppTheme.primaryColor),
+              const SizedBox(width: 8),
+              Text('${s.requiredDocuments.length} Required Documents', 
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showScholarshipDialog({Scholarship? scholarship}) {
+    final nameController = TextEditingController(text: scholarship?.name);
+    final descController = TextEditingController(text: scholarship?.description);
+    final docsController = TextEditingController(text: scholarship?.requiredDocuments.join(', '));
+    bool isActive = scholarship?.isActive ?? true;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(scholarship == null ? 'Add Scholarship' : 'Edit Scholarship'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Program Name (e.g. TES)'),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descController,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: docsController,
+                  decoration: const InputDecoration(
+                    labelText: 'Required Documents (comma separated)',
+                    hintText: 'e.g. ID Card, Enrollment Form',
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  title: const Text('Active Status'),
+                  value: isActive,
+                  onChanged: (val) => setDialogState(() => isActive = val),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () async {
+                final names = docsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+                if (scholarship == null) {
+                  await _scholarshipService.addScholarship(Scholarship(
+                    id: '',
+                    name: nameController.text.trim(),
+                    description: descController.text.trim(),
+                    isActive: isActive,
+                    requiredDocuments: names,
+                  ));
+                } else {
+                  await _scholarshipService.updateScholarship(scholarship.id, {
+                    'name': nameController.text.trim(),
+                    'description': descController.text.trim(),
+                    'isActive': isActive,
+                    'requiredDocuments': names,
+                  });
+                }
+                if (mounted) Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmDelete(Scholarship s) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Scholarship'),
+        content: Text('Are you sure you want to delete ${s.name}? This might affect existing students.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
+            onPressed: () async {
+              await _scholarshipService.deleteScholarship(s.id);
+              if (mounted) Navigator.pop(context);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+}

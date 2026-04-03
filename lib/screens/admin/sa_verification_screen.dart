@@ -20,6 +20,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
   final AuthService _authService = AuthService();
   final AuditService _auditService = AuditService();
   final NotificationService _notificationService = NotificationService();
+  final TextEditingController _remarksController = TextEditingController();
   late Stream<QuerySnapshot> _studentsStream;
 
   @override
@@ -182,6 +183,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
             onTap: () {
               setState(() {
                 _selectedStudentIndex = index;
+                _remarksController.clear(); // Clear remarks for new selection
               });
             },
           );
@@ -242,6 +244,21 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
             SizedBox(height: 8),
             _buildDuplicateBadge(context),
             SizedBox(height: 24),
+            Text('Admin Remarks', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            TextFormField(
+              controller: _remarksController,
+              maxLines: 3,
+              style: TextStyle(fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'e.g. Please re-upload your SA number, current one is blurred.',
+                hintStyle: TextStyle(fontSize: 12),
+                fillColor: context.surfaceC.withValues(alpha: 0.5),
+                filled: true,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+            SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -274,11 +291,30 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                   'Rejected',
                 ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.error, 
-                  side: const BorderSide(color: AppTheme.error, width: 1.5),
+                  foregroundColor: AppTheme.warning, 
+                  side: const BorderSide(color: AppTheme.warning, width: 1.5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Flag for Correction', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                child: const Text('Request Resubmission', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: TextButton(
+                onPressed: () => _updateStatus(
+                  context,
+                  data['uid'],
+                  name,
+                  studentId,
+                  'Rejected',
+                  isFinalRejection: true,
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppTheme.error, 
+                ),
+                child: const Text('Permanent Rejection', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -303,14 +339,19 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     String? uid,
     String name,
     String studentId,
-    String newStatus,
-  ) async {
+    String newStatus, {
+    bool isFinalRejection = false,
+  }) async {
     if (uid == null) return;
+    
+    final String remarks = _remarksController.text.trim();
 
     try {
       // 1. Update Student Record
       await FirebaseFirestore.instance.collection('students').doc(uid).update({
         'status': newStatus,
+        'adminRemarks': remarks,
+        'requiresResubmission': !isFinalRejection && newStatus == 'Rejected',
       });
 
       // 2. Log Activity
@@ -324,10 +365,10 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
       // 3. Send Notification
       await _notificationService.sendNotification(
         studentId: uid,
-        title: 'Document $newStatus',
+        title: newStatus == 'Approved' ? 'Account Verified' : 'Action Required',
         message: newStatus == 'Approved' 
             ? 'Great news! Your SA Number has been verified and your status is now Approved.'
-            : 'There was an issue with your submitted SA Number. Please check it and update your profile.',
+            : 'Issue found: $remarks. Please update your information to proceed.',
         type: newStatus == 'Approved' ? 'success' : 'error',
       );
 

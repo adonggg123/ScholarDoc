@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ReportService {
@@ -28,7 +29,6 @@ class ReportService {
   // This aggregates registrations (Total Submissions) and "Approved" status changes (Approved)
   // Timeframe: 'This Week', 'This Month', 'This Year'
   Stream<Map<String, List<int>>> getThroughputData(String timeframe) {
-    // Determine start date based on timeframe
     DateTime now = DateTime.now();
     DateTime startDate;
 
@@ -37,28 +37,21 @@ class ReportService {
     } else if (timeframe == 'This Month') {
       startDate = DateTime(now.year, now.month, 1);
     } else {
-      // Default: This Year
       startDate = DateTime(now.year, 1, 1);
     }
 
-    // Since we want dynamic updates, we'll combine two streams: students (registrations) and audit_logs (approvals)
-    return Stream.fromFuture(Future.wait([
-      _firestore
-          .collection('students')
-          .where('createdAt', isGreaterThanOrEqualTo: startDate)
-          .get(),
-      _firestore
-          .collection('audit_logs')
-          .where('timestamp', isGreaterThanOrEqualTo: startDate)
-          .get(),
-    ])).asyncExpand((results) {
-      final QuerySnapshot students = results[0] as QuerySnapshot;
-      final QuerySnapshot logs = results[1] as QuerySnapshot;
+    final StreamController<Map<String, List<int>>> controller = StreamController<Map<String, List<int>>>();
+    
+    QuerySnapshot? lastStudents;
+    QuerySnapshot? lastLogs;
+
+    void update() {
+      if (lastStudents == null || lastLogs == null) return;
 
       List<int> submissions = [0, 0, 0, 0];
       List<int> approved = [0, 0, 0, 0];
 
-      for (var doc in students.docs) {
+      for (var doc in lastStudents!.docs) {
         final timestamp = (doc['createdAt'] as Timestamp?)?.toDate();
         if (timestamp != null) {
           int index = _getDateIndex(timestamp, timeframe);
@@ -66,11 +59,9 @@ class ReportService {
         }
       }
 
-      for (var doc in logs.docs) {
+      for (var doc in lastLogs!.docs) {
         final data = doc.data() as Map<String, dynamic>;
         final String action = data['action'] ?? '';
-        
-        // Filter for "Approved" actions client-side
         if (action.contains('Approved')) {
           final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
           if (timestamp != null) {
@@ -80,17 +71,38 @@ class ReportService {
         }
       }
 
-      return Stream.value({
-        'submissions': submissions,
-        'approved': approved,
-      });
-    }).handleError((error) {
-      // Return empty data on error to stop the loading spinner
-      return {
-        'submissions': [0, 0, 0, 0],
-        'approved': [0, 0, 0, 0],
-      };
+      if (!controller.isClosed) {
+        controller.add({
+          'submissions': submissions,
+          'approved': approved,
+        });
+      }
+    }
+
+    final subStudents = _firestore
+        .collection('students')
+        .where('createdAt', isGreaterThanOrEqualTo: startDate)
+        .snapshots()
+        .listen((s) {
+      lastStudents = s;
+      update();
     });
+
+    final subLogs = _firestore
+        .collection('audit_logs')
+        .where('timestamp', isGreaterThanOrEqualTo: startDate)
+        .snapshots()
+        .listen((l) {
+      lastLogs = l;
+      update();
+    });
+
+    controller.onCancel = () {
+      subStudents.cancel();
+      subLogs.cancel();
+    };
+
+    return controller.stream;
   }
 
   int _getDateIndex(DateTime date, String timeframe) {

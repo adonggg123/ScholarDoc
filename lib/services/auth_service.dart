@@ -137,6 +137,18 @@ class AuthService {
     return _firestore.collection('students').doc(uid).snapshots();
   }
 
+  // Update student profile data
+  Future<void> updateStudentProfile(String uid, Map<String, dynamic> updates) async {
+    await _firestore.collection('students').doc(uid).update(updates);
+    
+    // Log Activity
+    await _auditService.logActivity(
+      action: 'Updated profile information',
+      userName: updates['fullName'] ?? 'Student',
+      role: 'Student',
+    );
+  }
+
   // Get stream of all students for Admin
   Stream<QuerySnapshot> getStudentsStream() {
     return _firestore
