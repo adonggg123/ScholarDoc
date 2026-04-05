@@ -127,7 +127,7 @@ class AuthService {
     // --- Step 3: Verify the user record exists in Firestore students collection ---
     final DocumentSnapshot doc = await _firestore
         .collection('students')
-        .doc(userCredential!.user!.uid)
+        .doc(userCredential.user!.uid)
         .get();
 
     if (!doc.exists) {
