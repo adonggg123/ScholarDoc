@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../services/ml_service.dart';
@@ -62,7 +63,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
         // Calculate Priority Score
         final List<Map<String, dynamic>> scoredDocs = docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>;
-          final String saNumber = data['familyDetails']?['saNumber'] ?? '';
+          final String saNumber = data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? '';
           
           int priorityScore = 0;
           bool isSuspicious = false;
@@ -160,7 +161,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
           
           final data = doc.data() as Map<String, dynamic>;
           final String name = data['fullName'] ?? 'N/A';
-          final String saNumber = data['familyDetails']?['saNumber'] ?? 'N/A';
+          final String saNumber = data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? 'N/A';
 
           return ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -206,12 +207,17 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
 
   Widget _buildVerificationPanel(BuildContext context, Map<String, dynamic> data, bool isMobile) {
     final ml = MLService();
-    final String saNumber = data['familyDetails']?['saNumber'] ?? '1234-5678-9012';
+    final String saNumber = data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? '1234-5678-9012';
     final String name = data['fullName'] ?? 'N/A';
     final String studentId = data['studentId'] ?? 'N/A';
     final String course = data['course'] ?? 'N/A';
     final String year = data['year'] ?? 'N/A';
     
+    final String? sem1Url = data['sem1Url'];
+    final String? sem2Url = data['sem2Url'];
+    final String? sem1FileName = data['sem1FileName'];
+    final String? sem2FileName = data['sem2FileName'];
+
     final aiCheck = ml.detectSASuspiciousPattern(saNumber);
 
     return Container(
@@ -263,11 +269,31 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
             _dataField(context, 'Submitted SA Number', saNumber),
             SizedBox(height: 6),
             _buildAIBadge(context, aiCheck),
-            SizedBox(height: 10),
+            const SizedBox(height: 12),
             _dataField(context, 'Bank Branch', 'Main University Branch'),
-            SizedBox(height: 6),
+            const SizedBox(height: 10),
             _buildDuplicateBadge(context),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
+            
+            // NEW: Submitted Documents Section
+            Text('Documents Provided', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPri)),
+            const SizedBox(height: 10),
+            if (sem1Url == null && sem2Url == null)
+              Text('No documents uploaded.', style: TextStyle(fontSize: 12, color: context.textSec, fontStyle: FontStyle.italic))
+            else
+              Column(
+                children: [
+                  if (sem1Url != null) ...[
+                    _buildDocumentLink(context, '1st Sem ID', sem1FileName ?? 'Validation_1.pdf', sem1Url),
+                  ],
+                  if (sem2Url != null) ...[
+                    const SizedBox(height: 8),
+                    _buildDocumentLink(context, '2nd Sem ID', sem2FileName ?? 'Validation_2.pdf', sem2Url),
+                  ],
+                ],
+              ),
+            
+            const SizedBox(height: 16),
             Text('Admin Remarks', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: context.textPri)),
             SizedBox(height: 6),
             TextFormField(
@@ -472,6 +498,45 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
           Text(
             'Duplicate Hash Network Check: PASSED',
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.success),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentLink(BuildContext context, String label, String fileName, String url) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.surfaceC.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: context.crispBorder),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            fileName.toLowerCase().endsWith('.pdf') ? LucideIcons.fileText : LucideIcons.image, 
+            size: 16, 
+            color: AppTheme.primaryColor
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                Text(fileName, style: TextStyle(fontSize: 10, color: context.textSec), overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+            child: const Text('View', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
           ),
         ],
       ),

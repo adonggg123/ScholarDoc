@@ -40,10 +40,29 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     
-    _announcementService.getActiveAnnouncements().listen((list) {
-      if (mounted) {
+    _announcementService.getActiveAnnouncements().listen(
+      (list) {
+        if (mounted) {
+          setState(() {
+            _announcements = list;
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (error) {
+        debugPrint('Error loading announcements: $error');
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      },
+    );
+
+    // Fallback timer to disable loading after 5 seconds if no announcements emit
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted && _isLoading) {
         setState(() {
-          _announcements = list;
           _isLoading = false;
         });
       }
@@ -55,30 +74,68 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: 120.0,
-            floating: false,
-            pinned: true,
-            backgroundColor: context.bgC,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              title: Text(
-                _profileData != null 
-                    ? 'Hello, ${_profileData!['fullName']?.toString().split(' ').first}!' 
-                    : 'Hello!',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontSize: 24,
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.only(left: 24, right: 24, top: 60, bottom: 32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppTheme.primaryColor,
+                    const Color(0xFF1E40AF), // Slightly lighter blue
+                  ],
                 ),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
+                ),
+                boxShadow: AppTheme.premiumShadow,
               ),
-              centerTitle: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _getGreeting(),
+                            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 16),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _profileData != null 
+                                ? '${_profileData!['fullName']?.toString().split(' ').first}!' 
+                                : 'Student!',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Colors.white24,
+                        child: Icon(LucideIcons.user, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 8),
                   Text(
                     'Your Scholarship Status',
                     style: Theme.of(context).textTheme.titleMedium,
@@ -121,12 +178,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 32),
-                  Text(
-                    'Recent Updates',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Recent Updates',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('See All'),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -162,121 +228,166 @@ class _HomeScreenState extends State<HomeScreen> {
     if (status == 'Approved') statusColor = AppTheme.success;
     if (status == 'Rejected') statusColor = AppTheme.error;
 
-    return Card(
-      child: Container(
-        padding: EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              statusColor.withValues(alpha: 0.05),
-              statusColor.withValues(alpha: 0.1),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return Container(
+      decoration: BoxDecoration(
+        color: context.surfaceC,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppTheme.premiumShadow,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                statusColor.withValues(alpha: 0.03),
+                statusColor.withValues(alpha: 0.08),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          scholarshipName,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: statusColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Last activity on $submittedDate',
+                          style: TextStyle(color: context.textSec, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      status,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (remarks != null && remarks.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: context.bgC.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: statusColor.withValues(alpha: 0.1)),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        scholarshipName,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: statusColor,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      Row(
+                        children: [
+                          Icon(LucideIcons.messageSquare, size: 16, color: statusColor),
+                          const SizedBox(width: 8),
+                          Text('Feedback from Admin', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: statusColor)),
+                        ],
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Submitted on $submittedDate',
-                        style: TextStyle(color: context.textSec, fontSize: 12),
-                      ),
+                      const SizedBox(height: 8),
+                      Text(remarks, style: const TextStyle(fontSize: 13, height: 1.4)),
                     ],
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    status,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: statusColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ),
               ],
-            ),
-            if (remarks != null && remarks.isNotEmpty) ...[
-              SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: statusColor.withValues(alpha: 0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(LucideIcons.messageSquare, size: 14, color: statusColor),
-                        SizedBox(width: 8),
-                        Text('Admin Remarks', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: statusColor)),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Text(remarks, style: TextStyle(fontSize: 12)),
-                  ],
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    status == 'Approved' ? 'Requirement complete' : 'Verification progress',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: context.textSec),
+                  ),
+                  Text(
+                    status == 'Approved' ? '100%' : '65%',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusColor),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: LinearProgressIndicator(
+                  value: status == 'Approved' ? 1.0 : 0.65,
+                  backgroundColor: statusColor.withValues(alpha: 0.1),
+                  color: statusColor,
+                  minHeight: 10,
                 ),
               ),
             ],
-            SizedBox(height: 24),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: LinearProgressIndicator(
-                value: status == 'Approved' ? 1.0 : 0.5,
-                backgroundColor: Colors.grey.shade200,
-                color: statusColor,
-                minHeight: 8,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
   Widget _buildActionBtn(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
       child: Container(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
+          color: context.surfaceC,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: color.withValues(alpha: 0.1), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.05),
+              offset: const Offset(0, 8),
+              blurRadius: 16,
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 32),
-            SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(height: 16),
             Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: color,
+                    fontSize: 13,
                   ),
             ),
           ],
@@ -288,36 +399,70 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAnnouncementWidget(BuildContext context, Announcement a) {
     Color typeColor = Colors.blue;
     IconData typeIcon = LucideIcons.info;
-    if (a.type == 'Deadline') { typeColor = AppTheme.error; typeIcon = LucideIcons.calendarClock; }
-    else if (a.type == 'Update') { typeColor = AppTheme.success; typeIcon = LucideIcons.refreshCw; }
+    if (a.type == 'Deadline') {
+      typeColor = AppTheme.error;
+      typeIcon = LucideIcons.calendarClock;
+    } else if (a.type == 'Update') {
+      typeColor = AppTheme.success;
+      typeIcon = LucideIcons.refreshCw;
+    }
 
     return Container(
-      decoration: context.crispDecoration,
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: typeColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      decoration: BoxDecoration(
+        color: context.surfaceC,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.crispBorder),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 6,
+              color: typeColor,
             ),
-            child: Icon(typeIcon, color: typeColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(a.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 4),
-                Text(a.content, style: TextStyle(color: context.textSec, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
-              ],
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: typeColor.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(typeIcon, color: typeColor, size: 22),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            a.title,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            a.content,
+                            style: TextStyle(color: context.textSec, fontSize: 13, height: 1.4),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(LucideIcons.chevronRight, color: context.textSec.withValues(alpha: 0.5), size: 18),
+                  ],
+                ),
+              ),
             ),
-          ),
-          Icon(Icons.chevron_right, color: context.textSec),
-        ],
+          ],
+        ),
       ),
     );
   }

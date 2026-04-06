@@ -75,8 +75,8 @@ class _SplashScreenState extends State<SplashScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 250,
-                      height: 250,
+                      width: 220,
+                      height: 220,
                       alignment: Alignment.center,
                       decoration: const BoxDecoration(
                         color: Colors.white,
@@ -84,14 +84,14 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       child: Image.asset(
                         'assets/app_logo1.png',
-                        width: 240,
-                        height: 240,
+                        width: 215,
+                        height: 215,
                         fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Manage your TES documents with ease.',
+                      'Manage your Scholarship Documents with ease.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.white.withValues(alpha: 0.8),
                       ),

@@ -28,7 +28,22 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              context.bgC,
+              context.isDark ? Colors.black : Colors.white.withValues(alpha: 0.5),
+            ],
+          ),
+        ),
+        child: IndexedStack(
+          index: _currentIndex,
+          children: _screens,
+        ),
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -72,18 +87,34 @@ class _MainLayoutState extends State<MainLayout> {
       ),
       // Floating Action Button for quick upload access
       floatingActionButton: _currentIndex == 0 || _currentIndex == 1
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const UploadWorkflowScreen()),
-                );
-              },
-              backgroundColor: AppTheme.primaryColor,
-              icon: Icon(LucideIcons.uploadCloud, color: Colors.white),
-              label: Text(
-                'Submit Docs',
-                style: TextStyle(color: context.surfaceC, fontWeight: FontWeight.bold),
+          ? Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppTheme.primaryColor, Color(0xFF2563EB)],
+                ),
+                boxShadow: AppTheme.premiumShadow,
+              ),
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const UploadWorkflowScreen()),
+                  );
+                },
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                focusElevation: 0,
+                highlightElevation: 0,
+                hoverElevation: 0,
+                splashColor: Colors.white.withValues(alpha: 0.1),
+                icon: const Icon(LucideIcons.uploadCloud, color: Colors.white),
+                label: const Text(
+                  'Submit Docs',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ),
             )
           : null,

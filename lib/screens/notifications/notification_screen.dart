@@ -96,9 +96,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
+          return ListView.separated(
+            padding: const EdgeInsets.all(24),
             itemCount: docs.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
               final doc = docs[index];
               final data = doc.data() as Map<String, dynamic>;
@@ -159,60 +160,91 @@ class _NotificationScreenState extends State<NotificationScreen> {
       }
     }
 
-    return GestureDetector(
+    return InkWell(
       onTap: isNew ? () => _notificationService.markAsRead(docId) : null,
-      child: Card(
-        elevation: isNew ? 2 : 0,
-        color: isNew ? Colors.white : context.bgC.withValues(alpha: 0.5),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: isNew ? color.withValues(alpha: 0.2) : Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isNew ? context.surfaceC : context.surfaceC.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isNew ? color.withValues(alpha: 0.3) : context.crispBorder,
+            width: isNew ? 1.5 : 1,
           ),
+          boxShadow: isNew ? AppTheme.softShadow : null,
         ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.all(16),
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: color, size: 22),
             ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: isNew ? FontWeight.bold : FontWeight.w500,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontWeight: isNew ? FontWeight.bold : FontWeight.w600,
+                            fontSize: 15,
+                            color: isNew ? context.textPri : context.textPri.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+                      if (isNew)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'NEW',
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-              ),
-              if (isNew)
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.primaryColor,
-                    shape: BoxShape.circle,
+                  const SizedBox(height: 6),
+                  Text(
+                    message,
+                    style: TextStyle(
+                      color: isNew ? context.textPri.withValues(alpha: 0.9) : context.textSec,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
                   ),
-                ),
-            ],
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 4),
-              Text(message, style: TextStyle(color: isNew ? context.textPri : context.textSec)),
-              const SizedBox(height: 8),
-              Text(
-                timeStr,
-                style: TextStyle(fontSize: 12, color: context.textSec),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(LucideIcons.clock, size: 12, color: context.textSec),
+                      const SizedBox(width: 4),
+                      Text(
+                        timeStr,
+                        style: TextStyle(fontSize: 11, color: context.textSec),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
