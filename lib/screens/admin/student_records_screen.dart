@@ -870,6 +870,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
                   return _buildDataRow(
                     context,
+                    data,
                     doc.id,
                     name,
                     studentId,
@@ -889,6 +890,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
   DataRow _buildDataRow(
     BuildContext context,
+    Map<String, dynamic> data,
     String docId,
     String name,
     String studentId,
@@ -934,16 +936,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         DataCell(Row(
           children: [
             _buildActionIcon(LucideIcons.eye, AppTheme.primaryColor, () {
-              final studentData = {
-                'fullName': name,
-                'studentId': studentId,
-                'course': courseYear.split(' - ')[0],
-                'year': courseYear.split(' - ')[1],
-                'status': status,
-                'familyDetails': {'saNumber': saNumber},
-                // We'd ideally pass the actual Timestamp from the Stream here
-              };
-              _showStudentProfile(studentData, docId);
+              _showStudentProfile(data, docId);
             }),
             const SizedBox(width: 8),
             _buildActionIcon(LucideIcons.checkSquare, AppTheme.success, () {
@@ -1012,16 +1005,24 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
   void _showStudentProfile(Map<String, dynamic> data, String docId) async {
     final String name = data['fullName'] ?? 'Unknown Student';
     final String studentId = data['studentId'] ?? 'N/A';
-    final String course = data['course'] ?? 'N/A';
+    final String email = data['email'] ?? data['authEmail'] ?? 'N/A';
+    final String contactNumber = data['contactNumber'] ?? 'N/A';
+
+    final String courseDisplay = data['courseDisplay'] ?? data['course'] ?? 'N/A';
     final String year = data['year'] ?? 'N/A';
+    final String section = data['section'] ?? 'N/A';
+    final String scholarshipName = data['scholarshipName'] ?? 'No Scholarship Selected';
+
     final String status = data['status'] ?? 'Pending';
-    final String saNumber = data['familyDetails']?['saNumber'] ?? 'Not Provided';
+    final Map<String, dynamic> family = data['familyDetails'] ?? {};
+    final String saNumber = family['saNumber'] ?? 'Not Provided';
+
     final Timestamp? createdAt = data['createdAt'];
     final String registeredOn = createdAt != null ? DateFormat('MMMM dd, yyyy').format(createdAt.toDate()) : 'N/A';
 
     // Log the profile view
     await _auditService.logActivity(
-      action: 'Viewed student profile: $name',
+      action: 'Viewed full student profile: $name',
       userName: 'Admin',
       role: 'Admin',
       studentId: studentId,
@@ -1039,92 +1040,166 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         minChildSize: 0.5,
         builder: (_, scrollController) => Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20, spreadRadius: 5)],
+            color: context.bgC,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 30, spreadRadius: 5)],
           ),
           child: Column(
             children: [
-              // Handle bar
+              // Premium Handle bar
               Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                margin: const EdgeInsets.symmetric(vertical: 16),
+                width: 48,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3), 
+                  borderRadius: BorderRadius.circular(4)
+                ),
               ),
               Expanded(
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.fromLTRB(32, 8, 32, 32),
                   children: [
                     // Header Section
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                          child: const Icon(LucideIcons.user, size: 40, color: AppTheme.primaryColor),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2), width: 2),
+                          ),
+                          child: CircleAvatar(
+                            radius: 42,
+                            backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.08),
+                            child: const Icon(LucideIcons.user, size: 42, color: AppTheme.primaryColor),
+                          ),
                         ),
-                        const SizedBox(width: 20),
+                        const SizedBox(width: 24),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 4),
-                              Text('Student ID: $studentId', style: TextStyle(color: context.textSec, fontSize: 14)),
-                              const SizedBox(height: 12),
-                              _buildStatusBadge(status),
+                              Text(name, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: context.textPri, letterSpacing: -0.5)),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Icon(LucideIcons.badge, size: 14, color: context.textSec),
+                                  const SizedBox(width: 6),
+                                  Text(studentId, style: TextStyle(color: context.textSec, fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                                  const SizedBox(width: 16),
+                                  _buildStatusBadge(status),
+                                ],
+                              ),
                             ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 48),
 
-                    // Information Grid
-                    const Text('Institutional Overview', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
+                    // Section 1: Academics & Contact
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.graduationCap, size: 18, color: AppTheme.primaryColor),
+                        const SizedBox(width: 10),
+                        Text('Academic & Contact', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: context.textPri, letterSpacing: 0.3)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
                     GridView.count(
                       crossAxisCount: 2,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
-                      childAspectRatio: 2.2,
+                      childAspectRatio: 3.5,
                       children: [
-                        _buildProfileInfoCard(LucideIcons.graduationCap, 'Program / Course', course),
-                        _buildProfileInfoCard(LucideIcons.calendar, 'Year Level', year),
-                        _buildProfileInfoCard(LucideIcons.creditCard, 'SA Number (TES)', saNumber),
+                        _buildProfileInfoCard(LucideIcons.bookOpen, 'Program / Course', courseDisplay),
+                        _buildProfileInfoCard(LucideIcons.calendarDays, 'Year & Section', '$year - Sec $section'),
+                        _buildProfileInfoCard(LucideIcons.award, 'Scholarship', scholarshipName),
+                        _buildProfileInfoCard(LucideIcons.mail, 'Email Address', email),
+                        _buildProfileInfoCard(LucideIcons.phone, 'Contact Number', contactNumber),
                         _buildProfileInfoCard(LucideIcons.clock, 'Registration Date', registeredOn),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 48),
+                    
+                    // Section 2: Financial & Background
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.wallet, size: 18, color: AppTheme.primaryColor),
+                        const SizedBox(width: 10),
+                        Text('Financial & Background', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: context.textPri, letterSpacing: 0.3)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 3.5,
+                      children: [
+                        _buildProfileInfoCard(LucideIcons.creditCard, 'SA Number (TES)', saNumber),
+                        _buildProfileInfoCard(LucideIcons.banknote, 'Total Yearly Income', 'PHP ${family['yearlyIncome'] ?? 'N/A'}'),
+                        _buildProfileInfoCard(LucideIcons.church, 'Religion', family['religion'] ?? 'N/A'),
+                        _buildProfileInfoCard(LucideIcons.users, 'Tribe / Ethnicity', family['tribe'] ?? 'N/A'),
+                      ],
+                    ),
+                    const SizedBox(height: 48),
+                    
+                    // Section 3: Family Info
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.heartPulse, size: 18, color: AppTheme.primaryColor),
+                        const SizedBox(width: 10),
+                        Text('Family Documentation', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: context.textPri, letterSpacing: 0.3)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(child: _buildFamilyCard('Father', family['fatherName']?.toString(), family['fatherAge']?.toString(), family['fatherOccupation']?.toString())),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildFamilyCard('Mother', family['motherName']?.toString(), family['motherAge']?.toString(), family['motherOccupation']?.toString())),
+                      ],
+                    ),
+                    const SizedBox(height: 48),
 
                     // Verification Documents (Mocked for UI flow)
-                    const Text('Verification Documents', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.folderCheck, size: 18, color: AppTheme.primaryColor),
+                        const SizedBox(width: 10),
+                        Text('Verification Assets', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: context.textPri, letterSpacing: 0.3)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
                     _buildDocumentItem('Validated Student ID (Front)', 'verified'),
                     _buildDocumentItem('Validated Student ID (Back)', 'verified'),
                     _buildDocumentItem('Billing Statement / COR', 'pending'),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 48),
 
                     // Compliance Action
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.03),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1), width: 1.5),
+                        boxShadow: [BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Administrative Actions', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
+                          const Text('Administrative Actions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.2)),
+                          const SizedBox(height: 8),
                           Text('Use these controls to finalize document verification for this student.', 
-                            style: TextStyle(fontSize: 12, color: context.textSec)),
-                          const SizedBox(height: 20),
+                            style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 24),
                           Row(
                             children: [
                               Expanded(
@@ -1133,16 +1208,18 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                                     Navigator.pop(context);
                                     _updateStudentStatus(docId, name, studentId, 'Approved');
                                   },
-                                  icon: const Icon(LucideIcons.checkCircle, size: 18),
-                                  label: const Text('Approve Enrollment'),
+                                  icon: const Icon(LucideIcons.checkCircle2, size: 18),
+                                  label: const Text('Approve Data', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.success,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(vertical: 18),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    elevation: 0,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: OutlinedButton.icon(
                                   onPressed: () {
@@ -1150,11 +1227,12 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                                     _updateStudentStatus(docId, name, studentId, 'Rejected');
                                   },
                                   icon: const Icon(LucideIcons.xCircle, size: 18),
-                                  label: const Text('Flag for Revision'),
+                                  label: const Text('Flag for Revision', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppTheme.error,
-                                    side: const BorderSide(color: AppTheme.error),
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    side: const BorderSide(color: AppTheme.error, width: 1.5),
+                                    padding: const EdgeInsets.symmetric(vertical: 18),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   ),
                                 ),
                               ),
@@ -1163,13 +1241,70 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 60),
                   ],
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFamilyCard(String role, String? name, String? age, String? occupation) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: context.surfaceC,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+        border: Border.all(color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(role == 'Father' ? LucideIcons.briefcase : LucideIcons.briefcase, size: 12, color: AppTheme.secondaryColor),
+              ),
+              const SizedBox(width: 10),
+              Text(role, style: TextStyle(fontWeight: FontWeight.w700, color: context.textSec, fontSize: 13, letterSpacing: 0.5)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(name ?? 'N/A', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: context.textPri, letterSpacing: -0.3)),
+          const SizedBox(height: 12),
+          Divider(color: context.isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(LucideIcons.calendar, size: 14, color: context.textSec),
+              const SizedBox(width: 6),
+              Text('${age ?? 'N/A'} yrs', style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w600)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(LucideIcons.briefcase, size: 14, color: context.textSec),
+              const SizedBox(width: 6),
+              Expanded(child: Text(occupation ?? 'N/A', style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -1200,23 +1335,39 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
   Widget _buildProfileInfoCard(IconData icon, String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        color: context.surfaceC,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+        border: Border.all(color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 18, color: AppTheme.primaryColor),
-          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 18, color: AppTheme.primaryColor),
+          ),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: TextStyle(fontSize: 10, color: context.textSec, fontWeight: FontWeight.w600)),
-                Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                Text(label, style: TextStyle(fontSize: 11, color: context.textSec, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                const SizedBox(height: 4),
+                Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: context.textPri), overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -1228,22 +1379,37 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
   Widget _buildDocumentItem(String title, String status) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.surfaceC,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade100),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
-          Icon(LucideIcons.fileText, color: context.textSec, size: 20),
-          const SizedBox(width: 12),
-          Text(title, style: const TextStyle(fontSize: 14)),
-          const Spacer(),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(LucideIcons.fileText, color: AppTheme.primaryColor, size: 18),
+          ),
+          const SizedBox(width: 16),
+          Expanded(child: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: context.textPri))),
           if (status == 'verified')
-            const Icon(LucideIcons.check, color: AppTheme.success, size: 18)
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: const Icon(LucideIcons.check, color: AppTheme.success, size: 14),
+            )
           else
-            const Text('Processing', style: TextStyle(fontSize: 11, color: AppTheme.warning, fontWeight: FontWeight.bold)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: AppTheme.warning.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+              child: const Text('Processing', style: TextStyle(fontSize: 11, color: AppTheme.warning, fontWeight: FontWeight.bold)),
+            ),
         ],
       ),
     );

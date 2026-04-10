@@ -107,9 +107,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(height: 20),
-                Text(
-                  'Join ScholarDoc',
-                  style: Theme.of(context).textTheme.headlineLarge,
+                Text.rich(
+                  TextSpan(
+                    style: Theme.of(context).textTheme.headlineLarge,
+                    children: const [
+                      TextSpan(text: 'Join Scholar'),
+                      TextSpan(
+                        text: 'Doc',
+                        style: TextStyle(color: AppTheme.secondaryColor),
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(height: 8),
                 Text(

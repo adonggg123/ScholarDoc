@@ -38,16 +38,16 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
 
   void _refreshSystem() async {
     setState(() => _isSyncing = true);
-    
+
     // Simulate a brief delay to show the syncing animation and clear any local jitter
     await Future.delayed(const Duration(milliseconds: 600));
-    
+
     if (mounted) {
       setState(() {
         _syncKey = UniqueKey(); // Force rebuild of all child streams
         _isSyncing = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Row(
@@ -130,7 +130,6 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
     return Column(
       children: [
         _buildSidebarHeader(),
-        SizedBox(height: 8),
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 16),
@@ -160,34 +159,13 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
 
   Widget _buildSidebarHeader() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.zero,
-            decoration: BoxDecoration(
-              color: context.surfaceC,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Image.asset(
-              'assets/app_logo.png',
-              width: 60,
-              height: 60,
-              fit: BoxFit.fill,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              'ScholarDoc',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: context.textPri,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+      padding: EdgeInsets.only(top: 16, bottom: 0, left: 16, right: 16),
+      alignment: Alignment.center,
+      child: Image.asset(
+        'assets/app_logo1.png',
+        width: 120, // Keep existing width/height
+        height: 120,
+        fit: BoxFit.fill,
       ),
     );
   }
@@ -322,7 +300,10 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                   children: [
                     const Text(
                       'Admin Dashboard',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (_isSyncing) ...[
@@ -330,12 +311,19 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                       SizedBox(
                         width: 14,
                         height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppTheme.primaryColor,
+                        ),
                       ),
                       SizedBox(width: 8),
                       Text(
                         'Syncing...',
-                        style: TextStyle(fontSize: 12, color: context.textSec, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.textSec,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ],
@@ -348,9 +336,9 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
                 child: IconButton(
                   onPressed: _isSyncing ? null : _refreshSystem,
                   icon: Icon(
-                    LucideIcons.refreshCw, 
-                    size: 18, 
-                    color: _isSyncing ? context.textSec : AppTheme.primaryColor
+                    LucideIcons.refreshCw,
+                    size: 18,
+                    color: _isSyncing ? context.textSec : AppTheme.primaryColor,
                   ),
                 ),
               ),

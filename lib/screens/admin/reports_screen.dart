@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
 import '../../services/report_service.dart';
 import '../../utils/pdf_generator.dart';
+import '../../utils/excel_generator.dart';
 import 'package:intl/intl.dart';
 
 class ReportsScreen extends StatefulWidget {
@@ -23,7 +24,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
   late Stream<QuerySnapshot> _reportsHistoryStream;
   
   String _throughputTimeframe = 'This Year';
-  bool _isGenerating = false;
+  bool _isGeneratingPdf = false;
+  bool _isGeneratingExcel = false;
 
   @override
   void initState() {
@@ -87,27 +89,43 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
         ),
         if (!isMobile)
-          _buildExportButton(context),
+          _buildExportButtons(context),
       ],
     );
   }
 
-  Widget _buildExportButton(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: _isGenerating ? null : _handleExportPdf,
-      icon: _isGenerating 
-        ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-        : Icon(LucideIcons.printer),
-      label: Text(_isGenerating ? 'Generating...' : 'Export PDF'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.primaryColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+  Widget _buildExportButtons(BuildContext context) {
+    return Row(
+      children: [
+        ElevatedButton.icon(
+          onPressed: _isGeneratingExcel ? null : _handleExportExcel,
+          icon: _isGeneratingExcel 
+            ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : Icon(LucideIcons.fileSpreadsheet),
+          label: Text(_isGeneratingExcel ? 'Excel...' : 'Export Excel'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.success,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        ),
+        SizedBox(width: 12),
+        ElevatedButton.icon(
+          onPressed: _isGeneratingPdf ? null : _handleExportPdf,
+          icon: _isGeneratingPdf 
+            ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : Icon(LucideIcons.printer),
+          label: Text(_isGeneratingPdf ? 'PDF...' : 'Export PDF'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primaryColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        ),
+      ],
     );
   }
 
   Future<void> _handleExportPdf() async {
-    setState(() => _isGenerating = true);
+    setState(() => _isGeneratingPdf = true);
     try {
       // 1. Get Institutional Stats
       final stats = await _reportService.getInstitutionalStats();
@@ -149,7 +167,41 @@ class _ReportsScreenState extends State<ReportsScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isGenerating = false);
+      if (mounted) setState(() => _isGeneratingPdf = false);
+    }
+  }
+
+  Future<void> _handleExportExcel() async {
+    setState(() => _isGeneratingExcel = true);
+    try {
+      final studentSnap = await FirebaseFirestore.instance.collection('students').get();
+      List<Map<String, dynamic>> studentsList = studentSnap.docs.map((doc) => doc.data()).toList();
+      
+      final title = 'Students_Data';
+      
+      await ExcelGenerator.exportStudentsData(
+        students: studentsList,
+        title: title,
+      );
+
+      await _reportService.addReportRecord(
+        title: 'Students Data Excel Export',
+        fileName: '${title}_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Excel Report generated successfully!'), backgroundColor: AppTheme.success),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to generate Excel report: $e'), backgroundColor: AppTheme.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGeneratingExcel = false);
     }
   }
 
