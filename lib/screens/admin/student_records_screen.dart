@@ -30,11 +30,33 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
   late Stream<QuerySnapshot> _studentsStream;
 
-  static const List<String> _statusOptions = ['All', 'Pending', 'Approved', 'Rejected', 'Under Review'];
+  static const List<String> _statusOptions = [
+    'All',
+    'Pending',
+    'Approved',
+    'Rejected',
+    'Under Review',
+  ];
   static const List<String> _courseOptions = ['All', 'BSIT', 'BTLED', 'BFPT'];
-  static const List<String> _scholarshipOptions = ['All', 'TES', 'TDP', 'DBP', 'SANTEH', 'STUFAH'];
-  static const List<String> _sortOptions = ['Name (A-Z)', 'Latest First', 'By Status'];
-  static const List<String> _yearOptions = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+  static const List<String> _scholarshipOptions = [
+    'All',
+    'TES',
+    'TDP',
+    'DBP',
+    'SANTEH',
+    'STUFAP',
+  ];
+  static const List<String> _sortOptions = [
+    'Name (A-Z)',
+    'Latest First',
+    'By Status',
+  ];
+  static const List<String> _yearOptions = [
+    '1st Year',
+    '2nd Year',
+    '3rd Year',
+    '4th Year',
+  ];
   static const List<String> _courseAddOptions = ['BSIT', 'BTLED', 'BFPT'];
   static const List<String> _semesterOptions = [
     'AY 2023-2024, 1st Sem',
@@ -75,7 +97,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               title: Row(
                 children: [
                   Container(
@@ -84,10 +108,17 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                       color: AppTheme.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(LucideIcons.userPlus, size: 18, color: AppTheme.primaryColor),
+                    child: Icon(
+                      LucideIcons.userPlus,
+                      size: 18,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
                   SizedBox(width: 12),
-                  Text('Add New Student', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Add New Student',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
               content: SizedBox(
@@ -105,7 +136,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                           label: 'Full Name',
                           hint: 'e.g. Juan Dela Cruz',
                           icon: LucideIcons.user,
-                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Full name is required' : null,
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Full name is required'
+                              : null,
                         ),
                         SizedBox(height: 16),
                         _dialogField(
@@ -113,7 +146,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                           label: 'Student ID',
                           hint: 'e.g. 2023-00001',
                           icon: LucideIcons.hash,
-                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Student ID is required' : null,
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Student ID is required'
+                              : null,
                         ),
                         SizedBox(height: 16),
                         Row(
@@ -124,7 +159,8 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                                 label: 'Course',
                                 value: selectedCourse,
                                 items: _courseAddOptions,
-                                onChanged: (val) => setDialogState(() => selectedCourse = val!),
+                                onChanged: (val) =>
+                                    setDialogState(() => selectedCourse = val!),
                               ),
                             ),
                             SizedBox(width: 12),
@@ -134,7 +170,8 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                                 label: 'Year Level',
                                 value: selectedYear,
                                 items: _yearOptions,
-                                onChanged: (val) => setDialogState(() => selectedYear = val!),
+                                onChanged: (val) =>
+                                    setDialogState(() => selectedYear = val!),
                               ),
                             ),
                           ],
@@ -149,20 +186,32 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                         ),
                         SizedBox(height: 8),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.amber.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                            border: Border.all(
+                              color: Colors.amber.withValues(alpha: 0.3),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              Icon(LucideIcons.info, size: 14, color: Colors.amber.shade700),
+                              Icon(
+                                LucideIcons.info,
+                                size: 14,
+                                color: Colors.amber.shade700,
+                              ),
                               SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'Student will be added with Pending status and must complete registration.',
-                                  style: TextStyle(fontSize: 11, color: Colors.amber.shade800),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.amber.shade800,
+                                  ),
                                 ),
                               ),
                             ],
@@ -175,8 +224,13 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: isLoading ? null : () => Navigator.pop(dialogContext),
-                  child: Text('Cancel', style: TextStyle(color: context.textSec)),
+                  onPressed: isLoading
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: context.textSec),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: isLoading
@@ -185,23 +239,26 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                           if (!formKey.currentState!.validate()) return;
                           setDialogState(() => isLoading = true);
                           try {
-                            final newDoc = await FirebaseFirestore.instance.collection('students').add({
-                              'fullName': nameCtrl.text.trim(),
-                              'studentId': idCtrl.text.trim(),
-                              'course': selectedCourse,
-                              'year': selectedYear,
-                              'status': 'Pending',
-                              'familyDetails': {
-                                'saNumber': saCtrl.text.trim(),
-                              },
-                              'createdAt': FieldValue.serverTimestamp(),
-                            });
+                            final newDoc = await FirebaseFirestore.instance
+                                .collection('students')
+                                .add({
+                                  'fullName': nameCtrl.text.trim(),
+                                  'studentId': idCtrl.text.trim(),
+                                  'course': selectedCourse,
+                                  'year': selectedYear,
+                                  'status': 'Pending',
+                                  'familyDetails': {
+                                    'saNumber': saCtrl.text.trim(),
+                                  },
+                                  'createdAt': FieldValue.serverTimestamp(),
+                                });
 
                             // Set uid to match the document ID
                             await newDoc.update({'uid': newDoc.id});
 
                             await _auditService.logActivity(
-                              action: 'Added new student record: ${nameCtrl.text.trim()}',
+                              action:
+                                  'Added new student record: ${nameCtrl.text.trim()}',
                               userName: 'Admin',
                               role: 'Admin',
                               studentId: idCtrl.text.trim(),
@@ -211,7 +268,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                               Navigator.pop(dialogContext);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('${nameCtrl.text.trim()} has been added successfully.'),
+                                  content: Text(
+                                    '${nameCtrl.text.trim()} has been added successfully.',
+                                  ),
                                   backgroundColor: AppTheme.success,
                                 ),
                               );
@@ -221,7 +280,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Failed to add student. Please try again.'),
+                                  content: Text(
+                                    'Failed to add student. Please try again.',
+                                  ),
                                   backgroundColor: AppTheme.error,
                                 ),
                               );
@@ -231,16 +292,24 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
                   child: isLoading
                       ? SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
-                      : Text('Add Student', style: TextStyle(fontWeight: FontWeight.bold)),
+                      : Text(
+                          'Add Student',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                 ),
               ],
             );
@@ -264,7 +333,10 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
         SizedBox(height: 6),
         TextFormField(
           controller: controller,
@@ -307,7 +379,10 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
         SizedBox(height: 6),
         DropdownButtonFormField<String>(
           value: value,
@@ -330,7 +405,12 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           ),
           items: items
-              .map((e) => DropdownMenuItem(value: e, child: Text(e, style: TextStyle(fontSize: 13))))
+              .map(
+                (e) => DropdownMenuItem(
+                  value: e,
+                  child: Text(e, style: TextStyle(fontSize: 13)),
+                ),
+              )
               .toList(),
         ),
       ],
@@ -367,7 +447,10 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Student Records', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            'Student Records',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           SizedBox(height: 12),
           Row(
             children: [
@@ -377,7 +460,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                 height: 40,
                 child: ElevatedButton(
                   onPressed: _showAddStudentDialog,
-                  style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 12)),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                  ),
                   child: Icon(LucideIcons.userPlus, size: 18),
                 ),
               ),
@@ -389,11 +474,19 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   });
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Records refreshed'), behavior: SnackBarBehavior.floating, width: 200),
+                      const SnackBar(
+                        content: Text('Records refreshed'),
+                        behavior: SnackBarBehavior.floating,
+                        width: 200,
+                      ),
                     );
                   }
                 },
-                icon: Icon(LucideIcons.refreshCw, size: 16, color: AppTheme.primaryColor),
+                icon: Icon(
+                  LucideIcons.refreshCw,
+                  size: 16,
+                  color: AppTheme.primaryColor,
+                ),
               ),
             ],
           ),
@@ -406,9 +499,15 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Student Records', style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              'Student Records',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             SizedBox(height: 2),
-            Text('Manage and review all registered students.', style: TextStyle(fontSize: 13, color: context.textSec)),
+            Text(
+              'Manage and review all registered students.',
+              style: TextStyle(fontSize: 13, color: context.textSec),
+            ),
           ],
         ),
         Row(
@@ -421,7 +520,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                 onPressed: _showAddStudentDialog,
                 icon: Icon(LucideIcons.userPlus, size: 18),
                 label: Text('Add Student', style: TextStyle(fontSize: 13)),
-                style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 16)),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                ),
               ),
             ),
             SizedBox(width: 8),
@@ -434,11 +535,19 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   });
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Student records refreshed.'), behavior: SnackBarBehavior.floating, width: 280),
+                      const SnackBar(
+                        content: Text('Student records refreshed.'),
+                        behavior: SnackBarBehavior.floating,
+                        width: 280,
+                      ),
                     );
                   }
                 },
-                icon: Icon(LucideIcons.refreshCw, size: 18, color: AppTheme.primaryColor),
+                icon: Icon(
+                  LucideIcons.refreshCw,
+                  size: 18,
+                  color: AppTheme.primaryColor,
+                ),
               ),
             ),
           ],
@@ -485,7 +594,11 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(LucideIcons.calendarDays, size: 14, color: AppTheme.primaryColor),
+            Icon(
+              LucideIcons.calendarDays,
+              size: 14,
+              color: AppTheme.primaryColor,
+            ),
             SizedBox(width: 8),
             Flexible(
               child: Text(
@@ -516,10 +629,15 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
           children: [
             TextField(
               controller: _searchController,
-              onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+              onChanged: (value) =>
+                  setState(() => _searchQuery = value.toLowerCase()),
               decoration: InputDecoration(
                 hintText: 'Search by name, ID, or SA number...',
-                prefixIcon: Icon(LucideIcons.search, size: 18, color: AppTheme.primaryColor),
+                prefixIcon: Icon(
+                  LucideIcons.search,
+                  size: 18,
+                  color: AppTheme.primaryColor,
+                ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: Icon(LucideIcons.x, size: 16),
@@ -531,25 +649,50 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                     : null,
                 filled: true,
                 fillColor: context.bgC.withValues(alpha: 0.5),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
                 contentPadding: EdgeInsets.symmetric(horizontal: 12),
               ),
             ),
             SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: _buildFilterDropdown(context, 'Status', _statusOptions, _statusFilter, (val) => setState(() => _statusFilter = val!))),
+                Expanded(
+                  child: _buildFilterDropdown(
+                    context,
+                    'Status',
+                    _statusOptions,
+                    _statusFilter,
+                    (val) => setState(() => _statusFilter = val!),
+                  ),
+                ),
                 SizedBox(width: 10),
-                Expanded(child: _buildFilterDropdown(context, 'Scholarship', _scholarshipOptions, _scholarshipFilter, (val) => setState(() => _scholarshipFilter = val!))),
+                Expanded(
+                  child: _buildFilterDropdown(
+                    context,
+                    'Scholarship',
+                    _scholarshipOptions,
+                    _scholarshipFilter,
+                    (val) => setState(() => _scholarshipFilter = val!),
+                  ),
+                ),
               ],
             ),
             SizedBox(height: 10),
-            _buildFilterDropdown(context, 'Course', _courseOptions, _courseFilter, (val) => setState(() => _courseFilter = val!)),
+            _buildFilterDropdown(
+              context,
+              'Course',
+              _courseOptions,
+              _courseFilter,
+              (val) => setState(() => _courseFilter = val!),
+            ),
           ],
         ),
       );
     }
- 
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: context.glassDecoration,
@@ -561,10 +704,15 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               child: TextField(
                 controller: _searchController,
                 style: TextStyle(fontSize: 13),
-                onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+                onChanged: (value) =>
+                    setState(() => _searchQuery = value.toLowerCase()),
                 decoration: InputDecoration(
                   hintText: 'Search by name, ID, or SA number...',
-                  prefixIcon: Icon(LucideIcons.search, size: 16, color: AppTheme.primaryColor),
+                  prefixIcon: Icon(
+                    LucideIcons.search,
+                    size: 16,
+                    color: AppTheme.primaryColor,
+                  ),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
                           icon: Icon(LucideIcons.x, size: 14),
@@ -576,32 +724,70 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                       : null,
                   filled: true,
                   fillColor: context.bgC.withValues(alpha: 0.5),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
                   contentPadding: EdgeInsets.symmetric(horizontal: 12),
                 ),
               ),
             ),
           ),
           SizedBox(width: 12),
-          _buildFilterDropdown(context, 'Status', _statusOptions, _statusFilter, (val) => setState(() => _statusFilter = val!)),
+          _buildFilterDropdown(
+            context,
+            'Status',
+            _statusOptions,
+            _statusFilter,
+            (val) => setState(() => _statusFilter = val!),
+          ),
           SizedBox(width: 10),
-          _buildFilterDropdown(context, 'Scholarship', _scholarshipOptions, _scholarshipFilter, (val) => setState(() => _scholarshipFilter = val!)),
+          _buildFilterDropdown(
+            context,
+            'Scholarship',
+            _scholarshipOptions,
+            _scholarshipFilter,
+            (val) => setState(() => _scholarshipFilter = val!),
+          ),
           SizedBox(width: 10),
-          _buildFilterDropdown(context, 'Course', _courseOptions, _courseFilter, (val) => setState(() => _courseFilter = val!)),
+          _buildFilterDropdown(
+            context,
+            'Course',
+            _courseOptions,
+            _courseFilter,
+            (val) => setState(() => _courseFilter = val!),
+          ),
           SizedBox(width: 10),
-          _buildFilterDropdown(context, 'Sort By', _sortOptions, _sortBy, (val) => setState(() => _sortBy = val!)),
+          _buildFilterDropdown(
+            context,
+            'Sort By',
+            _sortOptions,
+            _sortBy,
+            (val) => setState(() => _sortBy = val!),
+          ),
           SizedBox(width: 4),
-          if (_statusFilter != 'All' || _scholarshipFilter != 'All' || _courseFilter != 'All' || _searchQuery.isNotEmpty)
+          if (_statusFilter != 'All' ||
+              _scholarshipFilter != 'All' ||
+              _courseFilter != 'All' ||
+              _searchQuery.isNotEmpty)
             Tooltip(
               message: 'Clear all filters',
               child: IconButton(
-                icon: Icon(LucideIcons.filterX, size: 18, color: AppTheme.error),
+                icon: Icon(
+                  LucideIcons.filterX,
+                  size: 18,
+                  color: AppTheme.error,
+                ),
                 onPressed: _clearAllFilters,
               ),
             )
           else
             IconButton(
-              icon: Icon(LucideIcons.slidersHorizontal, size: 18, color: context.textSec),
+              icon: Icon(
+                LucideIcons.slidersHorizontal,
+                size: 18,
+                color: context.textSec,
+              ),
               onPressed: null,
               tooltip: 'No active filters',
             ),
@@ -685,19 +871,39 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     final List<Widget> chips = [];
 
     if (_searchQuery.isNotEmpty) {
-      chips.add(_buildChip(context, 'Search: "$_searchQuery"', () {
-        _searchController.clear();
-        setState(() => _searchQuery = '');
-      }));
+      chips.add(
+        _buildChip(context, 'Search: "$_searchQuery"', () {
+          _searchController.clear();
+          setState(() => _searchQuery = '');
+        }),
+      );
     }
     if (_statusFilter != 'All') {
-      chips.add(_buildChip(context, 'Status: $_statusFilter', () => setState(() => _statusFilter = 'All')));
+      chips.add(
+        _buildChip(
+          context,
+          'Status: $_statusFilter',
+          () => setState(() => _statusFilter = 'All'),
+        ),
+      );
     }
     if (_scholarshipFilter != 'All') {
-      chips.add(_buildChip(context, 'Scholarship: $_scholarshipFilter', () => setState(() => _scholarshipFilter = 'All')));
+      chips.add(
+        _buildChip(
+          context,
+          'Scholarship: $_scholarshipFilter',
+          () => setState(() => _scholarshipFilter = 'All'),
+        ),
+      );
     }
     if (_courseFilter != 'All') {
-      chips.add(_buildChip(context, 'Course: $_courseFilter', () => setState(() => _courseFilter = 'All')));
+      chips.add(
+        _buildChip(
+          context,
+          'Course: $_courseFilter',
+          () => setState(() => _courseFilter = 'All'),
+        ),
+      );
     }
 
     if (chips.isEmpty) return SizedBox.shrink();
@@ -708,7 +914,10 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
       children: [
         ...chips,
         ActionChip(
-          label: Text('Clear All', style: TextStyle(fontSize: 12, color: AppTheme.error)),
+          label: Text(
+            'Clear All',
+            style: TextStyle(fontSize: 12, color: AppTheme.error),
+          ),
           avatar: Icon(LucideIcons.x, size: 12, color: AppTheme.error),
           backgroundColor: AppTheme.error.withValues(alpha: 0.08),
           side: BorderSide(color: AppTheme.error.withValues(alpha: 0.2)),
@@ -720,7 +929,10 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
   Widget _buildChip(BuildContext context, String label, VoidCallback onRemove) {
     return Chip(
-      label: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+      label: Text(
+        label,
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+      ),
       deleteIcon: Icon(LucideIcons.x, size: 12),
       onDeleted: onRemove,
       backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.08),
@@ -768,35 +980,48 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
               final allDocs = snapshot.data!.docs;
               if (allDocs.isEmpty) {
-                return const SizedBox(height: 200, child: Center(child: Text('No students registered yet.')));
+                return const SizedBox(
+                  height: 200,
+                  child: Center(child: Text('No students registered yet.')),
+                );
               }
 
               // Apply filters
               final filteredDocs = allDocs.where((doc) {
                 final data = doc.data() as Map<String, dynamic>;
                 final String name = (data['fullName'] ?? '').toLowerCase();
-                final String studentId = (data['studentId'] ?? '').toLowerCase();
-                final String saNumber = (data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? '').toLowerCase();
+                final String studentId = (data['studentId'] ?? '')
+                    .toLowerCase();
+                final String saNumber =
+                    (data['saNumber'] ??
+                            data['familyDetails']?['saNumber'] ??
+                            '')
+                        .toLowerCase();
                 final String status = data['status'] ?? 'Pending';
                 final String scholarship = data['scholarshipName'] ?? '';
                 final String course = data['course'] ?? '';
 
                 // Search filter
                 if (_searchQuery.isNotEmpty) {
-                  final bool matchesSearch = name.contains(_searchQuery) ||
+                  final bool matchesSearch =
+                      name.contains(_searchQuery) ||
                       studentId.contains(_searchQuery) ||
                       saNumber.contains(_searchQuery);
                   if (!matchesSearch) return false;
                 }
 
                 // Status filter
-                if (_statusFilter != 'All' && status != _statusFilter) return false;
+                if (_statusFilter != 'All' && status != _statusFilter)
+                  return false;
 
                 // Scholarship filter
-                if (_scholarshipFilter != 'All' && !scholarship.contains(_scholarshipFilter)) return false;
+                if (_scholarshipFilter != 'All' &&
+                    !scholarship.contains(_scholarshipFilter))
+                  return false;
 
                 // Course filter
-                if (_courseFilter != 'All' && course != _courseFilter) return false;
+                if (_courseFilter != 'All' && course != _courseFilter)
+                  return false;
 
                 return true;
               }).toList();
@@ -805,15 +1030,23 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               filteredDocs.sort((a, b) {
                 final dataA = a.data() as Map<String, dynamic>;
                 final dataB = b.data() as Map<String, dynamic>;
-                
+
                 if (_sortBy == 'Name (A-Z)') {
-                  return (dataA['fullName'] ?? '').compareTo(dataB['fullName'] ?? '');
+                  return (dataA['fullName'] ?? '').compareTo(
+                    dataB['fullName'] ?? '',
+                  );
                 } else if (_sortBy == 'Latest First') {
-                  final timeA = (dataA['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
-                  final timeB = (dataB['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+                  final timeA =
+                      (dataA['createdAt'] as Timestamp?)?.toDate() ??
+                      DateTime(2000);
+                  final timeB =
+                      (dataB['createdAt'] as Timestamp?)?.toDate() ??
+                      DateTime(2000);
                   return timeB.compareTo(timeA);
                 } else if (_sortBy == 'By Status') {
-                  return (dataA['status'] ?? '').compareTo(dataB['status'] ?? '');
+                  return (dataA['status'] ?? '').compareTo(
+                    dataB['status'] ?? '',
+                  );
                 }
                 return 0;
               });
@@ -825,11 +1058,18 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(LucideIcons.search, size: 40, color: Colors.grey.withValues(alpha: 0.4)),
+                        Icon(
+                          LucideIcons.search,
+                          size: 40,
+                          color: Colors.grey.withValues(alpha: 0.4),
+                        ),
                         SizedBox(height: 12),
                         Text(
                           'No students match your filters.',
-                          style: TextStyle(color: context.textSec, fontSize: 14),
+                          style: TextStyle(
+                            color: context.textSec,
+                            fontSize: 14,
+                          ),
                         ),
                         SizedBox(height: 8),
                         TextButton(
@@ -848,14 +1088,76 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                 headingRowHeight: 52,
                 dataRowMinHeight: 52,
                 dataRowMaxHeight: 60,
-                headingRowColor: WidgetStateProperty.all(AppTheme.primaryColor.withValues(alpha: 0.02)),
+                headingRowColor: WidgetStateProperty.all(
+                  AppTheme.primaryColor.withValues(alpha: 0.02),
+                ),
                 columns: [
-                  DataColumn(label: Text('Student Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.textPri, letterSpacing: 0.2))),
-                  DataColumn(label: Text('ID Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.textPri, letterSpacing: 0.2))),
-                  DataColumn(label: Text('Course & Year', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.textPri, letterSpacing: 0.2))),
-                  DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.textPri, letterSpacing: 0.2))),
-                  DataColumn(label: Text('SA Number', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.textPri, letterSpacing: 0.2))),
-                  DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: context.textPri, letterSpacing: 0.2))),
+                  DataColumn(
+                    label: Text(
+                      'Student Name',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: context.textPri,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'ID Number',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: context.textPri,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Course & Year',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: context.textPri,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Status',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: context.textPri,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'SA Number',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: context.textPri,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Actions',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: context.textPri,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
                 ],
                 rows: filteredDocs.asMap().entries.map((entry) {
                   final int index = entry.key;
@@ -866,7 +1168,8 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   final String course = data['course'] ?? 'N/A';
                   final String year = data['year'] ?? 'N/A';
                   final String status = data['status'] ?? 'Pending';
-                  final String saNumber = data['familyDetails']?['saNumber'] ?? 'Not Provided';
+                  final String saNumber =
+                      data['familyDetails']?['saNumber'] ?? 'Not Provided';
 
                   return _buildDataRow(
                     context,
@@ -905,58 +1208,103 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     if (status == 'Under Review') statusColor = AppTheme.secondaryColor;
 
     return DataRow(
-      color: WidgetStateProperty.all(isEven ? Colors.transparent : context.surfaceC.withValues(alpha: 0.1)),
+      color: WidgetStateProperty.all(
+        isEven ? Colors.transparent : context.surfaceC.withValues(alpha: 0.1),
+      ),
       cells: [
-        DataCell(Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
-        DataCell(Text(studentId, style: TextStyle(fontSize: 13, color: context.textSec))),
-        DataCell(Text(courseYear, style: TextStyle(fontSize: 13, color: context.textSec))),
-        DataCell(Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: statusColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1),
+        DataCell(
+          Text(
+            name,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+        ),
+        DataCell(
+          Text(
+            studentId,
+            style: TextStyle(fontSize: 13, color: context.textSec),
+          ),
+        ),
+        DataCell(
+          Text(
+            courseYear,
+            style: TextStyle(fontSize: 13, color: context.textSec),
+          ),
+        ),
+        DataCell(
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: statusColor.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  status,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        DataCell(
+          Text(
+            saNumber,
+            style: TextStyle(
+              fontSize: 13,
+              color: saNumber == 'Not Provided' ? Colors.grey : context.textPri,
+            ),
+          ),
+        ),
+        DataCell(
+          Row(
             children: [
-              Container(width: 6, height: 6, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
-              const SizedBox(width: 6),
-              Text(status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+              _buildActionIcon(LucideIcons.eye, AppTheme.primaryColor, () {
+                _showStudentProfile(data, docId);
+              }),
+              const SizedBox(width: 8),
+              _buildActionIcon(LucideIcons.checkSquare, AppTheme.success, () {
+                _updateStudentStatus(docId, name, studentId, 'Approved');
+              }),
+              const SizedBox(width: 8),
+              _buildActionIcon(LucideIcons.xSquare, AppTheme.error, () {
+                _updateStudentStatus(docId, name, studentId, 'Rejected');
+              }),
             ],
           ),
-        )),
-        DataCell(Text(
-          saNumber,
-          style: TextStyle(
-            fontSize: 13,
-            color: saNumber == 'Not Provided' ? Colors.grey : context.textPri,
-          ),
-        )),
-        DataCell(Row(
-          children: [
-            _buildActionIcon(LucideIcons.eye, AppTheme.primaryColor, () {
-              _showStudentProfile(data, docId);
-            }),
-            const SizedBox(width: 8),
-            _buildActionIcon(LucideIcons.checkSquare, AppTheme.success, () {
-              _updateStudentStatus(docId, name, studentId, 'Approved');
-            }),
-            const SizedBox(width: 8),
-            _buildActionIcon(LucideIcons.xSquare, AppTheme.error, () {
-              _updateStudentStatus(docId, name, studentId, 'Rejected');
-            }),
-          ],
-        )),
+        ),
       ],
     );
   }
 
-  Future<void> _updateStudentStatus(String docId, String name, String studentId, String newStatus) async {
+  Future<void> _updateStudentStatus(
+    String docId,
+    String name,
+    String studentId,
+    String newStatus,
+  ) async {
     try {
-      await FirebaseFirestore.instance.collection('students').doc(docId).update({
-        'status': newStatus,
-      });
+      await FirebaseFirestore.instance.collection('students').doc(docId).update(
+        {'status': newStatus},
+      );
 
       await _auditService.logActivity(
         action: 'Changed student status to $newStatus',
@@ -970,10 +1318,12 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
       if (newStatus == 'Approved') {
         notificationType = 'success';
-        message = 'Your documents have been verified and approved. Congratulations!';
+        message =
+            'Your documents have been verified and approved. Congratulations!';
       } else if (newStatus == 'Rejected') {
         notificationType = 'error';
-        message = 'Your documents were flagged for correction. Please see feedback in your submissions tab.';
+        message =
+            'Your documents were flagged for correction. Please see feedback in your submissions tab.';
       } else if (newStatus == 'Under Review') {
         notificationType = 'warning';
       }
@@ -989,7 +1339,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Successfully marked $name as $newStatus.'),
-            backgroundColor: newStatus == 'Approved' ? AppTheme.success : AppTheme.error,
+            backgroundColor: newStatus == 'Approved'
+                ? AppTheme.success
+                : AppTheme.error,
           ),
         );
       }
@@ -1008,17 +1360,21 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     final String email = data['email'] ?? data['authEmail'] ?? 'N/A';
     final String contactNumber = data['contactNumber'] ?? 'N/A';
 
-    final String courseDisplay = data['courseDisplay'] ?? data['course'] ?? 'N/A';
+    final String courseDisplay =
+        data['courseDisplay'] ?? data['course'] ?? 'N/A';
     final String year = data['year'] ?? 'N/A';
     final String section = data['section'] ?? 'N/A';
-    final String scholarshipName = data['scholarshipName'] ?? 'No Scholarship Selected';
+    final String scholarshipName =
+        data['scholarshipName'] ?? 'No Scholarship Selected';
 
     final String status = data['status'] ?? 'Pending';
     final Map<String, dynamic> family = data['familyDetails'] ?? {};
     final String saNumber = family['saNumber'] ?? 'Not Provided';
 
     final Timestamp? createdAt = data['createdAt'];
-    final String registeredOn = createdAt != null ? DateFormat('MMMM dd, yyyy').format(createdAt.toDate()) : 'N/A';
+    final String registeredOn = createdAt != null
+        ? DateFormat('MMMM dd, yyyy').format(createdAt.toDate())
+        : 'N/A';
 
     // Log the profile view
     await _auditService.logActivity(
@@ -1042,7 +1398,13 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
           decoration: BoxDecoration(
             color: context.bgC,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 30, spreadRadius: 5)],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 30,
+                spreadRadius: 5,
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -1052,8 +1414,8 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                 width: 48,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3), 
-                  borderRadius: BorderRadius.circular(4)
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ),
               Expanded(
@@ -1068,12 +1430,23 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2), width: 2),
+                            border: Border.all(
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.2,
+                              ),
+                              width: 2,
+                            ),
                           ),
                           child: CircleAvatar(
                             radius: 42,
-                            backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.08),
-                            child: const Icon(LucideIcons.user, size: 42, color: AppTheme.primaryColor),
+                            backgroundColor: AppTheme.primaryColor.withValues(
+                              alpha: 0.08,
+                            ),
+                            child: const Icon(
+                              LucideIcons.user,
+                              size: 42,
+                              color: AppTheme.primaryColor,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 24),
@@ -1081,13 +1454,33 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(name, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: context.textPri, letterSpacing: -0.5)),
+                              Text(
+                                name,
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900,
+                                  color: context.textPri,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
                               const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  Icon(LucideIcons.badge, size: 14, color: context.textSec),
+                                  Icon(
+                                    LucideIcons.badge,
+                                    size: 14,
+                                    color: context.textSec,
+                                  ),
                                   const SizedBox(width: 6),
-                                  Text(studentId, style: TextStyle(color: context.textSec, fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                                  Text(
+                                    studentId,
+                                    style: TextStyle(
+                                      color: context.textSec,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
                                   const SizedBox(width: 16),
                                   _buildStatusBadge(status),
                                 ],
@@ -1102,9 +1495,21 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                     // Section 1: Academics & Contact
                     Row(
                       children: [
-                        const Icon(LucideIcons.graduationCap, size: 18, color: AppTheme.primaryColor),
+                        const Icon(
+                          LucideIcons.graduationCap,
+                          size: 18,
+                          color: AppTheme.primaryColor,
+                        ),
                         const SizedBox(width: 10),
-                        Text('Academic & Contact', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: context.textPri, letterSpacing: 0.3)),
+                        Text(
+                          'Academic & Contact',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: context.textPri,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -1116,22 +1521,58 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                       mainAxisSpacing: 16,
                       childAspectRatio: 3.5,
                       children: [
-                        _buildProfileInfoCard(LucideIcons.bookOpen, 'Program / Course', courseDisplay),
-                        _buildProfileInfoCard(LucideIcons.calendarDays, 'Year & Section', '$year - Sec $section'),
-                        _buildProfileInfoCard(LucideIcons.award, 'Scholarship', scholarshipName),
-                        _buildProfileInfoCard(LucideIcons.mail, 'Email Address', email),
-                        _buildProfileInfoCard(LucideIcons.phone, 'Contact Number', contactNumber),
-                        _buildProfileInfoCard(LucideIcons.clock, 'Registration Date', registeredOn),
+                        _buildProfileInfoCard(
+                          LucideIcons.bookOpen,
+                          'Program / Course',
+                          courseDisplay,
+                        ),
+                        _buildProfileInfoCard(
+                          LucideIcons.calendarDays,
+                          'Year & Section',
+                          '$year - Sec $section',
+                        ),
+                        _buildProfileInfoCard(
+                          LucideIcons.award,
+                          'Scholarship',
+                          scholarshipName,
+                        ),
+                        _buildProfileInfoCard(
+                          LucideIcons.mail,
+                          'Email Address',
+                          email,
+                        ),
+                        _buildProfileInfoCard(
+                          LucideIcons.phone,
+                          'Contact Number',
+                          contactNumber,
+                        ),
+                        _buildProfileInfoCard(
+                          LucideIcons.clock,
+                          'Registration Date',
+                          registeredOn,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 48),
-                    
+
                     // Section 2: Financial & Background
                     Row(
                       children: [
-                        const Icon(LucideIcons.wallet, size: 18, color: AppTheme.primaryColor),
+                        const Icon(
+                          LucideIcons.wallet,
+                          size: 18,
+                          color: AppTheme.primaryColor,
+                        ),
                         const SizedBox(width: 10),
-                        Text('Financial & Background', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: context.textPri, letterSpacing: 0.3)),
+                        Text(
+                          'Financial & Background',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: context.textPri,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -1143,28 +1584,70 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                       mainAxisSpacing: 16,
                       childAspectRatio: 3.5,
                       children: [
-                        _buildProfileInfoCard(LucideIcons.creditCard, 'SA Number (TES)', saNumber),
-                        _buildProfileInfoCard(LucideIcons.banknote, 'Total Yearly Income', 'PHP ${family['yearlyIncome'] ?? 'N/A'}'),
-                        _buildProfileInfoCard(LucideIcons.church, 'Religion', family['religion'] ?? 'N/A'),
-                        _buildProfileInfoCard(LucideIcons.users, 'Tribe / Ethnicity', family['tribe'] ?? 'N/A'),
+                        _buildProfileInfoCard(
+                          LucideIcons.creditCard,
+                          'SA Number (TES)',
+                          saNumber,
+                        ),
+                        _buildProfileInfoCard(
+                          LucideIcons.banknote,
+                          'Total Yearly Income',
+                          'PHP ${family['yearlyIncome'] ?? 'N/A'}',
+                        ),
+                        _buildProfileInfoCard(
+                          LucideIcons.church,
+                          'Religion',
+                          family['religion'] ?? 'N/A',
+                        ),
+                        _buildProfileInfoCard(
+                          LucideIcons.users,
+                          'Tribe / Ethnicity',
+                          family['tribe'] ?? 'N/A',
+                        ),
                       ],
                     ),
                     const SizedBox(height: 48),
-                    
+
                     // Section 3: Family Info
                     Row(
                       children: [
-                        const Icon(LucideIcons.heartPulse, size: 18, color: AppTheme.primaryColor),
+                        const Icon(
+                          LucideIcons.heartPulse,
+                          size: 18,
+                          color: AppTheme.primaryColor,
+                        ),
                         const SizedBox(width: 10),
-                        Text('Family Documentation', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: context.textPri, letterSpacing: 0.3)),
+                        Text(
+                          'Family Documentation',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: context.textPri,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        Expanded(child: _buildFamilyCard('Father', family['fatherName']?.toString(), family['fatherAge']?.toString(), family['fatherOccupation']?.toString())),
+                        Expanded(
+                          child: _buildFamilyCard(
+                            'Father',
+                            family['fatherName']?.toString(),
+                            family['fatherAge']?.toString(),
+                            family['fatherOccupation']?.toString(),
+                          ),
+                        ),
                         const SizedBox(width: 16),
-                        Expanded(child: _buildFamilyCard('Mother', family['motherName']?.toString(), family['motherAge']?.toString(), family['motherOccupation']?.toString())),
+                        Expanded(
+                          child: _buildFamilyCard(
+                            'Mother',
+                            family['motherName']?.toString(),
+                            family['motherAge']?.toString(),
+                            family['motherOccupation']?.toString(),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 48),
@@ -1172,14 +1655,32 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                     // Verification Documents (Mocked for UI flow)
                     Row(
                       children: [
-                        const Icon(LucideIcons.folderCheck, size: 18, color: AppTheme.primaryColor),
+                        const Icon(
+                          LucideIcons.folderCheck,
+                          size: 18,
+                          color: AppTheme.primaryColor,
+                        ),
                         const SizedBox(width: 10),
-                        Text('Verification Assets', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: context.textPri, letterSpacing: 0.3)),
+                        Text(
+                          'Verification Assets',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: context.textPri,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
-                    _buildDocumentItem('Validated Student ID (Front)', 'verified'),
-                    _buildDocumentItem('Validated Student ID (Back)', 'verified'),
+                    _buildDocumentItem(
+                      'Validated Student ID (Front)',
+                      'verified',
+                    ),
+                    _buildDocumentItem(
+                      'Validated Student ID (Back)',
+                      'verified',
+                    ),
                     _buildDocumentItem('Billing Statement / COR', 'pending'),
                     const SizedBox(height: 48),
 
@@ -1189,16 +1690,40 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1), width: 1.5),
-                        boxShadow: [BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withValues(
+                              alpha: 0.02,
+                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Administrative Actions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.2)),
+                          const Text(
+                            'Administrative Actions',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          Text('Use these controls to finalize document verification for this student.', 
-                            style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w500)),
+                          Text(
+                            'Use these controls to finalize document verification for this student.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: context.textSec,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           const SizedBox(height: 24),
                           Row(
                             children: [
@@ -1206,15 +1731,33 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                                 child: ElevatedButton.icon(
                                   onPressed: () {
                                     Navigator.pop(context);
-                                    _updateStudentStatus(docId, name, studentId, 'Approved');
+                                    _updateStudentStatus(
+                                      docId,
+                                      name,
+                                      studentId,
+                                      'Approved',
+                                    );
                                   },
-                                  icon: const Icon(LucideIcons.checkCircle2, size: 18),
-                                  label: const Text('Approve Data', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                  icon: const Icon(
+                                    LucideIcons.checkCircle2,
+                                    size: 18,
+                                  ),
+                                  label: const Text(
+                                    'Approve Data',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.success,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 18),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 18,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
                                     elevation: 0,
                                   ),
                                 ),
@@ -1224,15 +1767,36 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                                 child: OutlinedButton.icon(
                                   onPressed: () {
                                     Navigator.pop(context);
-                                    _updateStudentStatus(docId, name, studentId, 'Rejected');
+                                    _updateStudentStatus(
+                                      docId,
+                                      name,
+                                      studentId,
+                                      'Rejected',
+                                    );
                                   },
-                                  icon: const Icon(LucideIcons.xCircle, size: 18),
-                                  label: const Text('Flag for Revision', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                  icon: const Icon(
+                                    LucideIcons.xCircle,
+                                    size: 18,
+                                  ),
+                                  label: const Text(
+                                    'Flag for Revision',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppTheme.error,
-                                    side: const BorderSide(color: AppTheme.error, width: 1.5),
-                                    padding: const EdgeInsets.symmetric(vertical: 18),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    side: const BorderSide(
+                                      color: AppTheme.error,
+                                      width: 1.5,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 18,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1252,7 +1816,12 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     );
   }
 
-  Widget _buildFamilyCard(String role, String? name, String? age, String? occupation) {
+  Widget _buildFamilyCard(
+    String role,
+    String? name,
+    String? age,
+    String? occupation,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1263,9 +1832,13 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
-        border: Border.all(color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200),
+        border: Border.all(
+          color: context.isDark
+              ? const Color(0xFF334155)
+              : Colors.grey.shade200,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1278,22 +1851,53 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   color: AppTheme.secondaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(role == 'Father' ? LucideIcons.briefcase : LucideIcons.briefcase, size: 12, color: AppTheme.secondaryColor),
+                child: Icon(
+                  role == 'Father'
+                      ? LucideIcons.briefcase
+                      : LucideIcons.briefcase,
+                  size: 12,
+                  color: AppTheme.secondaryColor,
+                ),
               ),
               const SizedBox(width: 10),
-              Text(role, style: TextStyle(fontWeight: FontWeight.w700, color: context.textSec, fontSize: 13, letterSpacing: 0.5)),
+              Text(
+                role,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: context.textSec,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(name ?? 'N/A', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: context.textPri, letterSpacing: -0.3)),
+          Text(
+            name ?? 'N/A',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 18,
+              color: context.textPri,
+              letterSpacing: -0.3,
+            ),
+          ),
           const SizedBox(height: 12),
-          Divider(color: context.isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+          Divider(
+            color: context.isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
               Icon(LucideIcons.calendar, size: 14, color: context.textSec),
               const SizedBox(width: 6),
-              Text('${age ?? 'N/A'} yrs', style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w600)),
+              Text(
+                '${age ?? 'N/A'} yrs',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: context.textSec,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -1301,7 +1905,17 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             children: [
               Icon(LucideIcons.briefcase, size: 14, color: context.textSec),
               const SizedBox(width: 6),
-              Expanded(child: Text(occupation ?? 'N/A', style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+              Expanded(
+                child: Text(
+                  occupation ?? 'N/A',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.textSec,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
         ],
@@ -1325,9 +1939,20 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
           const SizedBox(width: 8),
-          Text(status, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(
+            status,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -1344,9 +1969,13 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
-        border: Border.all(color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200),
+        border: Border.all(
+          color: context.isDark
+              ? const Color(0xFF334155)
+              : Colors.grey.shade200,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1365,9 +1994,25 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: TextStyle(fontSize: 11, color: context.textSec, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.textSec,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: context.textPri), overflow: TextOverflow.ellipsis),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: context.textPri,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -1383,8 +2028,18 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
       decoration: BoxDecoration(
         color: context.surfaceC,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(
+          color: context.isDark
+              ? const Color(0xFF334155)
+              : Colors.grey.shade200,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -1394,21 +2049,51 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               color: AppTheme.primaryColor.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(LucideIcons.fileText, color: AppTheme.primaryColor, size: 18),
+            child: const Icon(
+              LucideIcons.fileText,
+              color: AppTheme.primaryColor,
+              size: 18,
+            ),
           ),
           const SizedBox(width: 16),
-          Expanded(child: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: context.textPri))),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: context.textPri,
+              ),
+            ),
+          ),
           if (status == 'verified')
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.1), shape: BoxShape.circle),
-              child: const Icon(LucideIcons.check, color: AppTheme.success, size: 14),
+              decoration: BoxDecoration(
+                color: AppTheme.success.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                LucideIcons.check,
+                color: AppTheme.success,
+                size: 14,
+              ),
             )
           else
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(color: AppTheme.warning.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-              child: const Text('Processing', style: TextStyle(fontSize: 11, color: AppTheme.warning, fontWeight: FontWeight.bold)),
+              decoration: BoxDecoration(
+                color: AppTheme.warning.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Processing',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppTheme.warning,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
         ],
       ),
