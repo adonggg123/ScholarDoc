@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 28),
                   Row(
                     children: [
-                      Image.asset('assets/app_logo.png', width: 50, height: 50),
+                      Image.asset('assets/app_logo.png', width: 65, height: 65),
                       const SizedBox(width: 0),
                       ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(
@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 10),
                   const Text(
                     'Welcome Back!',
                     style: TextStyle(
