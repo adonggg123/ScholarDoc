@@ -673,6 +673,7 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                       return {
                         'name': data['fullName'] ?? 'N/A',
                         'id': data['studentId'] ?? 'N/A',
+                        'profilePictureUrl': data['profilePictureUrl'] ?? '',
                         'pastLateSubmissions':
                             0, // In a real app, this would be a field
                         'familyDetails': data['familyDetails'],
@@ -704,14 +705,24 @@ class _DashboardOverviewState extends State<DashboardOverview> {
 
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor: color.withValues(alpha: 0.1),
-                        child: Icon(
-                          LucideIcons.alertTriangle,
-                          size: 18,
-                          color: color,
-                        ),
-                      ),
+                      leading: () {
+                        final String photoUrl =
+                            student['profilePictureUrl'] as String? ?? '';
+                        if (photoUrl.isNotEmpty) {
+                          return CircleAvatar(
+                            backgroundColor: color.withValues(alpha: 0.1),
+                            backgroundImage: NetworkImage(photoUrl),
+                          );
+                        }
+                        return CircleAvatar(
+                          backgroundColor: color.withValues(alpha: 0.1),
+                          child: Icon(
+                            LucideIcons.alertTriangle,
+                            size: 18,
+                            color: color,
+                          ),
+                        );
+                      }(),
                       title: Text(
                         student['name'] as String,
                         style: TextStyle(

@@ -10,7 +10,8 @@ class StudentActivityLogScreen extends StatefulWidget {
   const StudentActivityLogScreen({super.key});
 
   @override
-  State<StudentActivityLogScreen> createState() => _StudentActivityLogScreenState();
+  State<StudentActivityLogScreen> createState() =>
+      _StudentActivityLogScreenState();
 }
 
 class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
@@ -19,13 +20,13 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
   String _searchQuery = '';
   DateTime? _selectedDate;
   late Stream<QuerySnapshot> _auditStream;
-  
+
   @override
   void initState() {
     super.initState();
     _auditStream = _authService.getAuditLogsStream();
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -44,13 +45,11 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Account Activity'),
-      ),
+      appBar: AppBar(title: const Text('Account Activity')),
       body: LayoutBuilder(
         builder: (context, constraints) {
           bool isMobile = constraints.maxWidth < 900;
-          
+
           return StreamBuilder<QuerySnapshot>(
             stream: _auditStream,
             builder: (context, snapshot) {
@@ -64,19 +63,22 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
 
               // Filter Documents specifically for this Student
               List<QueryDocumentSnapshot> docs = snapshot.data?.docs ?? [];
-              
+
               // 1. Hard Filter: strictly tie to their User ID / Student ID
               docs = docs.where((doc) {
                 final data = doc.data() as Map<String, dynamic>;
                 final String logStudentId = data['studentId'] ?? '';
-                final String logUserName = data['adminName'] ?? ''; // Which could be their email/name
-                
+                final String logUserName =
+                    data['adminName'] ?? ''; // Which could be their email/name
+
                 // For this example, if the log contains their email string, or if it explicitly marks their studentId
                 // Note: In production we'd specifically log their `Firebase User UID`. For now, we compare if the log reflects them.
-                // Assuming `logActivity` saves their User Name or Student ID. 
-                return logStudentId.isNotEmpty || logUserName.isNotEmpty; // For now displaying all user's own logs requires strict exact matching. To avoid throwing out logs, we will filter below.
+                // Assuming `logActivity` saves their User Name or Student ID.
+                return logStudentId.isNotEmpty ||
+                    logUserName
+                        .isNotEmpty; // For now displaying all user's own logs requires strict exact matching. To avoid throwing out logs, we will filter below.
               }).toList();
-              
+
               // To securely filter logs for the user, we will filter by `userName` matching their profile's email or name
               // Since student profiles might just be fetching, we'll try to match exact User Data
               // For demonstration purposes of this feature: we filter where role == 'Student' OR action affects this student.
@@ -102,8 +104,8 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
                   if (timestamp is Timestamp) {
                     final dateTime = timestamp.toDate();
                     return dateTime.year == _selectedDate!.year &&
-                           dateTime.month == _selectedDate!.month &&
-                           dateTime.day == _selectedDate!.day;
+                        dateTime.month == _selectedDate!.month &&
+                        dateTime.day == _selectedDate!.day;
                   }
                   return false;
                 }).toList();
@@ -125,28 +127,37 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'My Activity History', 
-                      style: isMobile 
-                        ? Theme.of(context).textTheme.titleLarge 
-                        : Theme.of(context).textTheme.headlineMedium
+                      'My Activity History',
+                      style: isMobile
+                          ? Theme.of(context).textTheme.titleLarge
+                          : Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 4),
-                    const Text('Keep track of system updates and account actions.'),
+                    const Text(
+                      'Keep track of system updates and account actions.',
+                    ),
                     const SizedBox(height: 24),
-                    
+
                     // Filters Section
                     _buildFilters(isMobile),
                     const SizedBox(height: 24),
 
-                    if (docs.isEmpty) 
+                    if (docs.isEmpty)
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 60),
                           child: Column(
                             children: [
-                              Icon(LucideIcons.search, size: 48, color: Colors.grey.withValues(alpha: 0.5)),
+                              Icon(
+                                LucideIcons.search,
+                                size: 48,
+                                color: Colors.grey.withValues(alpha: 0.5),
+                              ),
                               const SizedBox(height: 16),
-                              const Text('No matching activity logs found.', style: TextStyle(color: Colors.grey)),
+                              const Text(
+                                'No matching activity logs found.',
+                                style: TextStyle(color: Colors.grey),
+                              ),
                             ],
                           ),
                         ),
@@ -158,9 +169,13 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: docs.length,
-                          separatorBuilder: (context, index) => Divider(color: context.surfaceC.withValues(alpha: 0.1), height: 1),
+                          separatorBuilder: (context, index) => Divider(
+                            color: context.surfaceC.withValues(alpha: 0.1),
+                            height: 1,
+                          ),
                           itemBuilder: (context, index) {
-                            final data = docs[index].data() as Map<String, dynamic>;
+                            final data =
+                                docs[index].data() as Map<String, dynamic>;
                             return _buildLogItem(context, data, isMobile);
                           },
                         ),
@@ -168,7 +183,7 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
                   ],
                 ),
               );
-            }
+            },
           );
         },
       ),
@@ -187,22 +202,38 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
             children: [
               Row(
                 children: [
-                  Icon(LucideIcons.history, size: 18, color: AppTheme.secondaryColor),
+                  Icon(
+                    LucideIcons.history,
+                    size: 18,
+                    color: AppTheme.secondaryColor,
+                  ),
                   const SizedBox(width: 8),
-                  const Text('Search Activity', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text(
+                    'Search Activity',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ],
               ),
               if (_selectedDate == null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.amber.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.amber.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: const Text(
                     'Last 24h',
-                    style: TextStyle(fontSize: 10, color: Colors.amber, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.amber,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
             ],
@@ -257,13 +288,17 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _selectedDate != null ? AppTheme.secondaryColor : Colors.grey.withValues(alpha: 0.1),
+                    color: _selectedDate != null
+                        ? AppTheme.secondaryColor
+                        : Colors.grey.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     LucideIcons.calendar,
                     size: 20,
-                    color: _selectedDate != null ? Colors.white : context.textSec,
+                    color: _selectedDate != null
+                        ? Colors.white
+                        : context.textSec,
                   ),
                 ),
               ),
@@ -273,7 +308,7 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
                   onPressed: () => setState(() => _selectedDate = null),
                   icon: const Icon(LucideIcons.x, size: 18),
                   tooltip: 'Clear Date Filter',
-                )
+                ),
               ],
             ],
           ),
@@ -282,7 +317,11 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
     );
   }
 
-  Widget _buildLogItem(BuildContext context, Map<String, dynamic> data, bool isMobile) {
+  Widget _buildLogItem(
+    BuildContext context,
+    Map<String, dynamic> data,
+    bool isMobile,
+  ) {
     final String action = data['action'] ?? 'Performed Action';
     final String platform = data['ipAddress'] ?? 'Unknown Device';
     final dynamic timestamp = data['timestamp'];
@@ -291,7 +330,7 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
     if (timestamp is Timestamp) {
       final dateTime = timestamp.toDate();
       timeStr = DateFormat('MMM d, h:mm a').format(dateTime);
-      
+
       final diff = DateTime.now().difference(dateTime);
       if (diff.inMinutes < 1) {
         timeStr = 'Just now';
@@ -301,24 +340,33 @@ class _StudentActivityLogScreenState extends State<StudentActivityLogScreen> {
         timeStr = '${diff.inHours}h ago';
       }
     }
-    
+
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 16, vertical: 8),
-      leading: isMobile ? null : Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppTheme.secondaryColor.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(LucideIcons.activity, color: AppTheme.secondaryColor, size: 18),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 16,
+        vertical: 8,
       ),
+      leading: isMobile
+          ? null
+          : Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                LucideIcons.activity,
+                color: AppTheme.secondaryColor,
+                size: 18,
+              ),
+            ),
       title: RichText(
         text: TextSpan(
           style: TextStyle(color: context.textPri, fontSize: 14),
           children: [
             const TextSpan(
               text: 'You ',
-              style: TextStyle(fontWeight: FontWeight.bold)
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
             TextSpan(text: action.toLowerCase()),
           ],

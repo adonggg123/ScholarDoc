@@ -88,6 +88,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     final saCtrl = TextEditingController();
     String selectedCourse = _courseAddOptions.first;
     String selectedYear = _yearOptions.first;
+    String selectedGender = 'Male';
     bool isLoading = false;
 
     showDialog(
@@ -154,7 +155,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                         Row(
                           children: [
                             Expanded(
-                              flex: 2,
+                              flex: 3,
                               child: _dialogDropdown(
                                 label: 'Course',
                                 value: selectedCourse,
@@ -167,11 +168,22 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                             Expanded(
                               flex: 2,
                               child: _dialogDropdown(
-                                label: 'Year Level',
+                                label: 'Year',
                                 value: selectedYear,
                                 items: _yearOptions,
                                 onChanged: (val) =>
                                     setDialogState(() => selectedYear = val!),
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: _dialogDropdown(
+                                label: 'Gender',
+                                value: selectedGender,
+                                items: const ['Male', 'Female'],
+                                onChanged: (val) =>
+                                    setDialogState(() => selectedGender = val!),
                               ),
                             ),
                           ],
@@ -246,6 +258,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                                   'studentId': idCtrl.text.trim(),
                                   'course': selectedCourse,
                                   'year': selectedYear,
+                                  'gender': selectedGender,
                                   'status': 'Pending',
                                   'familyDetails': {
                                     'saNumber': saCtrl.text.trim(),
@@ -385,7 +398,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         ),
         SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           onChanged: onChanged,
           decoration: InputDecoration(
             filled: true,
@@ -1011,17 +1024,20 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                 }
 
                 // Status filter
-                if (_statusFilter != 'All' && status != _statusFilter)
+                if (_statusFilter != 'All' && status != _statusFilter) {
                   return false;
+                }
 
                 // Scholarship filter
                 if (_scholarshipFilter != 'All' &&
-                    !scholarship.contains(_scholarshipFilter))
+                    !scholarship.contains(_scholarshipFilter)) {
                   return false;
+                }
 
                 // Course filter
-                if (_courseFilter != 'All' && course != _courseFilter)
+                if (_courseFilter != 'All' && course != _courseFilter) {
                   return false;
+                }
 
                 return true;
               }).toList();
@@ -1213,9 +1229,66 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
       ),
       cells: [
         DataCell(
-          Text(
-            name,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              () {
+                final String? photoUrl =
+                    data['profilePictureUrl'] as String?;
+                final String initial =
+                    name.isNotEmpty ? name[0].toUpperCase() : '?';
+                if (photoUrl != null && photoUrl.isNotEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFFBC02D),
+                        width: 2,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      backgroundImage: NetworkImage(photoUrl),
+                    ),
+                  );
+                }
+                return Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFFBC02D),
+                      width: 2,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.12),
+                    child: Text(
+                      initial,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ),
+                );
+              }(),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
         DataCell(
@@ -1442,11 +1515,21 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                             backgroundColor: AppTheme.primaryColor.withValues(
                               alpha: 0.08,
                             ),
-                            child: const Icon(
-                              LucideIcons.user,
-                              size: 42,
-                              color: AppTheme.primaryColor,
-                            ),
+                            backgroundImage: (data['profilePictureUrl'] != null &&
+                                    (data['profilePictureUrl'] as String)
+                                        .isNotEmpty)
+                                ? NetworkImage(
+                                    data['profilePictureUrl'] as String)
+                                : null,
+                            child: (data['profilePictureUrl'] == null ||
+                                    (data['profilePictureUrl'] as String)
+                                        .isEmpty)
+                                ? const Icon(
+                                    LucideIcons.user,
+                                    size: 42,
+                                    color: AppTheme.primaryColor,
+                                  )
+                                : null,
                           ),
                         ),
                         const SizedBox(width: 24),
@@ -1545,6 +1628,11 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                           LucideIcons.phone,
                           'Contact Number',
                           contactNumber,
+                        ),
+                        _buildProfileInfoCard(
+                          LucideIcons.users,
+                          'Gender',
+                          data['gender'] ?? 'Not Specified',
                         ),
                         _buildProfileInfoCard(
                           LucideIcons.clock,

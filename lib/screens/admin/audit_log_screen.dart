@@ -346,8 +346,9 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
       final dateTime = timestamp.toDate();
       timeStr = DateFormat('MMM d, h:mm a').format(dateTime);
       final diff = DateTime.now().difference(dateTime);
-      if (diff.inMinutes < 1) timeStr = 'Just now';
-      else if (diff.inMinutes < 60) timeStr = '${diff.inMinutes}m ago';
+      if (diff.inMinutes < 1) {
+        timeStr = 'Just now';
+      } else if (diff.inMinutes < 60) timeStr = '${diff.inMinutes}m ago';
       else if (diff.inHours < 24) timeStr = '${diff.inHours}h ago';
     }
 
@@ -355,14 +356,45 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 24, vertical: 8),
-        leading: isMobile ? null : Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: roleColor.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(roleIcon, color: roleColor, size: 20),
-        ),
+        leading: isMobile ? null : (role == 'Student' && studentId != 'N/A')
+          ? FutureBuilder<QuerySnapshot>(
+              future: FirebaseFirestore.instance.collection('students').where('studentId', isEqualTo: studentId).limit(1).get(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                  final studentData = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+                  final String? photoUrl = studentData['profilePictureUrl'] as String?;
+                  if (photoUrl != null && photoUrl.isNotEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFFBC02D), width: 2),
+                      ),
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(photoUrl),
+                      ),
+                    );
+                  }
+                }
+                return Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: roleColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(roleIcon, color: roleColor, size: 22),
+                );
+              },
+            )
+          : Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: roleColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(roleIcon, color: roleColor, size: 22),
+            ),
         title: RichText(
           text: TextSpan(
             style: TextStyle(color: context.textPri, fontSize: 13, height: 1.5),

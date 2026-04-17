@@ -75,25 +75,52 @@ class _SplashScreenState extends State<SplashScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 220,
-                      height: 220,
+                      width: 140,
+                      height: 140,
                       alignment: Alignment.center,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
                       child: Image.asset(
-                        'assets/app_logo1.png',
-                        width: 215,
-                        height: 215,
+                        'assets/app_logo.png',
+                        width: 139,
+                        height: 139,
                         fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [Colors.white, Color(0xFFFBC02D)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ).createShader(bounds),
+                      blendMode: BlendMode.srcIn,
+                      child: const Text(
+                        'ScholarDoc',
+                        style: TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'Manage your Scholarship Documents with ease.',
+                      textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 14,
+                        letterSpacing: 0.2,
                       ),
                     ),
                   ],

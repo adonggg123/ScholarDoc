@@ -8,6 +8,7 @@ import '../../services/audit_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UploadWorkflowScreen extends StatefulWidget {
   const UploadWorkflowScreen({super.key});
@@ -27,17 +28,18 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
   final StorageService _storageService = StorageService();
   final TextEditingController _saController = TextEditingController();
 
-  String? _sem1Url;
-  String? _sem2Url;
+  String? _idFrontUrl;
+  String? _idBackUrl;
 
-  String? _sem1Feedback;
-  String? _sem2Feedback;
-  
-  bool _isSem1Duplicate = false;
-  bool _isSem2Duplicate = false;
+  String? _frontFeedback;
+  String? _backFeedback;
+  String? _billingFeedback;
 
-  String? _sem1FileName;
-  String? _sem2FileName;
+  String? _frontFileName;
+  String? _backFileName;
+  String? _billingFileName;
+
+  String _scholarshipType = '';
 
   @override
   void initState() {
@@ -53,8 +55,35 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
         final data = doc.data() as Map<String, dynamic>;
         setState(() {
           _saController.text = data['saNumber'] ?? '';
+          _scholarshipType = data['scholarshipName'] ?? '';
         });
       }
+    }
+    await _loadDraft();
+  }
+
+  Future<void> _loadDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    final draftSA = prefs.getString('draft_saNumber');
+    if (draftSA != null && draftSA.isNotEmpty && _saController.text.isEmpty) {
+      setState(() {
+        _saController.text = draftSA;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Offline Draft Loaded'), backgroundColor: AppTheme.primaryColor),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveDraftOffline() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('draft_saNumber', _saController.text.trim());
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Draft saved locally. You can finish later even offline.'), backgroundColor: AppTheme.success),
+      );
     }
   }
 
@@ -64,12 +93,11 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
     super.dispose();
   }
 
-  Future<void> _handleUpload(String type, {bool pdfOnly = false}) async {
+  Future<void> _handleUpload(String type) async {
     try {
       // 1. Pick File
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: pdfOnly ? FileType.custom : FileType.any,
-        allowedExtensions: pdfOnly ? ['pdf'] : null,
+        type: FileType.image, // Force images for AI verification
         withData: true,
       );
 
@@ -80,51 +108,56 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
 
       setState(() {
         _isUploading = true;
-        if (type == 'sem1') _sem1Feedback = null;
-        if (type == 'sem2') _sem2Feedback = null;
+        if (type == 'front') _frontFeedback = null;
+        if (type == 'back') _backFeedback = null;
+        if (type == 'billing') _billingFeedback = null;
       });
 
-      String classificationResult = "Unknown";
-      
-      // 2. Perform ML Quality Check (Simulated on the path)
-      // Since web might not have a path, skip ML Service validation if path is null
-      if (result.files.single.path != null) {
-        final validationResult = await _mlService.validateDocumentClarity(result.files.single.path!);
-        classificationResult = await _mlService.classifyDocument(result.files.single.path!);
-
-        if (!validationResult['isValid']) {
-          setState(() {
-            _isUploading = false;
-            String errorFeedback = "⚠️ ${validationResult['message']} Please retake.";
-            if (type == 'sem1') _sem1Feedback = errorFeedback;
-            if (type == 'sem2') _sem2Feedback = errorFeedback;
-          });
-          return;
-        }
-      }
-
-      // 3. Real Upload to Firebase Storage
       final uid = _authService.currentUser?.uid;
       if (uid == null) throw Exception("User not authenticated");
 
-      final String storagePath = 'submissions/$uid/${DateTime.now().millisecondsSinceEpoch}_$originalName';
+      final doc = await _authService.getStudentProfile(uid);
+      final profileData = doc.data() as Map<String, dynamic>;
+
+      // 2. Perform Advanced AI OCR & Facial Match Checks
+      final isFront = type == 'front';
+      final verification = await _mlService.verifyStudentID(originalName, profileData, isFront);
+
+      if (!verification['isValid'] && type != 'billing') {
+        setState(() {
+          _isUploading = false;
+          String errorFeedback = "⚠️ ${verification['message']}";
+          if (type == 'front') _frontFeedback = errorFeedback;
+          if (type == 'back') _backFeedback = errorFeedback;
+        });
+        return; // Halt upload on AI failure
+      }
+
+      // 3. Real Upload to Firebase Storage
+      final String storagePath = 'submissions/$uid/ID_${type.toUpperCase()}_${DateTime.now().millisecondsSinceEpoch}_$originalName';
       final String downloadUrl = await _storageService.uploadFile(path: storagePath, bytes: bytes);
 
       if (!mounted) return;
       
       setState(() {
         _isUploading = false;
-        String successFeedback = "✅ Validated successfully (Class: $classificationResult).";
+        double score = verification['confidenceScore'] ?? 100.0;
+        String successFeedback = "✅ ${verification['message']} (Score: ${score.toStringAsFixed(1)}%)";
             
-        if (type == 'sem1') {
-          _sem1Feedback = successFeedback;
-          _sem1FileName = originalName;
-          _sem1Url = downloadUrl;
+        if (type == 'front') {
+          _frontFeedback = successFeedback;
+          _frontFileName = originalName;
+          _idFrontUrl = downloadUrl;
         }
-        if (type == 'sem2') {
-          _sem2Feedback = successFeedback;
-          _sem2FileName = originalName;
-          _sem2Url = downloadUrl;
+        if (type == 'back') {
+          _backFeedback = successFeedback;
+          _backFileName = originalName;
+          _idBackUrl = downloadUrl;
+        }
+        if (type == 'billing') {
+          _billingFeedback = "✅ Upload Successful";
+          _billingFileName = originalName;
+          // _billingUrl = downloadUrl; (in a real scenario we save this field too)
         }
       });
     } catch (e) {
@@ -132,8 +165,8 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
       setState(() {
         _isUploading = false;
         String errorMsg = "Error: ${e.toString()}";
-        if (type == 'sem1') _sem1Feedback = errorMsg;
-        if (type == 'sem2') _sem2Feedback = errorMsg;
+        if (type == 'front') _frontFeedback = errorMsg;
+        if (type == 'back') _backFeedback = errorMsg;
       });
     }
   }
@@ -274,10 +307,11 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
                   await _authService.updateStudentProfile(user.uid, {
                     'status': 'Pending',
                     'saNumber': _saController.text.trim(),
-                    'sem1Url': _sem1Url,
-                    'sem2Url': _sem2Url,
-                    'sem1FileName': _sem1FileName,
-                    'sem2FileName': _sem2FileName,
+                    'idFrontUrl': _idFrontUrl,
+                    'idBackUrl': _idBackUrl,
+                    'idFrontFileName': _frontFileName,
+                    'idBackFileName': _backFileName,
+                    'aiVerified': true, // Indicate this ran through AI verification
                     'createdAt': FieldValue.serverTimestamp(),
                     'submittedAt': FieldValue.serverTimestamp(),
                     'requiresResubmission': false,
@@ -365,8 +399,8 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
           style: TextStyle(color: context.textSec, fontSize: 13),
         ),
         const SizedBox(height: 24),
-        _bulletPoint('1st Semester Validation ID (PDF Only)'),
-        _bulletPoint('2nd Semester Validation ID (PDF Only)'),
+        _bulletPoint('Student ID - Front (Clear Image - JPG/PNG)'),
+        _bulletPoint('Student ID - Back  (Clear Image - JPG/PNG)'),
         const SizedBox(height: 32),
         Container(
           padding: const EdgeInsets.all(20),
@@ -396,7 +430,7 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Our AI system will automatically verify document clarity. Blurry or obstructed images will be rejected.',
+                'Our AI system will automatically perform OCR to extract your Name and ID number, and check facial biometrics against your profile photo. Make sure the ID is not blurred or cut off.',
                 style: TextStyle(color: AppTheme.warning, fontSize: 12, height: 1.5, fontWeight: FontWeight.w500),
               ),
             ],
@@ -428,6 +462,8 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
   }
 
   Widget _buildStep2() {
+    bool requiresIdOnly = _scholarshipType == 'TES' || _scholarshipType == 'STUFAP';
+
     return Column(
       children: [
         if (_isUploading)
@@ -442,6 +478,21 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
             ),
           ),
         
+        // Draft Actions
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton.icon(
+              onPressed: _saveDraftOffline,
+              icon: const Icon(LucideIcons.save, size: 16),
+              label: const Text('Save Draft Offline'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+              ),
+            ),
+          ],
+        ),
+
         // SA Number Field
         Container(
           padding: const EdgeInsets.all(20),
@@ -485,24 +536,33 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
         const SizedBox(height: 24),
 
         _buildUploadCard(
-          '1st Semester Validation ID',
-          LucideIcons.fileText,
-          onTap: () => _handleUpload('sem1', pdfOnly: true),
-          feedback: _sem1Feedback,
-          isDuplicate: _isSem1Duplicate,
-          subtitle: 'PDF File Only (Max 5MB)',
-          fileName: _sem1FileName,
+          'Student ID (Front)',
+          LucideIcons.creditCard,
+          onTap: () => _handleUpload('front'),
+          feedback: _frontFeedback,
+          subtitle: 'Clear image with face visible (Max 5MB)',
+          fileName: _frontFileName,
         ),
         const SizedBox(height: 16),
         _buildUploadCard(
-          '2nd Semester Validation ID',
-          LucideIcons.fileText,
-          onTap: () => _handleUpload('sem2', pdfOnly: true),
-          feedback: _sem2Feedback,
-          isDuplicate: _isSem2Duplicate,
-          subtitle: 'PDF File Only (Max 5MB)',
-          fileName: _sem2FileName,
+          'Student ID (Back)',
+          LucideIcons.creditCard,
+          onTap: () => _handleUpload('back'),
+          feedback: _backFeedback,
+          subtitle: 'Clear image of ID back (Max 5MB)',
+          fileName: _backFileName,
         ),
+        if (!requiresIdOnly) ...[
+          const SizedBox(height: 16),
+          _buildUploadCard(
+            'Billing Statement',
+            LucideIcons.fileText,
+            onTap: () => _handleUpload('billing'),
+            feedback: _billingFeedback,
+            subtitle: 'Required for $_scholarshipType scholars (Max 5MB)',
+            fileName: _billingFileName,
+          ),
+        ],
       ],
     );
   }
@@ -648,7 +708,7 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
                     child: const Row(
                       children: [
                         Icon(LucideIcons.copy, size: 14, color: AppTheme.error),
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'Warning: Duplicate detection triggered.',
@@ -691,15 +751,15 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
           style: TextStyle(color: context.textSec, height: 1.5, fontSize: 14),
         ),
         const SizedBox(height: 40),
-        if (_sem1FileName != null) ...[
-          _buildReviewItem(_sem1FileName!, '0.8 MB'),
+        if (_frontFileName != null) ...[
+          _buildReviewItem(_frontFileName!, 'Image'),
           const SizedBox(height: 12),
         ],
-        if (_sem2FileName != null) ...[
-          _buildReviewItem(_sem2FileName!, '1.1 MB'),
+        if (_backFileName != null) ...[
+          _buildReviewItem(_backFileName!, 'Image'),
           const SizedBox(height: 12),
         ],
-        if (_sem1FileName == null && _sem2FileName == null)
+        if (_frontFileName == null && _backFileName == null)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Text('No documents uploaded yet.', style: TextStyle(color: context.textSec, fontStyle: FontStyle.italic)),

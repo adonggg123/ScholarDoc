@@ -135,8 +135,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
       Map<String, int> deptCounts = {'BSIT': 0, 'BTLED': 0, 'BFPT': 0};
       for (var doc in studentSnap.docs) {
         final course = doc['course'] ?? '';
-        if (course.contains('BSIT')) deptCounts['BSIT'] = (deptCounts['BSIT'] ?? 0) + 1;
-        else if (course.contains('BTLED')) deptCounts['BTLED'] = (deptCounts['BTLED'] ?? 0) + 1;
+        if (course.contains('BSIT')) {
+          deptCounts['BSIT'] = (deptCounts['BSIT'] ?? 0) + 1;
+        } else if (course.contains('BTLED')) deptCounts['BTLED'] = (deptCounts['BTLED'] ?? 0) + 1;
         else if (course.contains('BFPT')) deptCounts['BFPT'] = (deptCounts['BFPT'] ?? 0) + 1;
       }
 
@@ -414,8 +415,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 final String course = data['course'] ?? '';
                 
                 String dept = 'Other';
-                if (course.contains('BSIT')) dept = 'BSIT';
-                else if (course.contains('BTLED')) dept = 'BTLED';
+                if (course.contains('BSIT')) {
+                  dept = 'BSIT';
+                } else if (course.contains('BTLED')) dept = 'BTLED';
                 else if (course.contains('BFPT')) dept = 'BFPT';
 
                 if (deptCounts.containsKey(dept)) {

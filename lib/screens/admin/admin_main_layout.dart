@@ -159,13 +159,33 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
 
   Widget _buildSidebarHeader() {
     return Container(
-      padding: EdgeInsets.only(top: 16, bottom: 0, left: 16, right: 16),
-      alignment: Alignment.center,
-      child: Image.asset(
-        'assets/app_logo1.png',
-        width: 120, // Keep existing width/height
-        height: 120,
-        fit: BoxFit.fill,
+      padding: EdgeInsets.only(top: 26, bottom: 0, left: 0, right: 27),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            child: ClipOval(
+              child: Image.asset('assets/app_logo.png', fit: BoxFit.contain),
+            ),
+          ),
+          const SizedBox(width: 0),
+          ShaderMask(
+            shaderCallback: (bounds) => const LinearGradient(
+              colors: [AppTheme.primaryColor, Color(0xFFFBC02D)],
+            ).createShader(bounds),
+            blendMode: BlendMode.srcIn,
+            child: const Text(
+              'ScholarDoc',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 17,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

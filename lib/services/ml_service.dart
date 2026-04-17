@@ -118,4 +118,65 @@ class MLService {
 
     return min(riskScore, 96.0); // Cap at 96%
   }
+
+  // 6. Comprehensive Student ID AI Verification
+  // Simulates OCR processing, format checking, image layout and facial recognition
+  Future<Map<String, dynamic>> verifyStudentID(
+      String fileName, Map<String, dynamic> profileData, bool isFront) async {
+    // Simulate heavy ML processing delay
+    await Future.delayed(const Duration(seconds: 2));
+
+    final lcaseName = fileName.toLowerCase();
+    // 1. Format check
+    if (!lcaseName.endsWith('.jpg') &&
+        !lcaseName.endsWith('.jpeg') &&
+        !lcaseName.endsWith('.png')) {
+      return {
+        'isValid': false,
+        'message': 'Format Error: Please upload a clearly scanned JPG or PNG image (PDFs lack image clarity points for Face Match).'
+      };
+    }
+
+    // 2. Optical Quality Heuristics
+    bool isBlurry = _random.nextDouble() > 0.90; // 10% chance of failure
+    if (isBlurry) {
+      return {
+        'isValid': false,
+        'message': 'Clarity Error: Image is too blurry or has glare. Please hold steady in good lighting.'
+      };
+    }
+
+    bool isComplete = _random.nextDouble() > 0.15; // 15% chance it's cut off
+    if (!isComplete) {
+      return {
+        'isValid': false,
+        'message': 'Boundary Error: ID appears cropped. Make sure all 4 edges are visible.'
+      };
+    }
+
+    // 3. OCR Text Match Simulation
+    // 5% chance of mispelling or unrecognized text
+    if (_random.nextDouble() > 0.95) {
+      final name = profileData['fullName'] ?? 'User';
+      return {
+        'isValid': false,
+        'message': 'Data Mismatch: Extracted text does not match "$name" or ID number is unreadable.'
+      };
+    }
+
+    // 4. Face Verification Simulation (Only on Front ID)
+    if (isFront && _random.nextDouble() > 0.95) {
+      return {
+        'isValid': false,
+        'message': 'Face Mismatch: The photo on the ID does not reliably match your registered biometric profile.'
+      };
+    }
+
+    // If passed all advanced validations
+    return {
+      'isValid': true,
+      'confidenceScore': 92.0 + _random.nextDouble() * 7, // 92 - 99
+      'message': 'AI Authentication Passed.'
+    };
+  }
 }

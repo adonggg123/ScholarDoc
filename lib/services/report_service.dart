@@ -133,8 +133,9 @@ class ReportService {
 
     for (var doc in students.docs) {
       final status = doc['status'] as String? ?? 'Pending';
-      if (status == 'Approved') approved++;
-      else if (status == 'Rejected') rejected++;
+      if (status == 'Approved') {
+        approved++;
+      } else if (status == 'Rejected') rejected++;
       else pending++;
     }
 

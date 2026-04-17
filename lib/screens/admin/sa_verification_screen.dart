@@ -165,16 +165,34 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
 
           return ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(
-              backgroundColor: isSuspicious 
-                ? AppTheme.warning.withValues(alpha: 0.1) 
-                : AppTheme.primaryColor.withValues(alpha: 0.05),
-              child: Icon(
-                isSuspicious ? LucideIcons.alertTriangle : LucideIcons.user, 
-                size: 16, 
-                color: isSuspicious ? AppTheme.warning : AppTheme.primaryColor
-              ),
-            ),
+            leading: () {
+              final String? photoUrl = data['profilePictureUrl'] as String?;
+              if (photoUrl != null && photoUrl.isNotEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSuspicious ? AppTheme.warning : const Color(0xFFFBC02D),
+                      width: 2,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(photoUrl),
+                  ),
+                );
+              }
+              return CircleAvatar(
+                backgroundColor: isSuspicious 
+                  ? AppTheme.warning.withValues(alpha: 0.1) 
+                  : AppTheme.primaryColor.withValues(alpha: 0.05),
+                child: Icon(
+                  isSuspicious ? LucideIcons.alertTriangle : LucideIcons.user, 
+                  size: 16, 
+                  color: isSuspicious ? AppTheme.warning : AppTheme.primaryColor
+                ),
+              );
+            }(),
             title: Row(
               children: [
                 Text(name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: context.textPri)),
@@ -244,16 +262,25 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
               child: Column(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(3),
+                    padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2), width: 1.5),
+                      border: Border.all(color: const Color(0xFFFBC02D), width: 1.5),
                     ),
-                    child: CircleAvatar(
-                      radius: 24, 
-                      backgroundColor: AppTheme.secondaryColor,
-                      child: Icon(LucideIcons.user, size: 20, color: context.surfaceC),
-                    ),
+                    child: () {
+                      final String? photoUrl = data['profilePictureUrl'] as String?;
+                      if (photoUrl != null && photoUrl.isNotEmpty) {
+                        return CircleAvatar(
+                          radius: 24,
+                          backgroundImage: NetworkImage(photoUrl),
+                        );
+                      }
+                      return CircleAvatar(
+                        radius: 24, 
+                        backgroundColor: AppTheme.secondaryColor,
+                        child: Icon(LucideIcons.user, size: 20, color: context.surfaceC),
+                      );
+                    }(),
                   ),
                   SizedBox(height: 8),
                   Text(name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.5, color: context.textPri)),

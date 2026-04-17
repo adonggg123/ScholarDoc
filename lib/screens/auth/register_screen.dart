@@ -17,31 +17,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
   final ScholarshipService _scholarshipService = ScholarshipService();
-  
+
   // Controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
-  
+
   final TextEditingController _fatherNameController = TextEditingController();
   final TextEditingController _fatherAgeController = TextEditingController();
   final TextEditingController _fatherOccController = TextEditingController();
-  
+
   final TextEditingController _motherNameController = TextEditingController();
   final TextEditingController _motherAgeController = TextEditingController();
   final TextEditingController _motherOccController = TextEditingController();
-  
+
   final TextEditingController _incomeController = TextEditingController();
   final TextEditingController _religionController = TextEditingController();
   final TextEditingController _tribeController = TextEditingController();
-  
+
   // Academic & Scholarship Dropdown Values
   String? _selectedCourse;
   String? _selectedYear;
   String? _selectedSection;
+  String? _selectedGender;
   Scholarship? _selectedScholarship;
   List<Scholarship> _scholarships = [];
+  final List<String> _genders = ['Male', 'Female'];
 
   @override
   void initState() {
@@ -52,7 +54,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _loadScholarships() async {
     // Just to ensure we have defaults for testing
     await _scholarshipService.initializeDefaults();
-    
+
     _scholarshipService.getActiveScholarships().listen((list) {
       if (mounted) {
         setState(() {
@@ -64,8 +66,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final List<String> _courses = ['BSIT', 'BTLED', 'BFPT'];
   final List<String> _btledMajors = ['TLE', 'ICT', 'HE'];
-  final List<String> _years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
-  String? _selectedMajor; 
+  final List<String> _years = [
+    '1st Year',
+    '2nd Year',
+    '3rd Year',
+    '4th Year',
+    '5th Year',
+  ];
+  String? _selectedMajor;
   List<String> _getSectionsForYear(String? year) {
     if (year == null) return [];
     final yearPrefix = year.substring(0, 1); // Get '1' from '1st Year'
@@ -95,9 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Create Account'),
-      ),
+      appBar: AppBar(title: Text('Create Account')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24.0),
@@ -106,27 +112,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: 20),
-                Text.rich(
-                  TextSpan(
-                    style: Theme.of(context).textTheme.headlineLarge,
-                    children: const [
-                      TextSpan(text: 'Join Scholar'),
-                      TextSpan(
-                        text: 'Doc',
-                        style: TextStyle(color: AppTheme.secondaryColor),
+                SizedBox(height: 0),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Image.asset('assets/app_logo.png', width: 85, height: 85),
+                    const SizedBox(width: 0),
+                    ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [AppTheme.primaryColor, Color(0xFFFBC02D)],
+                      ).createShader(bounds),
+                      blendMode: BlendMode.srcIn,
+                      child: Text(
+                        'ScholarDoc',
+                        style:
+                            Theme.of(context).textTheme.headlineLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ) ??
+                            const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 0),
                 Text(
-                  'Register your student credentials to start managing your TES documents.',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: context.textSec,
-                      ),
+                  'Register your student credentials to start managing your documents.',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: context.textSec),
                 ),
-                SizedBox(height: 32),
+                SizedBox(height: 20),
 
                 // Name Input
                 TextFormField(
@@ -162,6 +182,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 SizedBox(height: 16),
 
+                // Gender Dropdown
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedGender,
+                  decoration: const InputDecoration(
+                    labelText: 'Gender',
+                    prefixIcon: Icon(Icons.wc_outlined),
+                    hintText: 'Select gender',
+                  ),
+                  items: _genders.map((String gender) {
+                    return DropdownMenuItem(value: gender, child: Text(gender));
+                  }).toList(),
+                  onChanged: (val) => setState(() => _selectedGender = val),
+                  validator: (val) =>
+                      val == null ? 'Please select your gender' : null,
+                ),
+                SizedBox(height: 16),
+
                 // Email Input
                 TextFormField(
                   controller: _emailController,
@@ -185,20 +222,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Scholarship Selection
                 DropdownButtonFormField<Scholarship>(
-                  value: _selectedScholarship,
+                  initialValue: _selectedScholarship,
                   decoration: const InputDecoration(
                     labelText: 'Scholarship Program',
                     prefixIcon: Icon(Icons.stars_outlined),
                     hintText: 'Select your scholarship',
                   ),
                   items: _scholarships.map((Scholarship s) {
-                    return DropdownMenuItem(
-                      value: s,
-                      child: Text(s.name),
-                    );
+                    return DropdownMenuItem(value: s, child: Text(s.name));
                   }).toList(),
-                  onChanged: (val) => setState(() => _selectedScholarship = val),
-                  validator: (val) => val == null ? 'Please select a scholarship' : null,
+                  onChanged: (val) =>
+                      setState(() => _selectedScholarship = val),
+                  validator: (val) =>
+                      val == null ? 'Please select a scholarship' : null,
                 ),
                 SizedBox(height: 16),
 
@@ -222,22 +258,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Course Dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedCourse,
+                  initialValue: _selectedCourse,
                   decoration: const InputDecoration(
                     labelText: 'Course',
                     prefixIcon: Icon(Icons.school_outlined),
                   ),
                   items: _courses.map((String course) {
-                    return DropdownMenuItem(
-                      value: course,
-                      child: Text(course),
-                    );
+                    return DropdownMenuItem(value: course, child: Text(course));
                   }).toList(),
                   onChanged: (val) => setState(() {
                     _selectedCourse = val;
                     _selectedMajor = null; // Reset major when course changes
                   }),
-                  validator: (val) => val == null ? 'Please select your course' : null,
+                  validator: (val) =>
+                      val == null ? 'Please select your course' : null,
                 ),
                 SizedBox(height: 16),
 
@@ -245,7 +279,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 if (_selectedCourse == 'BTLED') ...[
                   DropdownButtonFormField<String>(
                     key: const ValueKey('btled_major'),
-                    value: _selectedMajor,
+                    initialValue: _selectedMajor,
                     decoration: InputDecoration(
                       labelText: 'BTLED Major',
                       prefixIcon: Icon(Icons.menu_book_outlined),
@@ -260,7 +294,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       );
                     }).toList(),
                     onChanged: (val) => setState(() => _selectedMajor = val),
-                    validator: (val) => val == null ? 'Please select your BTLED major' : null,
+                    validator: (val) =>
+                        val == null ? 'Please select your BTLED major' : null,
                   ),
                   SizedBox(height: 16),
                 ],
@@ -270,7 +305,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _selectedYear,
+                        initialValue: _selectedYear,
                         decoration: const InputDecoration(
                           labelText: 'Year Level',
                         ),
@@ -283,7 +318,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onChanged: (val) {
                           setState(() {
                             _selectedYear = val;
-                            _selectedSection = null; // Reset section when year changes
+                            _selectedSection =
+                                null; // Reset section when year changes
                           });
                         },
                         validator: (val) => val == null ? 'Select year' : null,
@@ -292,19 +328,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     SizedBox(width: 16),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _selectedSection,
-                        key: ValueKey(_selectedYear), // Rebuild when year changes
-                        decoration: const InputDecoration(
-                          labelText: 'Section',
-                        ),
-                        items: _getSectionsForYear(_selectedYear).map((String section) {
+                        initialValue: _selectedSection,
+                        key: ValueKey(
+                          _selectedYear,
+                        ), // Rebuild when year changes
+                        decoration: const InputDecoration(labelText: 'Section'),
+                        items: _getSectionsForYear(_selectedYear).map((
+                          String section,
+                        ) {
                           return DropdownMenuItem(
                             value: section,
                             child: Text(section),
                           );
                         }).toList(),
-                        onChanged: (val) => setState(() => _selectedSection = val),
-                        validator: (val) => val == null ? 'Select section' : null,
+                        onChanged: (val) =>
+                            setState(() => _selectedSection = val),
+                        validator: (val) =>
+                            val == null ? 'Select section' : null,
                       ),
                     ),
                   ],
@@ -317,27 +357,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline, size: 18, color: AppTheme.primaryColor),
+                      Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: AppTheme.primaryColor,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Your Student ID will serve as your default login password.',
-                          style: TextStyle(fontSize: 12, color: context.textSec, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: context.textSec,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Section Divider: Family Information
                 Row(
                   children: [
-                    Icon(Icons.family_restroom, color: AppTheme.primaryColor, size: 20),
+                    Icon(
+                      Icons.family_restroom,
+                      color: AppTheme.primaryColor,
+                      size: 20,
+                    ),
                     SizedBox(width: 12),
                     Text(
                       'Family Information',
@@ -360,7 +414,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icon(Icons.person_outline),
                     hintText: 'e.g. Roberto De La Cruz',
                   ),
-                  validator: (value) => value!.isEmpty ? "Enter father's name" : null,
+                  validator: (value) =>
+                      value!.isEmpty ? "Enter father's name" : null,
                 ),
                 SizedBox(height: 16),
                 Row(
@@ -374,7 +429,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           hintText: 'e.g. 50',
                         ),
                         keyboardType: TextInputType.number,
-                        validator: (value) => value!.isEmpty ? "Enter age" : null,
+                        validator: (value) =>
+                            value!.isEmpty ? "Enter age" : null,
                       ),
                     ),
                     SizedBox(width: 16),
@@ -386,7 +442,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Occupation',
                           hintText: 'e.g. Farmer',
                         ),
-                        validator: (value) => value!.isEmpty ? "Enter occupation" : null,
+                        validator: (value) =>
+                            value!.isEmpty ? "Enter occupation" : null,
                       ),
                     ),
                   ],
@@ -401,7 +458,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icon(Icons.person_outline),
                     hintText: 'e.g. Maria Clara',
                   ),
-                  validator: (value) => value!.isEmpty ? "Enter mother's name" : null,
+                  validator: (value) =>
+                      value!.isEmpty ? "Enter mother's name" : null,
                 ),
                 SizedBox(height: 16),
                 Row(
@@ -415,7 +473,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           hintText: 'e.g. 48',
                         ),
                         keyboardType: TextInputType.number,
-                        validator: (value) => value!.isEmpty ? "Enter age" : null,
+                        validator: (value) =>
+                            value!.isEmpty ? "Enter age" : null,
                       ),
                     ),
                     SizedBox(width: 16),
@@ -427,7 +486,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Occupation',
                           hintText: 'e.g. Housewife',
                         ),
-                        validator: (value) => value!.isEmpty ? "Enter occupation" : null,
+                        validator: (value) =>
+                            value!.isEmpty ? "Enter occupation" : null,
                       ),
                     ),
                   ],
@@ -443,7 +503,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     hintText: 'e.g. 150000',
                   ),
                   keyboardType: TextInputType.number,
-                  validator: (value) => value!.isEmpty ? "Enter yearly income" : null,
+                  validator: (value) =>
+                      value!.isEmpty ? "Enter yearly income" : null,
                 ),
                 SizedBox(height: 16),
 
@@ -457,7 +518,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Religion',
                           hintText: 'e.g. Catholic',
                         ),
-                        validator: (value) => value!.isEmpty ? "Enter religion" : null,
+                        validator: (value) =>
+                            value!.isEmpty ? "Enter religion" : null,
                       ),
                     ),
                     SizedBox(width: 16),
@@ -468,12 +530,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           labelText: 'Tribe',
                           hintText: 'e.g. Tagalog',
                         ),
-                        validator: (value) => value!.isEmpty ? "Enter tribe" : null,
+                        validator: (value) =>
+                            value!.isEmpty ? "Enter tribe" : null,
                       ),
                     ),
                   ],
                 ),
-                
+
                 SizedBox(height: 48),
 
                 // Register Button
@@ -489,7 +552,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 'studentId': _studentIdController.text.trim(),
                                 'email': _emailController.text.trim(),
                                 'course': _selectedCourse,
-                                'major': _selectedCourse == 'BTLED' ? _selectedMajor : null,
+                                'gender': _selectedGender,
+                                'major': _selectedCourse == 'BTLED'
+                                    ? _selectedMajor
+                                    : null,
                                 'courseDisplay': _selectedCourse == 'BTLED'
                                     ? 'BTLED (major in $_selectedMajor)'
                                     : _selectedCourse,
@@ -502,12 +568,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 'status': 'Pending',
                                 'documents': {},
                                 'familyDetails': {
-                                  'fatherName': _fatherNameController.text.trim(),
+                                  'fatherName': _fatherNameController.text
+                                      .trim(),
                                   'fatherAge': _fatherAgeController.text.trim(),
-                                  'fatherOccupation': _fatherOccController.text.trim(),
-                                  'motherName': _motherNameController.text.trim(),
+                                  'fatherOccupation': _fatherOccController.text
+                                      .trim(),
+                                  'motherName': _motherNameController.text
+                                      .trim(),
                                   'motherAge': _motherAgeController.text.trim(),
-                                  'motherOccupation': _motherOccController.text.trim(),
+                                  'motherOccupation': _motherOccController.text
+                                      .trim(),
                                   'yearlyIncome': _incomeController.text.trim(),
                                   'religion': _religionController.text.trim(),
                                   'tribe': _tribeController.text.trim(),
@@ -519,18 +589,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 studentId: _studentIdController.text.trim(),
                                 studentData: studentData,
                               );
-                              
+
                               if (!context.mounted) return;
                               Navigator.pushAndRemoveUntil(
                                 context,
-                                MaterialPageRoute(builder: (context) => const MainLayout()),
+                                MaterialPageRoute(
+                                  builder: (context) => const MainLayout(),
+                                ),
                                 (route) => false,
                               );
                             } catch (e) {
                               if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(e.toString().replaceAll(RegExp(r'\[.*\]'), '').trim()),
+                                  content: Text(
+                                    e
+                                        .toString()
+                                        .replaceAll(RegExp(r'\[.*\]'), '')
+                                        .trim(),
+                                  ),
                                   backgroundColor: AppTheme.error,
                                 ),
                               );
@@ -539,8 +616,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             }
                           }
                         },
-                  child: _isLoading 
-                      ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  child: _isLoading
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : Text('Create Account'),
                 ),
                 SizedBox(height: 24),
@@ -558,7 +642,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const LoginScreen()),
+                            builder: (context) => const LoginScreen(),
+                          ),
                         );
                       },
                       style: TextButton.styleFrom(

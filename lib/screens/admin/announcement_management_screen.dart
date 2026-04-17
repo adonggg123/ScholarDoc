@@ -142,7 +142,7 @@ class _AnnouncementManagementScreenState extends State<AnnouncementManagementScr
               TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Title')),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: selectedType,
+                initialValue: selectedType,
                 items: ['General', 'Update', 'Deadline'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                 onChanged: (val) => setDialogState(() => selectedType = val!),
                 decoration: const InputDecoration(labelText: 'Category'),
