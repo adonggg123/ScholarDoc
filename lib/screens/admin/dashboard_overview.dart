@@ -21,7 +21,7 @@ class _DashboardOverviewState extends State<DashboardOverview> {
   final AuthService _authService = AuthService();
   final AuditService _auditService = AuditService();
   final ReportService _reportService = ReportService();
-  
+
   late Stream<QuerySnapshot> _studentsStream;
   late Stream<QuerySnapshot> _auditLogsStream;
   late Stream<List<double>> _submissionTrendStream;
@@ -100,12 +100,20 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                         (isMobile
                                 ? Theme.of(context).textTheme.titleLarge
                                 : Theme.of(context).textTheme.headlineSmall)
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24,
+                              color: context.textPri,
+                            ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     'Real-time system analytics and monitor.',
-                    style: TextStyle(fontSize: 12, color: context.textSec),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.textSec,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -234,48 +242,66 @@ class _DashboardOverviewState extends State<DashboardOverview> {
   ) {
     return Expanded(
       child: Container(
-        decoration: context.crispDecoration,
+        decoration: context.crispDecoration.copyWith(
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Padding(
-          padding: EdgeInsets.all(10),
-          child: Row(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: color.withValues(alpha: 0.2),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: Icon(icon, color: color, size: 14),
+                  ),
+                  Icon(
+                    LucideIcons.moreHorizontal,
+                    size: 12,
+                    color: context.textSec.withValues(alpha: 0.3),
+                  ),
+                ],
               ),
-              SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: context.textSec,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      value,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 8),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                  height: 1.1,
+                  color: context.textPri,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: context.textSec,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.2,
                 ),
               ),
             ],
@@ -287,8 +313,16 @@ class _DashboardOverviewState extends State<DashboardOverview> {
 
   Widget _buildSubmissionTrend(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
-      decoration: context.crispDecoration,
+      padding: const EdgeInsets.all(12),
+      decoration: context.crispDecoration.copyWith(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -297,18 +331,25 @@ class _DashboardOverviewState extends State<DashboardOverview> {
             children: [
               Text(
                 'Submission Trends',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: context.textPri,
+                ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryColor.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
+                child: const Text(
                   'Last 6 Months',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 9,
                     color: AppTheme.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
@@ -316,19 +357,28 @@ class _DashboardOverviewState extends State<DashboardOverview> {
               ),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 2),
           Text(
             'Weekly document submission counts',
-            style: TextStyle(color: context.textSec, fontSize: 13),
+            style: TextStyle(
+              color: context.textSec,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 16),
           SizedBox(
-            height: 220,
+            height: 250,
             child: StreamBuilder<List<double>>(
               stream: _submissionTrendStream,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor.withValues(alpha: 0.3)));
+                  return Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    ),
+                  );
                 }
 
                 final dataPoints = snapshot.data!;
@@ -349,40 +399,57 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                     ),
                     titlesData: FlTitlesData(
                       show: true,
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
                       leftTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
-                          reservedSize: 35,
+                          interval: 1,
+                          reservedSize: 30,
                           getTitlesWidget: (value, meta) => Text(
                             value.toInt().toString(),
-                            style: TextStyle(color: context.textSec, fontSize: 10),
+                            style: TextStyle(
+                              color: context.textSec,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
                       bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
+                          interval: 1,
                           getTitlesWidget: (value, meta) {
                             final now = DateTime.now();
                             final months = [];
                             for (int i = 5; i >= 0; i--) {
-                              months.add(DateFormat('MMM').format(DateTime(now.year, now.month - i, 1)));
+                              months.add(
+                                DateFormat(
+                                  'MMM',
+                                ).format(DateTime(now.year, now.month - i, 1)),
+                              );
                             }
-                            if (value >= 0 && value < months.length) {
+                            if (value == value.toInt() &&
+                                value >= 0 &&
+                                value < months.length) {
                               return Padding(
-                                padding: EdgeInsets.only(top: 8.0),
+                                padding: const EdgeInsets.only(top: 6.0),
                                 child: Text(
                                   months[value.toInt()],
                                   style: TextStyle(
                                     color: context.textSec,
-                                    fontSize: 10,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               );
                             }
-                            return Text('');
+                            return const Text('');
                           },
                         ),
                       ),
@@ -393,7 +460,10 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                         spots: spots.isEmpty ? [FlSpot(0, 0)] : spots,
                         isCurved: true,
                         gradient: const LinearGradient(
-                          colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.secondaryColor,
+                          ],
                         ),
                         barWidth: 4,
                         isStrokeCapRound: true,
@@ -452,36 +522,46 @@ class _DashboardOverviewState extends State<DashboardOverview> {
 
         return Container(
           decoration: context.glassDecoration.copyWith(
-            boxShadow: AppTheme.softShadow,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Status Distribution',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: context.textPri,
+                  ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 8),
                 SizedBox(
-                  height: 160,
+                  height: 130,
                   child: hasData
                       ? PieChart(
                           PieChartData(
                             sectionsSpace: 4,
-                            centerSpaceRadius: 40,
+                            centerSpaceRadius: 35,
                             sections: [
                               if (approved > 0)
                                 PieChartSectionData(
                                   color: AppTheme.success,
                                   value: approved,
                                   title: '${aPer.toStringAsFixed(0)}%',
-                                  radius: 45,
+                                  radius: 40,
                                   titleStyle: TextStyle(
                                     color: context.surfaceC,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                                    fontSize: 11,
                                   ),
                                 ),
                               if (pending > 0)
@@ -489,11 +569,11 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                                   color: AppTheme.warning,
                                   value: pending,
                                   title: '${pPer.toStringAsFixed(0)}%',
-                                  radius: 45,
+                                  radius: 40,
                                   titleStyle: TextStyle(
                                     color: context.surfaceC,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                                    fontSize: 11,
                                   ),
                                 ),
                               if (rejected > 0)
@@ -501,11 +581,11 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                                   color: AppTheme.error,
                                   value: rejected,
                                   title: '${rPer.toStringAsFixed(0)}%',
-                                  radius: 45,
+                                  radius: 40,
                                   titleStyle: TextStyle(
                                     color: context.surfaceC,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                                    fontSize: 11,
                                   ),
                                 ),
                             ],
@@ -513,10 +593,16 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                         )
                       : Center(child: Text('No data')),
                 ),
-                SizedBox(height: 24),
-                _buildLegendItem(context, 'Approved', AppTheme.success),
-                _buildLegendItem(context, 'Pending', AppTheme.warning),
-                _buildLegendItem(context, 'Rejected', AppTheme.error),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: [
+                    _buildLegendItem(context, 'Approved', AppTheme.success),
+                    _buildLegendItem(context, 'Pending', AppTheme.warning),
+                    _buildLegendItem(context, 'Rejected', AppTheme.error),
+                  ],
+                ),
               ],
             ),
           ),
@@ -526,19 +612,24 @@ class _DashboardOverviewState extends State<DashboardOverview> {
   }
 
   Widget _buildLegendItem(BuildContext context, String label, Color color) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: context.textPri,
           ),
-          SizedBox(width: 8),
-          Text(label, style: TextStyle(fontSize: 13)),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -582,36 +673,58 @@ class _DashboardOverviewState extends State<DashboardOverview> {
                   itemBuilder: (context, index) {
                     final data = docs[index].data() as Map<String, dynamic>;
                     final String adminName = data['adminName'] ?? 'System';
-                    final String action = data['action'] ?? 'Performed an action';
+                    final String action =
+                        data['action'] ?? 'Performed an action';
                     final String role = data['role'] ?? 'System';
                     final Timestamp? ts = data['timestamp'];
-                    final String timeStr = ts != null 
-                        ? DateFormat('hh:mm a').format(ts.toDate()) 
+                    final String timeStr = ts != null
+                        ? DateFormat('hh:mm a').format(ts.toDate())
                         : 'Just now';
 
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
-                        backgroundColor: (role == 'Admin' ? AppTheme.primaryColor : AppTheme.secondaryColor).withValues(alpha: 0.1),
+                        backgroundColor:
+                            (role == 'Admin'
+                                    ? AppTheme.primaryColor
+                                    : AppTheme.secondaryColor)
+                                .withValues(alpha: 0.1),
                         child: Icon(
-                          role == 'Admin' ? LucideIcons.shieldCheck : LucideIcons.user,
+                          role == 'Admin'
+                              ? LucideIcons.shieldCheck
+                              : LucideIcons.user,
                           size: 18,
-                          color: role == 'Admin' ? AppTheme.primaryColor : AppTheme.secondaryColor,
+                          color: role == 'Admin'
+                              ? AppTheme.primaryColor
+                              : AppTheme.secondaryColor,
                         ),
                       ),
                       title: RichText(
                         text: TextSpan(
-                          style: TextStyle(color: context.textPri, fontSize: 13),
+                          style: TextStyle(
+                            color: context.textPri,
+                            fontSize: 13,
+                          ),
                           children: [
-                            TextSpan(text: adminName, style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(
+                              text: adminName,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                             TextSpan(text: ' $action'),
                           ],
                         ),
                       ),
-                      subtitle: Text(timeStr, style: TextStyle(fontSize: 11, color: context.textSec)),
-                      trailing: role == 'Admin' 
-                        ? Icon(LucideIcons.check, size: 14, color: AppTheme.success) 
-                        : null,
+                      subtitle: Text(
+                        timeStr,
+                        style: TextStyle(fontSize: 11, color: context.textSec),
+                      ),
+                      trailing: role == 'Admin'
+                          ? Icon(
+                              LucideIcons.check,
+                              size: 14,
+                              color: AppTheme.success,
+                            )
+                          : null,
                     );
                   },
                 );

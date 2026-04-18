@@ -139,14 +139,14 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     return Container(
       decoration: context.crispDecoration.copyWith(
         border: Border.all(
-          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade300,
+          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200,
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: context.isDark ? 0.3 : 0.05),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: context.isDark ? 0.3 : 0.03),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
           ),
         ],
       ),
@@ -163,60 +163,101 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
           final String name = data['fullName'] ?? 'N/A';
           final String saNumber = data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? 'N/A';
 
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: () {
-              final String? photoUrl = data['profilePictureUrl'] as String?;
-              if (photoUrl != null && photoUrl.isNotEmpty) {
-                return Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSuspicious ? AppTheme.warning : const Color(0xFFFBC02D),
-                      width: 2,
+          bool isSelected = _selectedStudentIndex == index;
+
+          return Material(
+            color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.04) : Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedStudentIndex = index;
+                  _remarksController.clear();
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    () {
+                      final String? photoUrl = data['profilePictureUrl'] as String?;
+                      if (photoUrl != null && photoUrl.isNotEmpty) {
+                        return Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSuspicious ? AppTheme.warning : const Color(0xFFFBC02D),
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 18,
+                            backgroundImage: NetworkImage(photoUrl),
+                          ),
+                        );
+                      }
+                      return CircleAvatar(
+                        radius: 20,
+                        backgroundColor: isSuspicious 
+                          ? AppTheme.warning.withValues(alpha: 0.1) 
+                          : AppTheme.primaryColor.withValues(alpha: 0.05),
+                        child: Icon(
+                          isSuspicious ? LucideIcons.alertTriangle : LucideIcons.user, 
+                          size: 16, 
+                          color: isSuspicious ? AppTheme.warning : AppTheme.primaryColor
+                        ),
+                      );
+                    }(),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  name, 
+                                  maxLines: 1, 
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: context.textPri),
+                                ),
+                              ),
+                              if (isSuspicious) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.warning.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: AppTheme.warning.withValues(alpha: 0.3)),
+                                  ),
+                                  child: const Text('PRIORITY', style: TextStyle(color: AppTheme.warning, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text('SA: $saNumber', style: TextStyle(fontSize: 11, color: context.textSec, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
                     ),
-                  ),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(photoUrl),
-                  ),
-                );
-              }
-              return CircleAvatar(
-                backgroundColor: isSuspicious 
-                  ? AppTheme.warning.withValues(alpha: 0.1) 
-                  : AppTheme.primaryColor.withValues(alpha: 0.05),
-                child: Icon(
-                  isSuspicious ? LucideIcons.alertTriangle : LucideIcons.user, 
-                  size: 16, 
-                  color: isSuspicious ? AppTheme.warning : AppTheme.primaryColor
+                    Icon(
+                      LucideIcons.chevronRight, 
+                      size: 18, 
+                      color: isSelected ? AppTheme.primaryColor : context.textSec.withValues(alpha: 0.5),
+                    ),
+                  ],
                 ),
-              );
-            }(),
-            title: Row(
-              children: [
-                Text(name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: context.textPri)),
-                if (isSuspicious) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppTheme.warning,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text('HIGH PRIORITY', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
-                  ),
-                ],
-              ],
+              ),
             ),
-            subtitle: Text('SA: $saNumber', style: TextStyle(fontSize: 12, color: context.textSec, fontWeight: FontWeight.w500)),
-            trailing: Icon(LucideIcons.chevronRight, size: 18, color: context.textPri),
-            onTap: () {
-              setState(() {
-                _selectedStudentIndex = index;
-                _remarksController.clear(); // Clear remarks for new selection
-              });
-            },
           );
         },
       ),
@@ -241,19 +282,19 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     return Container(
       decoration: context.crispDecoration.copyWith(
         border: Border.all(
-          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade300,
+          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200,
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: context.isDark ? 0.3 : 0.05),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: context.isDark ? 0.3 : 0.03),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
           ),
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(isMobile ? 12 : 16),
+        padding: EdgeInsets.all(isMobile ? 16 : 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -262,29 +303,38 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(3),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(color: const Color(0xFFFBC02D), width: 1.5),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: Offset(0, 4))],
                     ),
                     child: () {
                       final String? photoUrl = data['profilePictureUrl'] as String?;
                       if (photoUrl != null && photoUrl.isNotEmpty) {
                         return CircleAvatar(
-                          radius: 24,
+                          radius: 36,
                           backgroundImage: NetworkImage(photoUrl),
                         );
                       }
                       return CircleAvatar(
-                        radius: 24, 
-                        backgroundColor: AppTheme.secondaryColor,
-                        child: Icon(LucideIcons.user, size: 20, color: context.surfaceC),
+                        radius: 36, 
+                        backgroundColor: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                        child: Icon(LucideIcons.user, size: 30, color: AppTheme.secondaryColor),
                       );
                     }(),
                   ),
-                  SizedBox(height: 8),
-                  Text(name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.5, color: context.textPri)),
-                  Text('$course - $year', style: TextStyle(color: context.textSec, fontSize: 13, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 12),
+                  Text(name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: context.textPri)),
+                  const SizedBox(height: 2),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text('$course - $year', style: const TextStyle(color: AppTheme.primaryColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                  ),
                 ],
               ),
             ),

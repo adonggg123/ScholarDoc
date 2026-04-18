@@ -159,7 +159,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
 
   Widget _buildSidebarHeader() {
     return Container(
-      padding: EdgeInsets.only(top: 26, bottom: 0, left: 0, right: 27),
+      padding: EdgeInsets.only(top: 10, bottom: 10, left: 0, right: 27),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
