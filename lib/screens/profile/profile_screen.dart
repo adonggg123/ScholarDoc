@@ -84,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           SliverAppBar(
             expandedHeight: 260,
             pinned: true,
-            backgroundColor: const Color(0xFF0F3260),
+            backgroundColor: AppTheme.primaryColor,
             automaticallyImplyLeading: false,
             elevation: 0,
             shape: const RoundedRectangleBorder(
@@ -109,11 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF0F3260), Color(0xFF1A4F9E)],
-                  ),
+                  color: AppTheme.primaryColor,
                   borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
                 ),
                 child: SafeArea(
@@ -138,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               child: Container(
                                 padding: const EdgeInsets.all(3),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFF0F3260),
+                                  color: AppTheme.primaryColor,
                                   shape: BoxShape.circle,
                                 ),
                                 child: _buildAvatarWidget(),
@@ -159,11 +155,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         height: 14,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          color: Color(0xFF0F3260),
+                                          color: AppTheme.primaryColor,
                                         ),
                                       )
                                     : const Icon(LucideIcons.camera, size: 14,
-                                        color: Color(0xFF0F3260)),
+                                        color: AppTheme.primaryColor),
                               ),
                             ),
                           ],
@@ -276,7 +272,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             labelText: 'SA Number',
                             hintText: 'xxxx-xxxx-xxxx',
                             prefixIcon: const Icon(LucideIcons.creditCard,
-                                color: Color(0xFF0F3260)),
+                                color: AppTheme.primaryColor),
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
@@ -290,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: const BorderSide(
-                                  color: Color(0xFF0F3260), width: 2),
+                                  color: AppTheme.primaryColor, width: 2),
                             ),
                             errorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -330,11 +326,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0F3260).withValues(alpha: 0.08),
+                                    color: AppTheme.primaryColor.withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(LucideIcons.moon,
-                                      size: 18, color: Color(0xFF0F3260)),
+                                      size: 18, color: AppTheme.primaryColor),
                                 ),
                                 const SizedBox(width: 14),
                                 Expanded(
@@ -352,9 +348,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 ),
                                 Switch(
                                   value: theme == ThemeMode.dark,
-                                  activeThumbColor: const Color(0xFF0F3260),
+                                  activeThumbColor: AppTheme.primaryColor,
                                   activeTrackColor:
-                                      const Color(0xFF0F3260).withValues(alpha: 0.2),
+                                      AppTheme.primaryColor.withValues(alpha: 0.2),
                                   onChanged: (_) => ThemeProvider().toggleTheme(),
                                 ),
                               ],
@@ -369,13 +365,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                       width: double.infinity,
                       height: 56,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF0F3260), Color(0xFF1A4F9E)],
-                        ),
+                        color: AppTheme.primaryColor,
                         borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F3260).withValues(alpha: 0.35),
+                            color: AppTheme.primaryColor.withValues(alpha: 0.35),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
@@ -440,10 +434,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F3260).withValues(alpha: 0.08),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, size: 16, color: const Color(0xFF0F3260)),
+                  child: Icon(icon, size: 16, color: AppTheme.primaryColor),
                 ),
                 const SizedBox(width: 10),
                 Text(
@@ -451,7 +445,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F3260),
+                    color: AppTheme.primaryColor,
                   ),
                 ),
               ],
@@ -513,7 +507,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           controller: controller,
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, size: 16, color: const Color(0xFF0F3260)),
+            prefixIcon: Icon(icon, size: 16, color: AppTheme.primaryColor),
             filled: true,
             fillColor: Colors.white,
             contentPadding:
@@ -529,7 +523,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide:
-                  const BorderSide(color: Color(0xFF0F3260), width: 2),
+                  const BorderSide(color: AppTheme.primaryColor, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -563,10 +557,10 @@ class _ProfileScreenState extends State<ProfileScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F3260).withValues(alpha: 0.08),
+                color: AppTheme.primaryColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(LucideIcons.history, size: 20, color: Color(0xFF0F3260)),
+              child: const Icon(LucideIcons.history, size: 20, color: AppTheme.primaryColor),
             ),
             const SizedBox(width: 14),
             const Expanded(
@@ -617,7 +611,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
     return CircleAvatar(
       radius: 52,
-      backgroundColor: const Color(0xFF1A4F9E),
+      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.5),
       child: _isUploadingPhoto
           ? const CircularProgressIndicator(color: Colors.white)
           : const Icon(LucideIcons.user, size: 52, color: Colors.white),

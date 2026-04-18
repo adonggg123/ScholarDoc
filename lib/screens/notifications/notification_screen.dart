@@ -28,94 +28,173 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
+  Widget _buildHeader(BuildContext context) {
+    final user = _authService.currentUser;
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(24, topPadding + 10, 24, 40),
+      decoration: const BoxDecoration(
+        color: AppTheme.primaryColor,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Notifications',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(LucideIcons.bell, color: Colors.white, size: 22),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Stay updated with your scholarship',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (user != null)
+                StreamBuilder<QuerySnapshot>(
+                  stream: _notificationStream,
+                  builder: (context, snapshot) {
+                    final hasUnread = snapshot.hasData && 
+                        snapshot.data!.docs.any((doc) => !(doc.data() as Map<String, dynamic>)['isRead']);
+                    
+                    if (!hasUnread) return const SizedBox.shrink();
+
+                    return InkWell(
+                      onTap: () => _notificationService.markAllAsRead(user.uid),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Mark All Read',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = _authService.currentUser;
     
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Notifications')),
-        body: const Center(child: Text('Please log in to view notifications.')),
+        backgroundColor: context.bgC,
+        body: Column(
+          children: [
+            _buildHeader(context),
+            const Expanded(child: Center(child: Text('Please log in to view notifications.'))),
+          ],
+        ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications'),
-        actions: [
-          StreamBuilder<QuerySnapshot>(
-            stream: _notificationStream,
-            builder: (context, snapshot) {
-              final hasUnread = snapshot.hasData && 
-                  snapshot.data!.docs.any((doc) => !(doc.data() as Map<String, dynamic>)['isRead']);
-              
-              if (!hasUnread) return const SizedBox.shrink();
+      backgroundColor: context.bgC,
+      body: Column(
+        children: [
+          _buildHeader(context),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _notificationStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              return TextButton(
-                onPressed: () => _notificationService.markAllAsRead(user.uid),
-                child: const Text('Mark all as read'),
-              );
-            },
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Error loading notifications'));
+                }
+
+                List<QueryDocumentSnapshot> docs = snapshot.data?.docs.toList() ?? [];
+
+                docs.sort((a, b) {
+                  final Timestamp? tA = (a.data() as Map<String, dynamic>)['timestamp'];
+                  final Timestamp? tB = (b.data() as Map<String, dynamic>)['timestamp'];
+                  if (tA == null) return 1;
+                  if (tB == null) return -1;
+                  return tB.compareTo(tA);
+                });
+
+                if (docs.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(LucideIcons.bellOff, size: 48, color: Colors.grey.withValues(alpha: 0.5)),
+                        const SizedBox(height: 16),
+                        const Text('No notifications yet.', style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.all(24),
+                  itemCount: docs.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final doc = docs[index];
+                    final data = doc.data() as Map<String, dynamic>;
+
+                    return _buildNotificationItem(
+                      context,
+                      doc.id,
+                      data['title'] ?? 'Notification',
+                      data['message'] ?? '',
+                      data['timestamp'],
+                      data['type'] ?? 'info',
+                      !(data['isRead'] ?? true),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _notificationStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return const Center(child: Text('Error loading notifications'));
-          }
-
-          List<QueryDocumentSnapshot> docs = snapshot.data?.docs.toList() ?? [];
-
-          // --- LOCAL SORTING ---
-          // Since we removed .orderBy() from the Firestore query (to avoid index issues),
-          // we sort the documents locally by timestamp descending.
-          docs.sort((a, b) {
-            final Timestamp? tA = (a.data() as Map<String, dynamic>)['timestamp'];
-            final Timestamp? tB = (b.data() as Map<String, dynamic>)['timestamp'];
-            if (tA == null) return 1;
-            if (tB == null) return -1;
-            return tB.compareTo(tA);
-          });
-
-          if (docs.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(LucideIcons.bellOff, size: 48, color: Colors.grey.withValues(alpha: 0.5)),
-                  const SizedBox(height: 16),
-                  const Text('No notifications yet.', style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            );
-          }
-
-          return ListView.separated(
-            padding: const EdgeInsets.all(24),
-            itemCount: docs.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final doc = docs[index];
-              final data = doc.data() as Map<String, dynamic>;
-              
-              return _buildNotificationItem(
-                context,
-                doc.id,
-                data['title'] ?? 'Notification',
-                data['message'] ?? '',
-                data['timestamp'],
-                data['type'] ?? 'info',
-                !(data['isRead'] ?? true),
-              );
-            },
-          );
-        },
       ),
     );
   }

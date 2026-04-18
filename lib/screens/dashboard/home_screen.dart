@@ -266,23 +266,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8),
                   _buildNotificationAlert(),
-                  const SizedBox(height: 20),
-                  _buildSectionHeader('Your Scholarship Status'),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 32),
+                  _buildSectionHeader('Scholarship Status'),
+                  const SizedBox(height: 16),
                   _buildStatusCard(context),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   _buildSectionHeader('Submission Progress'),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   _buildProgressTracker(),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 32),
                   _buildSectionHeader('Quick Actions'),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
@@ -302,7 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                         ),
                       ),
-                      SizedBox(width: 16),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: _buildActionBtn(
                           context,
@@ -316,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 40),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -324,17 +323,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       TextButton(
                         onPressed: () {},
                         style: TextButton.styleFrom(
-                          foregroundColor: AppTheme.accentColor,
+                          foregroundColor: context.textSec.withValues(alpha: 0.5),
                           textStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 10,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        child: const Text('See All'),
+                        child: const Text('SEE ALL'),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -381,124 +381,138 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildStatusCard(BuildContext context) {
-    final String scholarshipName =
-        _profileData?['scholarshipName'] ?? 'No Scholarship Assigned';
+    final String scholarshipName = _profileData?['scholarshipName'] ?? 'No Scholarship Assigned';
     final String status = _profileData?['status'] ?? 'Pending';
-    final String? remarks = _profileData?['adminRemarks'];
-    final String submittedDate =
-        (_profileData?['submittedAt'] as Timestamp?)?.toDate().toString().split(
-          ' ',
-        )[0] ??
-        'N/A';
+    final String submittedDate = (_profileData?['submittedAt'] as Timestamp?)?.toDate().toString().split(' ')[0] ?? 'N/A';
 
     Color statusColor = AppTheme.warning;
-    if (status == 'Approved') statusColor = AppTheme.success;
-    if (status == 'Rejected') statusColor = AppTheme.error;
+    IconData statusIcon = LucideIcons.hourglass;
+    if (status == 'Approved' || status == 'Verified') {
+      statusColor = AppTheme.success;
+      statusIcon = LucideIcons.checkCircle2;
+    }
+    if (status == 'Rejected' || status == 'Needs Correction') {
+      statusColor = AppTheme.error;
+      statusIcon = LucideIcons.alertTriangle;
+    }
 
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: context.surfaceC,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: AppTheme.premiumShadow,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                statusColor.withValues(alpha: 0.03),
-                statusColor.withValues(alpha: 0.08),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: statusColor.withValues(alpha: 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          scholarshipName,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: statusColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Last activity on $submittedDate',
-                          style: TextStyle(
-                            color: context.textSec,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      status,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (remarks != null && remarks.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.03),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18.5)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        LucideIcons.messageSquare,
-                        size: 16,
-                        color: statusColor,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          remarks,
-                          style: TextStyle(
-                            color: context.textSec,
-                            fontSize: 13,
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                            ),
                           ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'SCHOLARSHIP ACCOUNT',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: context.textSec.withValues(alpha: 0.5),
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        scholarshipName,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primaryColor,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: statusColor.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(statusIcon, size: 14, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        status.toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
                   ),
                 ),
               ],
-            ],
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Icon(LucideIcons.calendarCheck, size: 16, color: context.textSec.withValues(alpha: 0.5)),
+                const SizedBox(width: 8),
+                Text(
+                  'Last record sync: $submittedDate',
+                  style: TextStyle(
+                    color: context.textSec,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Icon(LucideIcons.chevronRight, size: 18, color: context.textSec.withValues(alpha: 0.3)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -549,69 +563,96 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildProgressTracker() {
-    // Determine dynamic states
     bool hasProfile = _profileData != null;
-    bool hasSA =
-        (_profileData?['saNumber'] != null &&
-        _profileData!['saNumber'].toString().isNotEmpty);
+    bool hasSA = (_profileData?['saNumber'] != null && _profileData!['saNumber'].toString().isNotEmpty);
     bool hasID = _profileData?['idFrontUrl'] != null;
 
-    // Dynamic logic based on scholarship type
     String scholarshipType = _profileData?['scholarshipName'] ?? 'Unassigned';
-    bool requiresIdOnly =
-        scholarshipType == 'TES' || scholarshipType == 'STUFAP';
-    // Let's assume TDP or DBP require a Billing statement (we simulate a DB check here)
+    bool requiresIdOnly = scholarshipType == 'TES' || scholarshipType == 'STUFAP';
     bool hasBilling = _profileData?['billingUrl'] != null;
 
     List<Map<String, dynamic>> steps = [
       {'label': 'Profile', 'done': hasProfile},
       {'label': 'Disbursement', 'done': hasSA},
-      {'label': 'Validation ID', 'done': hasID},
+      {'label': 'Valid ID', 'done': hasID},
     ];
 
     if (!requiresIdOnly) {
-      steps.add({'label': 'Billing Stmt', 'done': hasBilling});
+      steps.add({'label': 'Billing', 'done': hasBilling});
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
+    const themeColor = Color(0xFF2196F3); // Processing Blue
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: themeColor.withValues(alpha: 0.1), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: themeColor.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
-        children: steps.map((step) {
-          bool done = step['done'];
-          return Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: context.surfaceC,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: done ? AppTheme.success : context.crispBorder,
-              ),
-              boxShadow: AppTheme.softShadow,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  done ? LucideIcons.checkCircle2 : LucideIcons.circle,
-                  color: done
-                      ? AppTheme.success
-                      : context.textSec.withValues(alpha: 0.5),
-                  size: 16,
+        children: List.generate(steps.length * 2 - 1, (index) {
+          if (index.isOdd) {
+            bool isDone = steps[index ~/ 2]['done'];
+            return Expanded(
+              child: Container(
+                height: 2,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(1),
+                  color: isDone ? themeColor : themeColor.withValues(alpha: 0.1),
                 ),
-                const SizedBox(width: 8),
+              ),
+            );
+          } else {
+            int stepIdx = index ~/ 2;
+            bool done = steps[stepIdx]['done'];
+            return Column(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: done ? themeColor : Colors.white,
+                    border: Border.all(
+                      color: done ? themeColor : themeColor.withValues(alpha: 0.2),
+                      width: 2,
+                    ),
+                    boxShadow: done ? [
+                      BoxShadow(
+                        color: themeColor.withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      )
+                    ] : [],
+                  ),
+                  child: Icon(
+                    done ? LucideIcons.check : LucideIcons.circle,
+                    size: 14,
+                    color: done ? Colors.white : themeColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Text(
-                  step['label'],
+                  steps[stepIdx]['label'],
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: done ? AppTheme.success : context.textSec,
-                    fontSize: 13,
+                    fontSize: 10,
+                    fontWeight: done ? FontWeight.w800 : FontWeight.w600,
+                    color: done ? AppTheme.primaryColor : themeColor.withValues(alpha: 0.4),
                   ),
                 ),
               ],
-            ),
-          );
-        }).toList(),
+            );
+          }
+        }),
       ),
     );
   }
@@ -619,11 +660,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNotificationAlert() {
     final status = _profileData?['status'];
     if (status != 'Rejected' && status != 'Needs Correction') {
-      // Also check if any critical doc is missing
       if (_profileData != null && _profileData!['idFrontUrl'] == null) {
         return _buildAlertCard(
-          'Missing Required Documents',
-          'Your Validation ID has not been submitted. Please upload it to proceed with processing.',
+          'Incomplete Profile',
+          'Please upload your Validation ID to continue.',
           AppTheme.warning,
         );
       }
@@ -631,9 +671,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return _buildAlertCard(
-      'Action Required',
-      _profileData?['adminRemarks'] ??
-          'One or more of your documents were rejected. Please review your submission.',
+      'Revision Needed',
+      _profileData?['adminRemarks'] ?? 'Review your document submission.',
       AppTheme.error,
     );
   }
@@ -641,27 +680,34 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAlertCard(String title, String message, Color color) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border(left: BorderSide(color: color, width: 4)),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(LucideIcons.alertCircle, color: color, size: 20),
-          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(LucideIcons.bellRing, color: color, size: 18),
+          ),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  title.toUpperCase(),
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
                     color: color,
-                    fontSize: 13,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -669,8 +715,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   message,
                   style: TextStyle(
                     color: color.withValues(alpha: 0.8),
-                    fontSize: 12,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -694,122 +743,148 @@ class _HomeScreenState extends State<HomeScreen> {
     Color color,
     VoidCallback onTap,
   ) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-        decoration: BoxDecoration(
-          color: context.surfaceC,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: color.withValues(alpha: 0.1), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.05),
-              offset: const Offset(0, 8),
-              blurRadius: 16,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: color.withValues(alpha: 0.25), width: 2),
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 28),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 26),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  label.toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.primaryColor,
+                    fontSize: 10,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-                fontSize: 13,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildAnnouncementWidget(BuildContext context, Announcement a) {
-    Color typeColor = Colors.blue;
-    IconData typeIcon = LucideIcons.info;
-    if (a.type == 'Deadline') {
-      typeColor = AppTheme.error;
-      typeIcon = LucideIcons.calendarClock;
-    } else if (a.type == 'Update') {
-      typeColor = AppTheme.success;
-      typeIcon = LucideIcons.refreshCw;
-    }
+    Color typeColor = Colors.grey;
+    if (a.type == 'Deadline') typeColor = AppTheme.error;
+    if (a.type == 'Update') typeColor = AppTheme.success;
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: context.surfaceC,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: context.crispBorder),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: typeColor.withValues(alpha: 0.15), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: typeColor.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(2, 4),
+          ),
+        ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(width: 6, color: typeColor),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: typeColor.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(typeIcon, color: typeColor, size: 22),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            a.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            a.content,
-                            style: TextStyle(
-                              color: context.textSec,
-                              fontSize: 13,
-                              height: 1.4,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      LucideIcons.chevronRight,
-                      color: context.textSec.withValues(alpha: 0.5),
-                      size: 18,
-                    ),
-                  ],
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(16),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: 5,
+                  decoration: BoxDecoration(
+                    color: typeColor,
+                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+                  ),
                 ),
-              ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: typeColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                a.type.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: typeColor,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Icon(LucideIcons.arrowUpRight, size: 14, color: context.textSec.withValues(alpha: 0.3)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          a.title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: AppTheme.primaryColor,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          a.content,
+                          style: TextStyle(
+                            color: context.textSec,
+                            fontSize: 13,
+                            height: 1.5,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -819,20 +894,28 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       children: [
         Container(
-          width: 4,
-          height: 20,
+          width: 5,
+          height: 18,
           decoration: BoxDecoration(
             color: AppTheme.accentColor,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(4),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.accentColor.withValues(alpha: 0.3),
+                blurRadius: 4,
+                offset: const Offset(1, 1),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F3260),
+            fontWeight: FontWeight.w800,
+            color: AppTheme.primaryColor,
+            letterSpacing: -0.3,
           ),
         ),
       ],

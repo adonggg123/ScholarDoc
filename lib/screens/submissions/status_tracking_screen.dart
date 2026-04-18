@@ -104,7 +104,7 @@ class _StatusTrackingScreenState extends State<StatusTrackingScreen>
                         SliverAppBar(
                           expandedHeight: 150,
                           pinned: true,
-                          backgroundColor: const Color(0xFF0F3260),
+                          backgroundColor: AppTheme.primaryColor,
                           elevation: 0,
                           automaticallyImplyLeading: false,
                           shape: const RoundedRectangleBorder(
@@ -115,14 +115,7 @@ class _StatusTrackingScreenState extends State<StatusTrackingScreen>
                           flexibleSpace: FlexibleSpaceBar(
                             background: Container(
                               decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFF0F3260),
-                                    Color(0xFF1A4F9E),
-                                  ],
-                                ),
+                                color: AppTheme.primaryColor,
                                 borderRadius: BorderRadius.vertical(
                                   bottom: Radius.circular(32),
                                 ),

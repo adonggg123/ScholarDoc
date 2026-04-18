@@ -2,12 +2,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'audit_service.dart';
 import 'notification_service.dart';
+import 'presence_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuditService _auditService = AuditService();
   final NotificationService _notificationService = NotificationService();
+  final PresenceService _presenceService = PresenceService();
 
   // Helper to generate a unique email based on student ID (for Firebase Auth)
   String _getAuthEmail(String studentId) {
@@ -145,6 +147,9 @@ class AuthService {
       studentId: trimmedId,
     );
 
+    // Initialize Presence tracking
+    await _presenceService.setUserPresence(userCredential.user!.uid);
+
     return userCredential;
   }
 
@@ -175,6 +180,10 @@ class AuthService {
 
   // Logout current user
   Future<void> logout() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      await _presenceService.setOffline(uid);
+    }
     await _auth.signOut();
   }
 

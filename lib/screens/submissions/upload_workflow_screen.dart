@@ -272,32 +272,93 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
     );
   }
 
+  Widget _buildHeader(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final canPop = Navigator.canPop(context);
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(16, topPadding + 10, 24, 40),
+      decoration: const BoxDecoration(
+        color: AppTheme.primaryColor,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+      ),
+      child: Row(
+        children: [
+          if (canPop)
+            IconButton(
+              icon: const Icon(LucideIcons.chevronLeft, color: Colors.white, size: 24),
+              onPressed: () => Navigator.pop(context),
+            ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Document Submission',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Complete your application',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(LucideIcons.fileUp, color: Colors.white, size: 22),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Document Submission'),
-      ),
-      body: Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppTheme.primaryColor,
-            primary: AppTheme.primaryColor,
-          ),
-        ),
-        child: Stepper(
-          type: StepperType.horizontal,
-          currentStep: _currentStep,
-          elevation: 0,
-          onStepContinue: () async {
-            if (_currentStep < 2) {
-              setState(() {
-                _currentStep += 1;
-              });
-            } else {
-              setState(() => _isUploading = true);
-              try {
-                final user = _authService.currentUser;
+      backgroundColor: context.bgC,
+      body: Column(
+        children: [
+          _buildHeader(context),
+          Expanded(
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: AppTheme.primaryColor,
+                  primary: AppTheme.primaryColor,
+                ),
+              ),
+              child: Stepper(
+                type: StepperType.horizontal,
+                currentStep: _currentStep,
+                elevation: 0,
+                onStepContinue: () async {
+                  if (_currentStep < 2) {
+                    setState(() {
+                      _currentStep += 1;
+                    });
+                  } else {
+                    setState(() => _isUploading = true);
+                    try {
+                      final user = _authService.currentUser;
                 if (user != null) {
                   final doc = await _authService.getStudentProfile(user.uid);
                   final data = doc.data() as Map<String, dynamic>?;
@@ -326,26 +387,24 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
                   );
                 }
                 
-                if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Documents submitted successfully!'),
-                      backgroundColor: AppTheme.success,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Documents submitted successfully!'),
+                    backgroundColor: AppTheme.success,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
               } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to submit documents: $e'),
-                      backgroundColor: AppTheme.error,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to submit documents: $e'),
+                    backgroundColor: AppTheme.error,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
               } finally {
                 if (mounted) setState(() => _isUploading = false);
               }
@@ -376,11 +435,13 @@ class _UploadWorkflowScreenState extends State<UploadWorkflowScreen> {
             Step(
               title: const Text('Final', style: TextStyle(fontSize: 12)),
               content: _buildStep3(),
-              isActive: _currentStep >= 2,
             ),
           ],
         ),
       ),
+    ),
+  ],
+),
     );
   }
 
