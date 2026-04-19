@@ -63,7 +63,7 @@ class _ScholarshipManagementScreenState
                     ),
                   ],
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 24),
                 Expanded(
                   child: StreamBuilder<List<Scholarship>>(
                     stream: _scholarshipsStream,
@@ -95,10 +95,10 @@ class _ScholarshipManagementScreenState
                       return GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 400,
-                          childAspectRatio: 1.5,
-                          crossAxisSpacing: 24,
-                          mainAxisSpacing: 24,
+                          maxCrossAxisExtent: 360,
+                          childAspectRatio: 1.4,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
                         ),
                         itemCount: scholarships.length,
                         itemBuilder: (context, index) {
@@ -134,7 +134,7 @@ class _ScholarshipManagementScreenState
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -148,23 +148,23 @@ class _ScholarshipManagementScreenState
                 ),
                 decoration: BoxDecoration(
                   color: s.isActive
-                      ? AppTheme.success.withValues(alpha: 0.1)
-                      : AppTheme.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+                      ? AppTheme.success.withValues(alpha: 0.08)
+                      : AppTheme.error.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: s.isActive
-                        ? AppTheme.success.withValues(alpha: 0.3)
-                        : AppTheme.error.withValues(alpha: 0.3),
+                        ? AppTheme.success.withValues(alpha: 0.2)
+                        : AppTheme.error.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
                 child: Text(
-                  s.isActive ? 'Active' : 'Inactive',
+                  s.isActive ? 'ACTIVE' : 'INACTIVE',
                   style: TextStyle(
                     color: s.isActive ? AppTheme.success : AppTheme.error,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.3,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
                   ),
                 ),
               ),
@@ -194,34 +194,44 @@ class _ScholarshipManagementScreenState
           Text(
             s.name,
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
               color: context.textPri,
+              letterSpacing: -0.2,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             s.description,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 13, color: context.textSec, height: 1.4),
+            style: TextStyle(fontSize: 12, color: context.textSec, height: 1.3),
           ),
           const Spacer(),
-          const Divider(),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(LucideIcons.fileText, size: 16, color: context.textPri),
-              const SizedBox(width: 8),
-              Text(
-                '${s.requiredDocuments.length} Required Documents',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: context.textPri,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.fileText,
+                  size: 14,
+                  color: AppTheme.primaryColor.withValues(alpha: 0.7),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  '${s.requiredDocuments.length} Required Documents',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPri.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

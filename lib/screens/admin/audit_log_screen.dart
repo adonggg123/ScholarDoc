@@ -6,8 +6,6 @@ import '../../theme/theme_provider.dart';
 import '../../services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import '../../utils/pdf_generator.dart';
-import '../../utils/excel_generator.dart';
 
 class AuditLogScreen extends StatefulWidget {
   const AuditLogScreen({super.key});
@@ -126,8 +124,8 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
 
             return SingleChildScrollView(
               padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 16 : 48,
-                vertical: isMobile ? 12 : 32,
+                horizontal: isMobile ? 12 : 24,
+                vertical: isMobile ? 12 : 16,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +140,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                             Text(
                               'Operation Logs',
                               style: GoogleFonts.poppins(
-                                fontSize: isMobile ? 22 : 26, // Reduced from 28
+                                fontSize: isMobile ? 20 : 20, // Reduced from 26
                                 fontWeight: FontWeight.w800,
                                 color: AppTheme.primaryColor,
                                 letterSpacing: -0.5,
@@ -152,7 +150,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                             Text(
                               'Complete audit trail of system activities and user actions.',
                               style: GoogleFonts.inter(
-                                fontSize: 13,
+                                fontSize: 12,
                                 color: context.textSec,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -163,7 +161,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                       _buildExportActions(docs),
                     ],
                   ),
-                  const SizedBox(height: 48), // Increased from 32
+                  const SizedBox(height: 24), // Reduced from 48
 
                   // Filters Section
                   _buildFilters(isMobile),
@@ -219,37 +217,6 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
   Widget _buildExportActions(List<QueryDocumentSnapshot> docs) {
     return Row(
       children: [
-        // Excel Export
-        _exportButton(
-          label: 'Excel',
-          icon: LucideIcons.fileSpreadsheet,
-          color: const Color(0xFF10B981), // Emerald
-          onTap: () async {
-            final data = docs
-                .map((d) => d.data() as Map<String, dynamic>)
-                .toList();
-            await ExcelGenerator.generateAuditExcel(data);
-          },
-        ),
-        const SizedBox(width: 8),
-        // PDF Export
-        _exportButton(
-          label: 'PDF',
-          icon: LucideIcons.fileText,
-          color: const Color(0xFFF43F5E), // Rose
-          onTap: () async {
-            final data = docs
-                .map((d) => d.data() as Map<String, dynamic>)
-                .toList();
-            final summary =
-                'Role: $_roleFilter | Date: ${_selectedDate != null ? DateFormat('yyyy-MM-dd').format(_selectedDate!) : 'Last 24h'}';
-            await PdfGenerator.generateAuditReport(
-              logs: data,
-              filterSummary: summary,
-            );
-          },
-        ),
-        const SizedBox(width: 8),
         // Refresh
         IconButton(
           onPressed: () =>
@@ -262,49 +229,13 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
     );
   }
 
-  Widget _exportButton({
-    required String label,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Tooltip(
-      message: 'Export to $label',
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: color.withValues(alpha: 0.2)),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildFilters(bool isMobile) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.surfaceC.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: context.crispBorder),
       ),
       child: Column(
@@ -359,7 +290,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           // Search Field and Date Picker
           Row(
             children: [
@@ -433,7 +364,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
               ],
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           // Role Chips
           Row(
             children: [
@@ -472,7 +403,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                       showCheckmark: false,
                       padding: EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 8,
+                        vertical: 4,
                       ),
                     ),
                   );
@@ -524,7 +455,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(
           horizontal: isMobile ? 12 : 24,
-          vertical: 8,
+          vertical: 4,
         ),
         leading: isMobile
             ? null
@@ -579,7 +510,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
               ),
         title: RichText(
           text: TextSpan(
-            style: TextStyle(color: context.textPri, fontSize: 13, height: 1.5),
+            style: TextStyle(color: context.textPri, fontSize: 12, height: 1.4),
             children: [
               TextSpan(
                 text: userName,
@@ -588,7 +519,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
               TextSpan(
                 text: ' • $role ',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: roleColor,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.5,
@@ -607,7 +538,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     color: AppTheme.primaryColor,
-                    fontSize: 11,
+                    fontSize: 10,
                   ),
                 ),
               ],
@@ -627,22 +558,22 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
               Text(
                 timeStr,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: context.textSec,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Icon(
                 LucideIcons.monitor,
-                size: 12,
+                size: 11,
                 color: context.textSec.withValues(alpha: 0.5),
               ),
               const SizedBox(width: 4),
               Text(
                 platform,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: context.textSec,
                   fontWeight: FontWeight.w600,
                 ),
