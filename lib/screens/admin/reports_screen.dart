@@ -40,25 +40,29 @@ class _ReportsScreenState extends State<ReportsScreen> {
       builder: (context, constraints) {
         bool isMobile = constraints.maxWidth < 900;
         return SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? 12 : 24),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 16 : 48,
+            vertical: isMobile ? 12 : 32,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(context, isMobile),
-              SizedBox(height: 32),
+              const SizedBox(height: 48), // Increased from 32
               if (isMobile) ...[
                 _buildSystemPerformance(context),
-                SizedBox(height: 24),
+                const SizedBox(height: 32), // Increased from 24
                 _buildDemographicBreakdown(context),
               ] else
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(flex: 3, child: _buildSystemPerformance(context)),
-                    SizedBox(width: 32),
+                    const SizedBox(width: 32),
                     Expanded(flex: 2, child: _buildDemographicBreakdown(context)),
                   ],
                 ),
+              const SizedBox(height: 48), // Increased from 32
               SizedBox(height: 32),
               Text('Generated Reports', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 16),

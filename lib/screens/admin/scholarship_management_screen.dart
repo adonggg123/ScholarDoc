@@ -25,85 +25,95 @@ class _ScholarshipManagementScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isMobile = constraints.maxWidth < 900;
+        return Scaffold(
+          body: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 16 : 48,
+              vertical: isMobile ? 12 : 32,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Scholarship Management',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Scholarship Management',
+                          style: (isMobile
+                                  ? Theme.of(context).textTheme.titleLarge
+                                  : Theme.of(context).textTheme.headlineSmall)
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Manage programs and document requirements.',
+                          style: TextStyle(color: context.textSec, fontSize: 13),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Manage programs and document requirements.',
-                      style: TextStyle(color: context.textSec, fontSize: 13),
+                    ElevatedButton.icon(
+                      onPressed: () => _showScholarshipDialog(),
+                      icon: const Icon(LucideIcons.plus, size: 18),
+                      label: Text(isMobile ? 'Add' : 'Add Program'),
                     ),
                   ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _showScholarshipDialog(),
-                  icon: const Icon(LucideIcons.plus, size: 18),
-                  label: const Text('Add Program'),
+                const SizedBox(height: 48),
+                Expanded(
+                  child: StreamBuilder<List<Scholarship>>(
+                    stream: _scholarshipsStream,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                LucideIcons.graduationCap,
+                                size: 64,
+                                color: Colors.grey.shade300,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No scholarships found.',
+                                style: TextStyle(color: context.textSec),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      final scholarships = snapshot.data!;
+                      return GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 400,
+                          childAspectRatio: 1.5,
+                          crossAxisSpacing: 24,
+                          mainAxisSpacing: 24,
+                        ),
+                        itemCount: scholarships.length,
+                        itemBuilder: (context, index) {
+                          final s = scholarships[index];
+                          return _buildScholarshipCard(s);
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 32),
-            Expanded(
-              child: StreamBuilder<List<Scholarship>>(
-                stream: _scholarshipsStream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            LucideIcons.graduationCap,
-                            size: 64,
-                            color: Colors.grey.shade300,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No scholarships found.',
-                            style: TextStyle(color: context.textSec),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  final scholarships = snapshot.data!;
-                  return GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 400,
-                          childAspectRatio: 1.5,
-                          crossAxisSpacing: 20,
-                          mainAxisSpacing: 20,
-                        ),
-                    itemCount: scholarships.length,
-                    itemBuilder: (context, index) {
-                      final s = scholarships[index];
-                      return _buildScholarshipCard(s);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

@@ -146,6 +146,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 }
 
                 if (snapshot.hasError) {
+                  debugPrint('NotificationScreen: Firestore Error -> ${snapshot.error}');
                   return const Center(child: Text('Error loading notifications'));
                 }
 

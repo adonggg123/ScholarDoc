@@ -23,56 +23,73 @@ class _AnnouncementManagementScreenState extends State<AnnouncementManagementScr
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isMobile = constraints.maxWidth < 900;
+        return Scaffold(
+          body: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 16 : 48,
+              vertical: isMobile ? 12 : 32,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Announcement Management', 
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                    Text('Post deadlines, updates and notifications for students.', 
-                      style: TextStyle(color: context.textSec, fontSize: 13)),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Announcement Management', 
+                          style: (isMobile 
+                                  ? Theme.of(context).textTheme.titleLarge 
+                                  : Theme.of(context).textTheme.headlineSmall)
+                              ?.copyWith(fontWeight: FontWeight.bold)
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Post deadlines, updates and notifications for students.', 
+                          style: TextStyle(color: context.textSec, fontSize: 13)
+                        ),
+                      ],
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => _showDialog(),
+                      icon: const Icon(LucideIcons.megaphone, size: 18),
+                      label: Text(isMobile ? 'Post' : 'Post New Update'),
+                    ),
                   ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _showDialog(),
-                  icon: const Icon(LucideIcons.megaphone, size: 18),
-                  label: const Text('Post New Update'),
+                const SizedBox(height: 48), // Increased from 32
+                Expanded(
+                  child: StreamBuilder<List<Announcement>>(
+                    stream: _announcementsStream,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(child: Text('No announcements posted yet.', style: TextStyle(color: context.textSec)));
+                      }
+
+                      final list = snapshot.data!;
+                      return ListView.separated(
+                        itemCount: list.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 24), // Increased from 16
+                        itemBuilder: (context, index) {
+                          final a = list[index];
+                          return _buildAnnouncementTile(a);
+                        },
+                      );
+                    },
+                  ),
                 ),
+                const SizedBox(height: 48),
               ],
             ),
-            const SizedBox(height: 32),
-            Expanded(
-              child: StreamBuilder<List<Announcement>>(
-                stream: _announcementsStream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('No announcements posted yet.', style: TextStyle(color: context.textSec)));
-                  }
-
-                  final list = snapshot.data!;
-                  return ListView.separated(
-                    itemCount: list.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 16),
-                    itemBuilder: (context, index) {
-                      final a = list[index];
-                      return _buildAnnouncementTile(a);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -83,8 +100,13 @@ class _AnnouncementManagementScreenState extends State<AnnouncementManagementScr
     else if (a.type == 'Update') { typeColor = AppTheme.success; typeIcon = LucideIcons.refreshCw; }
 
     return Container(
-      decoration: context.crispDecoration,
-      padding: const EdgeInsets.all(16),
+      decoration: context.crispDecoration.copyWith(
+        border: Border.all(
+          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200,
+          width: 1.5,
+        ),
+      ),
+      padding: const EdgeInsets.all(20), // Increased from 16
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -104,21 +126,27 @@ class _AnnouncementManagementScreenState extends State<AnnouncementManagementScr
               ),
               Row(
                 children: [
-                   IconButton(icon: Icon(LucideIcons.archive, size: 16, color: a.isActive ? context.textSec : AppTheme.error), onPressed: () {
-                     _service.updateAnnouncement(a.id, {'isActive': !a.isActive});
-                   }),
-                   IconButton(icon: const Icon(LucideIcons.trash2, size: 16, color: AppTheme.error), onPressed: () {
-                     _service.deleteAnnouncement(a.id);
-                   }),
+                   IconButton(
+                     icon: Icon(LucideIcons.archive, size: 16, color: a.isActive ? context.textSec : AppTheme.error), 
+                     onPressed: () {
+                       _service.updateAnnouncement(a.id, {'isActive': !a.isActive});
+                     }
+                   ),
+                   IconButton(
+                     icon: const Icon(LucideIcons.trash2, size: 16, color: AppTheme.error), 
+                     onPressed: () {
+                       _service.deleteAnnouncement(a.id);
+                     }
+                   ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(a.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(a.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text(a.content, style: TextStyle(fontSize: 13, color: context.textSec)),
-          const SizedBox(height: 16),
+          Text(a.content, style: TextStyle(fontSize: 14, color: context.textSec, height: 1.4)),
+          const SizedBox(height: 20),
           Text('Posted on: ${a.createdAt.day}/${a.createdAt.month}/${a.createdAt.year}', 
             style: TextStyle(fontSize: 11, color: context.textSec, fontStyle: FontStyle.italic)),
         ],
@@ -136,20 +164,22 @@ class _AnnouncementManagementScreenState extends State<AnnouncementManagementScr
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           title: const Text('Post Announcement'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Title')),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: selectedType,
-                items: ['General', 'Update', 'Deadline'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                onChanged: (val) => setDialogState(() => selectedType = val!),
-                decoration: const InputDecoration(labelText: 'Category'),
-              ),
-              const SizedBox(height: 16),
-              TextField(controller: contentController, decoration: const InputDecoration(labelText: 'Message Body'), maxLines: 4),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Title')),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  initialValue: selectedType,
+                  items: ['General', 'Update', 'Deadline'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                  onChanged: (val) => setDialogState(() => selectedType = val!),
+                  decoration: const InputDecoration(labelText: 'Category'),
+                ),
+                const SizedBox(height: 16),
+                TextField(controller: contentController, decoration: const InputDecoration(labelText: 'Message Body'), maxLines: 4),
+              ],
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),

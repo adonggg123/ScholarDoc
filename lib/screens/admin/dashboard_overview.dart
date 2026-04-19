@@ -41,41 +41,45 @@ class _DashboardOverviewState extends State<DashboardOverview> {
         bool isMobile = constraints.maxWidth < 900;
 
         return SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? 12 : 20),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 16 : 48, 
+            vertical: isMobile ? 12 : 32
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(context, isMobile),
-              SizedBox(height: 32),
+              const SizedBox(height: 48), // Increased from 32
               _buildStatsGrid(context, isMobile),
-              SizedBox(height: 24),
+              const SizedBox(height: 36), // Increased from 24
               if (isMobile) ...[
                 _buildSubmissionTrend(context),
-                SizedBox(height: 24),
+                const SizedBox(height: 32),
                 _buildStatusDistribution(context),
               ] else
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(flex: 2, child: _buildSubmissionTrend(context)),
-                    SizedBox(width: 32),
+                    const SizedBox(width: 32),
                     Expanded(flex: 1, child: _buildStatusDistribution(context)),
                   ],
                 ),
-              SizedBox(height: 32),
+              const SizedBox(height: 48), // Increased from 32
               if (isMobile) ...[
                 _buildHighRiskStudents(context),
-                SizedBox(height: 24),
+                const SizedBox(height: 32),
                 _buildRecentActivity(context),
               ] else
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(flex: 1, child: _buildHighRiskStudents(context)),
-                    SizedBox(width: 32),
+                    const SizedBox(width: 32),
                     Expanded(flex: 1, child: _buildRecentActivity(context)),
                   ],
                 ),
+              const SizedBox(height: 48),
             ],
           ),
         );

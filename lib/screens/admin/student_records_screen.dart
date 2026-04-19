@@ -437,17 +437,21 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         bool isMobile = constraints.maxWidth < 900;
 
         return SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? 12 : 24),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 12 : 24,
+            vertical: isMobile ? 12 : 24,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(context, isMobile),
-              SizedBox(height: 24),
+              const SizedBox(height: 32),
               _buildFilterBar(context, isMobile),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildActiveFilterChips(context),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildStudentTable(context, isMobile),
+              const SizedBox(height: 40),
             ],
           ),
         );
@@ -464,7 +468,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             'Student Records',
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 1),
           Row(
             children: [
               Expanded(child: _buildSemesterDropdown(context)),
@@ -516,7 +520,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               'Student Records',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            SizedBox(height: 2),
+            SizedBox(height: 1),
             Text(
               'Manage and review all registered students.',
               style: TextStyle(fontSize: 13, color: context.textSec),
@@ -636,7 +640,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
   Widget _buildFilterBar(BuildContext context, bool isMobile) {
     if (isMobile) {
       return Container(
-        padding: EdgeInsets.all(12),
+        padding: EdgeInsets.all(1),
         decoration: context.glassDecoration,
         child: Column(
           children: [
@@ -707,7 +711,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: context.glassDecoration,
       child: Row(
         children: [
@@ -1099,11 +1103,11 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               }
 
               return DataTable(
-                horizontalMargin: 20,
-                columnSpacing: 24,
-                headingRowHeight: 52,
+                horizontalMargin: 16,
+                columnSpacing: 20,
+                headingRowHeight: 48,
                 dataRowMinHeight: 52,
-                dataRowMaxHeight: 60,
+                dataRowMaxHeight: 56,
                 headingRowColor: WidgetStateProperty.all(
                   AppTheme.primaryColor.withValues(alpha: 0.02),
                 ),
@@ -1233,10 +1237,10 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               () {
-                final String? photoUrl =
-                    data['profilePictureUrl'] as String?;
-                final String initial =
-                    name.isNotEmpty ? name[0].toUpperCase() : '?';
+                final String? photoUrl = data['profilePictureUrl'] as String?;
+                final String initial = name.isNotEmpty
+                    ? name[0].toUpperCase()
+                    : '?';
                 if (photoUrl != null && photoUrl.isNotEmpty) {
                   return Container(
                     padding: const EdgeInsets.all(2),
@@ -1248,8 +1252,10 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                       ),
                     ),
                     child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      radius: 14,
+                      backgroundColor: AppTheme.primaryColor.withValues(
+                        alpha: 0.1,
+                      ),
                       backgroundImage: NetworkImage(photoUrl),
                     ),
                   );
@@ -1264,12 +1270,14 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                     ),
                   ),
                   child: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.12),
+                    radius: 14,
+                    backgroundColor: AppTheme.primaryColor.withValues(
+                      alpha: 0.12,
+                    ),
                     child: Text(
                       initial,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
                       ),
@@ -1277,7 +1285,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   ),
                 );
               }(),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Flexible(
                 child: Text(
                   name,
@@ -1305,7 +1313,7 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         ),
         DataCell(
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
@@ -1353,11 +1361,11 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
               _buildActionIcon(LucideIcons.eye, AppTheme.primaryColor, () {
                 _showStudentProfile(data, docId);
               }),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
               _buildActionIcon(LucideIcons.checkSquare, AppTheme.success, () {
                 _updateStudentStatus(docId, name, studentId, 'Approved');
               }),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
               _buildActionIcon(LucideIcons.xSquare, AppTheme.error, () {
                 _updateStudentStatus(docId, name, studentId, 'Rejected');
               }),
@@ -1515,13 +1523,16 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                             backgroundColor: AppTheme.primaryColor.withValues(
                               alpha: 0.08,
                             ),
-                            backgroundImage: (data['profilePictureUrl'] != null &&
+                            backgroundImage:
+                                (data['profilePictureUrl'] != null &&
                                     (data['profilePictureUrl'] as String)
                                         .isNotEmpty)
                                 ? NetworkImage(
-                                    data['profilePictureUrl'] as String)
+                                    data['profilePictureUrl'] as String,
+                                  )
                                 : null,
-                            child: (data['profilePictureUrl'] == null ||
+                            child:
+                                (data['profilePictureUrl'] == null ||
                                     (data['profilePictureUrl'] as String)
                                         .isEmpty)
                                 ? const Icon(

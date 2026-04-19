@@ -45,6 +45,7 @@ class DefaultFirebaseOptions {
     appId: '1:583511512301:web:864abfadf26d9f98dd28e4',
     messagingSenderId: '583511512301',
     projectId: 'scholardoc-40e03',
+    databaseURL: 'https://scholardoc-40e03-default-rtdb.firebaseio.com',
     authDomain: 'scholardoc-40e03.firebaseapp.com',
     storageBucket: 'scholardoc-40e03.firebasestorage.app',
     measurementId: 'G-1RL19XQ1PY',
@@ -55,6 +56,7 @@ class DefaultFirebaseOptions {
     appId: '1:583511512301:android:8b768cedf256c9c8dd28e4',
     messagingSenderId: '583511512301',
     projectId: 'scholardoc-40e03',
+    databaseURL: 'https://scholardoc-40e03-default-rtdb.firebaseio.com',
     storageBucket: 'scholardoc-40e03.firebasestorage.app',
   );
 
@@ -63,6 +65,7 @@ class DefaultFirebaseOptions {
     appId: '1:583511512301:ios:23db6bd502fc4d92dd28e4',
     messagingSenderId: '583511512301',
     projectId: 'scholardoc-40e03',
+    databaseURL: 'https://scholardoc-40e03-default-rtdb.firebaseio.com',
     storageBucket: 'scholardoc-40e03.firebasestorage.app',
     iosBundleId: 'com.example.tesdocProject',
   );
@@ -72,6 +75,7 @@ class DefaultFirebaseOptions {
     appId: '1:583511512301:ios:23db6bd502fc4d92dd28e4',
     messagingSenderId: '583511512301',
     projectId: 'scholardoc-40e03',
+    databaseURL: 'https://scholardoc-40e03-default-rtdb.firebaseio.com',
     storageBucket: 'scholardoc-40e03.firebasestorage.app',
     iosBundleId: 'com.example.tesdocProject',
   );
@@ -81,6 +85,7 @@ class DefaultFirebaseOptions {
     appId: '1:583511512301:web:b915ae1c2e9c5ebadd28e4',
     messagingSenderId: '583511512301',
     projectId: 'scholardoc-40e03',
+    databaseURL: 'https://scholardoc-40e03-default-rtdb.firebaseio.com',
     authDomain: 'scholardoc-40e03.firebaseapp.com',
     storageBucket: 'scholardoc-40e03.firebasestorage.app',
     measurementId: 'G-6M6DN3KSZK',

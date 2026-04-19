@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'audit_service.dart';
 import 'notification_service.dart';
 import 'presence_service.dart';
@@ -79,13 +80,18 @@ class AuthService {
 
     UserCredential? userCredential;
 
+    debugPrint('AuthService: Starting login for ID: $trimmedId');
+    debugPrint('AuthService: Step 1 - Trying ID-based email: $authEmail');
+
     // --- Step 1: Try new ID-based email (accounts registered after the update) ---
     try {
       userCredential = await _auth.signInWithEmailAndPassword(
         email: authEmail,
         password: trimmedPassword,
       );
+      debugPrint('AuthService: Step 1 SUCCESS (UID: ${userCredential.user?.uid})');
     } on FirebaseAuthException catch (e) {
+      debugPrint('AuthService: Step 1 FAILED (${e.code})');
       if (e.code != 'user-not-found' && e.code != 'wrong-password' && e.code != 'invalid-credential') {
         rethrow;
       }
@@ -94,7 +100,10 @@ class AuthService {
 
     // --- Step 2: Fallback — look up student by ID in Firestore and try their Gmail ---
     if (userCredential == null) {
+      debugPrint('AuthService: Step 2 - Falling back to Firestore lookup');
       try {
+        // IMPORTANT: This query will fail if Firestore rules require authentication
+        // and the user is currently anonymous. 
         final query = await _firestore
             .collection('students')
             .where('studentId', isEqualTo: trimmedId)
@@ -102,11 +111,13 @@ class AuthService {
             .get();
 
         if (query.docs.isEmpty) {
+          debugPrint('AuthService: Step 2 FAILED - No record found for ID: $trimmedId');
           throw Exception('No account found for Student ID "$trimmedId". Please register first.');
         }
 
         final data = query.docs.first.data();
         final String? gmail = data['email'] as String?;
+        debugPrint('AuthService: Step 2 - Found legacy Gmail: $gmail');
 
         if (gmail == null || gmail.isEmpty) {
           throw Exception('Account data is incomplete. Please contact your administrator.');
@@ -118,53 +129,83 @@ class AuthService {
             email: gmail,
             password: trimmedPassword,
           );
-        } on FirebaseAuthException {
+          debugPrint('AuthService: Step 2 SUCCESS (UID: ${userCredential.user?.uid})');
+        } on FirebaseAuthException catch (e) {
+          debugPrint('AuthService: Step 2 - Login with Gmail FAILED (${e.code})');
           throw Exception('Login failed. Please verify your ID and password.');
         }
-      } on FirebaseAuthException {
+      } on FirebaseException catch (e) {
+        debugPrint('AuthService: Step 2 - Firestore query FAILED (${e.code}: ${e.message})');
+        if (e.code == 'permission-denied') {
+          throw Exception('Access denied. This might be due to security rules or App Check enforcement.');
+        }
         rethrow;
       }
     }
 
     // --- Step 3: Verify the user record exists in Firestore students collection ---
-    final DocumentSnapshot doc = await _firestore
-        .collection('students')
-        .doc(userCredential.user!.uid)
-        .get();
+    if (userCredential.user != null) {
+      final uid = userCredential.user!.uid;
+      debugPrint('AuthService: Step 3 - Verifying record for UID: $uid');
+      
+      try {
+        final DocumentSnapshot doc = await _firestore
+            .collection('students')
+            .doc(uid)
+            .get();
 
-    if (!doc.exists) {
-      await _auth.signOut();
-      throw Exception('Student record not found. Please register first.');
+        if (!doc.exists) {
+          debugPrint('AuthService: Step 3 FAILED - No document for UID: $uid');
+          await _auth.signOut();
+          throw Exception('Student record not found. Please register first.');
+        }
+
+        final studentData = doc.data() as Map<String, dynamic>;
+        debugPrint('AuthService: Step 3 SUCCESS - Found student: ${studentData['fullName']}');
+
+        // Log Activity
+        await _auditService.logActivity(
+          action: 'Logged in using Student ID',
+          userName: studentData['fullName'] ?? 'Student',
+          role: 'Student',
+          studentId: trimmedId,
+        );
+
+        // Initialize Presence tracking
+        await _presenceService.setUserPresence(uid);
+      } on FirebaseException catch (e) {
+        debugPrint('AuthService: Step 3 - Firestore fetch FAILED (${e.code}: ${e.message})');
+        await _auth.signOut();
+        if (e.code == 'permission-denied') {
+          throw Exception('Access denied to your profile. Please check App Check or Firestore Rules.');
+        }
+        rethrow;
+      }
     }
-
-    final studentData = doc.data() as Map<String, dynamic>;
-
-    // Log Activity
-    await _auditService.logActivity(
-      action: 'Logged in using Student ID',
-      userName: studentData['fullName'] ?? 'Student',
-      role: 'Student',
-      studentId: trimmedId,
-    );
-
-    // Initialize Presence tracking
-    await _presenceService.setUserPresence(userCredential.user!.uid);
 
     return userCredential;
   }
 
-  // Admin login (Default account credentials check)
+  // Admin login (Using real Firebase Auth)
   Future<bool> loginAdmin({
     required String username,
     required String password,
   }) async {
-    // Requirements specified a default admin account (username: Admin, password: 123)
-    // For a real production app, this would query a secure backend or use Custom Claims.
+    // We transform the username 'Admin' to 'admin@scholardoc.local'
+    final String adminEmail = username.toLowerCase() == 'admin' 
+        ? 'admin@scholardoc.local' 
+        : '${username.toLowerCase()}@scholardoc.local';
     
-    // Simulating network delay
-    await Future.delayed(const Duration(milliseconds: 500));
+    debugPrint('AuthService: Attempting Admin Login for $adminEmail');
     
-    if (username == 'Admin' && password == '123') {
+    try {
+      // 1. Attempt to sign in
+      await _auth.signInWithEmailAndPassword(
+        email: adminEmail,
+        password: password,
+      );
+      debugPrint('AuthService: Admin Login SUCCESS');
+      
       // Log Admin Activity
       await _auditService.logActivity(
         action: 'Logged into Admin Dashboard',
@@ -173,8 +214,53 @@ class AuthService {
       );
       
       return true;
-    } else {
-      throw Exception('Invalid Admin credentials.');
+    } on FirebaseAuthException catch (e) {
+      debugPrint('AuthService: Admin Login failed (${e.code})');
+      
+      // 2. If user doesn't exist, create the admin account (Auto-Provisioning)
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        if (username.toLowerCase() == 'admin' && password.length >= 8) {
+          debugPrint('AuthService: Auto-provisioning admin account ($adminEmail)...');
+          try {
+            await _auth.createUserWithEmailAndPassword(
+              email: adminEmail,
+              password: password,
+            );
+            
+            debugPrint('AuthService: Admin successfully provisioned.');
+            
+            // Log Admin Activity
+            await _auditService.logActivity(
+              action: 'Provisioned and Logged into Admin Dashboard',
+              userName: username,
+              role: 'Admin',
+            );
+            return true;
+          } on FirebaseAuthException catch (createErr) {
+            debugPrint('AuthService: Admin Provisioning failed: ${createErr.code}');
+            if (createErr.code == 'email-already-in-use') {
+              throw Exception('That password is incorrect for this Admin account.');
+            }
+            throw Exception('Account setup failed: ${createErr.message}');
+          } catch (e) {
+            debugPrint('AuthService: Unexpected provisioning error: $e');
+          }
+        } else if (username.toLowerCase() == 'admin' && password.length < 8) {
+          throw Exception('The Admin password must be at least 8 characters.');
+        }
+      }
+      
+      if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        throw Exception('Invalid Admin credentials. Please check your username and password.');
+      } else if (e.code == 'user-not-found') {
+        throw Exception('Admin account not recognized.');
+      } else {
+        throw Exception('Admin Authentication Error: ${e.message}');
+      }
+    } catch (e) {
+      debugPrint('AuthService: Unexpected Admin Login error: $e');
+      if (e.toString().contains('Exception:')) rethrow;
+      throw Exception('Login failed. Please try again later.');
     }
   }
 

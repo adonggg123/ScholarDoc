@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -5,12 +6,23 @@ import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 
 class PdfGenerator {
+  /// Helper to load a Unicode-compatible font (Roboto)
+  static Future<pw.ThemeData> _buildTheme() async {
+    final font = await PdfGoogleFonts.robotoRegular();
+    final boldFont = await PdfGoogleFonts.robotoBold();
+    return pw.ThemeData.withFont(
+      base: font,
+      bold: boldFont,
+    );
+  }
+
   static Future<void> generateInstitutionalReport({
     required Map<String, int> stats,
     required Map<String, int> deptCounts,
     required String title,
   }) async {
-    final pdf = pw.Document();
+    final theme = await _buildTheme();
+    final pdf = pw.Document(theme: theme);
 
     // Load logo if available (optional)
     pw.MemoryImage? logo;
@@ -137,6 +149,97 @@ class PdfGenerator {
     );
   }
 
+  /// Generates a professional Audit Log report
+  static Future<void> generateAuditReport({
+    required List<Map<String, dynamic>> logs,
+    required String filterSummary,
+  }) async {
+    final theme = await _buildTheme();
+    final pdf = pw.Document(theme: theme);
+    final date = DateFormat('MMMM dd, yyyy').format(DateTime.now());
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4.landscape, // Landscape for better table fit
+        margin: const pw.EdgeInsets.all(32),
+        build: (pw.Context context) {
+          return [
+            // Header
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('System Audit Trail', 
+                      style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                    pw.SizedBox(height: 4),
+                    pw.Text('Security Compliance Document - Generated on $date', 
+                      style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                  ],
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text('Filter Applied: $filterSummary', style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic, color: PdfColors.grey600)),
+            pw.Divider(thickness: 1.5, color: PdfColors.blueGrey100),
+            pw.SizedBox(height: 20),
+
+            // Logs Table
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey200, width: 0.5),
+              columnWidths: {
+                0: const pw.FlexColumnWidth(2.5), // Timestamp
+                1: const pw.FlexColumnWidth(3),   // User
+                2: const pw.FlexColumnWidth(2),   // Role
+                3: const pw.FlexColumnWidth(6),   // Action
+                4: const pw.FlexColumnWidth(2.5), // Target (Student ID)
+              },
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.blueGrey50),
+                  children: [
+                    _tableHeader('Timestamp'),
+                    _tableHeader('User Name'),
+                    _tableHeader('Role'),
+                    _tableHeader('Action Taken'),
+                    _tableHeader('Target ID'),
+                  ],
+                ),
+                ...logs.map((log) {
+                  final ts = log['timestamp'];
+                  String dateStr = 'N/A';
+                  if (ts is Timestamp) {
+                    dateStr = DateFormat('MM/dd HH:mm').format(ts.toDate());
+                  }
+                  
+                  return pw.TableRow(
+                    children: [
+                      _tableCell(dateStr),
+                      _tableCell(log['adminName'] ?? 'Unknown'),
+                      _tableCell(log['role'] ?? 'Admin'),
+                      _tableCell(log['action'] ?? '-'),
+                      _tableCell(log['studentId'] ?? 'N/A'),
+                    ],
+                  );
+                }),
+              ],
+            ),
+            
+            pw.SizedBox(height: 24),
+            pw.Text('End of Audit Report', textAlign: pw.TextAlign.center, 
+              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500)),
+          ];
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+      name: 'Audit_Report_$date.pdf',
+    );
+  }
+
   static pw.Widget _buildStatBox(String label, String value, PdfColor color) {
     return pw.Expanded(
       child: pw.Container(
@@ -160,15 +263,15 @@ class PdfGenerator {
 
   static pw.Widget _tableHeader(String text) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.all(8),
-      child: pw.Text(text, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Text(text, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
     );
   }
 
   static pw.Widget _tableCell(String text) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.all(8),
-      child: pw.Text(text, style: const pw.TextStyle(fontSize: 11)),
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Text(text, style: const pw.TextStyle(fontSize: 9)),
     );
   }
 }

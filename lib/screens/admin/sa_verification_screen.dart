@@ -100,7 +100,10 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
             bool isMobile = constraints.maxWidth < 900;
             
             return SingleChildScrollView(
-              padding: EdgeInsets.all(isMobile ? 10 : 20),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 16 : 48,
+                vertical: isMobile ? 12 : 32,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -108,24 +111,26 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                     'Verification Queue', 
                     style: isMobile 
                       ? Theme.of(context).textTheme.titleMedium 
-                      : Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)
+                      : Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)
                   ),
-                  const SizedBox(height: 2),
-                  Text('Verify accuracy of submitted accounts. AI prioritizes high-risk documents.', style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 4), // Increased from 2
+                  Text('Verify accuracy of submitted accounts. AI prioritizes high-risk documents.', 
+                       style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 48), // Increased from 16
                   if (isMobile) ...[
                     _buildVerificationTable(context, scoredDocs, isMobile),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32), // Increased from 24
                     _buildVerificationPanel(context, selectedData, isMobile),
                   ] else
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(flex: 3, child: _buildVerificationTable(context, scoredDocs, isMobile)),
-                        const SizedBox(width: 24),
+                        const SizedBox(width: 32), // Increased from 24
                         Expanded(flex: 2, child: _buildVerificationPanel(context, selectedData, isMobile)),
                       ],
                     ),
+                  const SizedBox(height: 48),
                 ],
               ),
             );
