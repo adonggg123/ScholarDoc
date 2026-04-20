@@ -52,9 +52,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _loadScholarships() async {
-    // Just to ensure we have defaults for testing
-    await _scholarshipService.initializeDefaults();
-
     _scholarshipService.getActiveScholarships().listen((list) {
       if (mounted) {
         setState(() {

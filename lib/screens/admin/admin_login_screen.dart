@@ -249,8 +249,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          height: 48,
-          width: 48,
+          height: 68,
+          width: 68,
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.12)

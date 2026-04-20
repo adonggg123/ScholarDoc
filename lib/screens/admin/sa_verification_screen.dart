@@ -38,13 +38,13 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         if (snapshot.hasError) {
           return const Center(child: Text('Error loading data'));
         }
 
         List<QueryDocumentSnapshot> docs = snapshot.data?.docs.toList() ?? [];
-        
+
         if (docs.isEmpty) {
           return Center(
             child: Column(
@@ -52,7 +52,10 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
               children: [
                 Icon(LucideIcons.userX, size: 48, color: Colors.grey),
                 const SizedBox(height: 16),
-                const Text('No registered students found.', style: TextStyle(color: Colors.grey)),
+                const Text(
+                  'No registered students found.',
+                  style: TextStyle(color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -63,8 +66,9 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
         // Calculate Priority Score
         final List<Map<String, dynamic>> scoredDocs = docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>;
-          final String saNumber = data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? '';
-          
+          final String saNumber =
+              data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? '';
+
           int priorityScore = 0;
           bool isSuspicious = false;
 
@@ -76,7 +80,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
               priorityScore += 100; // Force suspicious apps to top
             }
           }
-          
+
           return {
             'doc': doc,
             'score': priorityScore,
@@ -85,20 +89,26 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
         }).toList();
 
         // Sort dynamically: Highest score first. If equal score, original descending date (default array ordering)
-        scoredDocs.sort((a, b) => (b['score'] as int).compareTo(a['score'] as int));
+        scoredDocs.sort(
+          (a, b) => (b['score'] as int).compareTo(a['score'] as int),
+        );
 
         // Create the final sorted docs list
-        docs = scoredDocs.map((s) => s['doc'] as QueryDocumentSnapshot).toList();
+        docs = scoredDocs
+            .map((s) => s['doc'] as QueryDocumentSnapshot)
+            .toList();
 
         // Safely determine the active index without modifying state during build
-        final int activeIndex = (_selectedStudentIndex >= docs.length) ? 0 : _selectedStudentIndex;
+        final int activeIndex = (_selectedStudentIndex >= docs.length)
+            ? 0
+            : _selectedStudentIndex;
         final selectedDoc = docs[activeIndex];
         final selectedData = selectedDoc.data() as Map<String, dynamic>;
 
         return LayoutBuilder(
           builder: (context, constraints) {
             bool isMobile = constraints.maxWidth < 900;
-            
+
             return SingleChildScrollView(
               padding: EdgeInsets.symmetric(
                 horizontal: isMobile ? 12 : 24,
@@ -108,14 +118,22 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Verification Queue', 
-                    style: isMobile 
-                      ? Theme.of(context).textTheme.titleMedium 
-                      : Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)
+                    'Verification Queue',
+                    style: isMobile
+                        ? Theme.of(context).textTheme.titleMedium
+                        : Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                   ),
                   const SizedBox(height: 4), // Increased from 2
-                  Text('Verify accuracy of submitted accounts. AI prioritizes high-risk documents.', 
-                       style: TextStyle(fontSize: 13, color: context.textSec, fontWeight: FontWeight.w500)),
+                  Text(
+                    'Verify accuracy of submitted accounts. AI prioritizes high-risk documents.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.textSec,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 24), // Restored from 16
                   if (isMobile) ...[
                     _buildVerificationTable(context, scoredDocs, isMobile),
@@ -125,9 +143,23 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 3, child: _buildVerificationTable(context, scoredDocs, isMobile)),
+                        Expanded(
+                          flex: 3,
+                          child: _buildVerificationTable(
+                            context,
+                            scoredDocs,
+                            isMobile,
+                          ),
+                        ),
                         const SizedBox(width: 16), // Restored from 12
-                        Expanded(flex: 2, child: _buildVerificationPanel(context, selectedData, isMobile)),
+                        Expanded(
+                          flex: 2,
+                          child: _buildVerificationPanel(
+                            context,
+                            selectedData,
+                            isMobile,
+                          ),
+                        ),
                       ],
                     ),
                   const SizedBox(height: 24),
@@ -136,15 +168,21 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
             );
           },
         );
-      }
+      },
     );
   }
 
-  Widget _buildVerificationTable(BuildContext context, List<Map<String, dynamic>> scoredDocs, bool isMobile) {
+  Widget _buildVerificationTable(
+    BuildContext context,
+    List<Map<String, dynamic>> scoredDocs,
+    bool isMobile,
+  ) {
     return Container(
       decoration: context.crispDecoration.copyWith(
         border: Border.all(
-          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200,
+          color: context.isDark
+              ? const Color(0xFF334155)
+              : Colors.grey.shade200,
           width: 1.5,
         ),
         boxShadow: [
@@ -159,19 +197,23 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: scoredDocs.length,
-        separatorBuilder: (context, index) => Divider(color: context.surfaceC.withValues(alpha: 0.1), height: 1),
+        separatorBuilder: (context, index) =>
+            Divider(color: context.surfaceC.withValues(alpha: 0.1), height: 1),
         itemBuilder: (context, index) {
           final doc = scoredDocs[index]['doc'] as QueryDocumentSnapshot;
           final bool isSuspicious = scoredDocs[index]['isSuspicious'];
-          
+
           final data = doc.data() as Map<String, dynamic>;
           final String name = data['fullName'] ?? 'N/A';
-          final String saNumber = data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? 'N/A';
+          final String saNumber =
+              data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? 'N/A';
 
           bool isSelected = _selectedStudentIndex == index;
 
           return Material(
-            color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.04) : Colors.transparent,
+            color: isSelected
+                ? AppTheme.primaryColor.withValues(alpha: 0.04)
+                : Colors.transparent,
             child: InkWell(
               onTap: () {
                 setState(() {
@@ -180,18 +222,24 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                 });
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     () {
-                      final String? photoUrl = data['profilePictureUrl'] as String?;
+                      final String? photoUrl =
+                          data['profilePictureUrl'] as String?;
                       if (photoUrl != null && photoUrl.isNotEmpty) {
                         return Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSuspicious ? AppTheme.warning : const Color(0xFFFBC02D),
+                              color: isSuspicious
+                                  ? AppTheme.warning
+                                  : const Color(0xFFFBC02D),
                               width: 2,
                             ),
                             boxShadow: [
@@ -199,7 +247,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                                 color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
-                              )
+                              ),
                             ],
                           ),
                           child: CircleAvatar(
@@ -210,13 +258,17 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                       }
                       return CircleAvatar(
                         radius: 16,
-                        backgroundColor: isSuspicious 
-                          ? AppTheme.warning.withValues(alpha: 0.1) 
-                          : AppTheme.primaryColor.withValues(alpha: 0.05),
+                        backgroundColor: isSuspicious
+                            ? AppTheme.warning.withValues(alpha: 0.1)
+                            : AppTheme.primaryColor.withValues(alpha: 0.05),
                         child: Icon(
-                          isSuspicious ? LucideIcons.alertTriangle : LucideIcons.user, 
-                          size: 16, 
-                          color: isSuspicious ? AppTheme.warning : AppTheme.primaryColor
+                          isSuspicious
+                              ? LucideIcons.alertTriangle
+                              : LucideIcons.user,
+                          size: 16,
+                          color: isSuspicious
+                              ? AppTheme.warning
+                              : AppTheme.primaryColor,
                         ),
                       );
                     }(),
@@ -229,35 +281,65 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  name, 
-                                  maxLines: 1, 
+                                  name,
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: context.textPri),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 12,
+                                    color: context.textPri,
+                                  ),
                                 ),
                               ),
                               if (isSuspicious) ...[
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.warning.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: AppTheme.warning.withValues(alpha: 0.3)),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
                                   ),
-                                  child: const Text('PRIORITY', style: TextStyle(color: AppTheme.warning, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.warning.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: AppTheme.warning.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'PRIORITY',
+                                    style: TextStyle(
+                                      color: AppTheme.warning,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ],
                           ),
                           const SizedBox(height: 2),
-                          Text('SA: $saNumber', style: TextStyle(fontSize: 10, color: context.textSec, fontWeight: FontWeight.w600)),
+                          Text(
+                            'SA: $saNumber',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: context.textSec,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     Icon(
-                      LucideIcons.chevronRight, 
-                      size: 18, 
-                      color: isSelected ? AppTheme.primaryColor : context.textSec.withValues(alpha: 0.5),
+                      LucideIcons.chevronRight,
+                      size: 18,
+                      color: isSelected
+                          ? AppTheme.primaryColor
+                          : context.textSec.withValues(alpha: 0.5),
                     ),
                   ],
                 ),
@@ -269,14 +351,21 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     );
   }
 
-  Widget _buildVerificationPanel(BuildContext context, Map<String, dynamic> data, bool isMobile) {
+  Widget _buildVerificationPanel(
+    BuildContext context,
+    Map<String, dynamic> data,
+    bool isMobile,
+  ) {
     final ml = MLService();
-    final String saNumber = data['saNumber'] ?? data['familyDetails']?['saNumber'] ?? '1234-5678-9012';
+    final String saNumber =
+        data['saNumber'] ??
+        data['familyDetails']?['saNumber'] ??
+        '1234-5678-9012';
     final String name = data['fullName'] ?? 'N/A';
     final String studentId = data['studentId'] ?? 'N/A';
     final String course = data['course'] ?? 'N/A';
     final String year = data['year'] ?? 'N/A';
-    
+
     final String? sem1Url = data['sem1Url'];
     final String? sem2Url = data['sem2Url'];
     final String? sem1FileName = data['sem1FileName'];
@@ -287,7 +376,9 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     return Container(
       decoration: context.crispDecoration.copyWith(
         border: Border.all(
-          color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade200,
+          color: context.isDark
+              ? const Color(0xFF334155)
+              : Colors.grey.shade200,
           width: 1.5,
         ),
         boxShadow: [
@@ -304,18 +395,28 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
+            Center(
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFFBC02D), width: 1.5),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: Offset(0, 4))],
+                      border: Border.all(
+                        color: const Color(0xFFFBC02D),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: () {
-                      final String? photoUrl = data['profilePictureUrl'] as String?;
+                      final String? photoUrl =
+                          data['profilePictureUrl'] as String?;
                       if (photoUrl != null && photoUrl.isNotEmpty) {
                         return CircleAvatar(
                           radius: 28,
@@ -323,22 +424,46 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                         );
                       }
                       return CircleAvatar(
-                        radius: 28, 
-                        backgroundColor: AppTheme.secondaryColor.withValues(alpha: 0.1),
-                        child: Icon(LucideIcons.user, size: 24, color: AppTheme.secondaryColor),
+                        radius: 28,
+                        backgroundColor: AppTheme.secondaryColor.withValues(
+                          alpha: 0.1,
+                        ),
+                        child: Icon(
+                          LucideIcons.user,
+                          size: 24,
+                          color: AppTheme.secondaryColor,
+                        ),
                       );
                     }(),
                   ),
                   const SizedBox(height: 12),
-                  Text(name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: context.textPri)),
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                      color: context.textPri,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryColor.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text('$course - $year', style: const TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      '$course - $year',
+                      style: const TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -356,51 +481,94 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
             const SizedBox(height: 10),
             _buildDuplicateBadge(context),
             const SizedBox(height: 16),
-            
+
             // NEW: Submitted Documents Section
-            Text('Documents Provided', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPri)),
+            Text(
+              'Documents Provided',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: context.textPri,
+              ),
+            ),
             const SizedBox(height: 10),
             if (sem1Url == null && sem2Url == null)
-              Text('No documents uploaded.', style: TextStyle(fontSize: 12, color: context.textSec, fontStyle: FontStyle.italic))
+              Text(
+                'No documents uploaded.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.textSec,
+                  fontStyle: FontStyle.italic,
+                ),
+              )
             else
               Column(
                 children: [
                   if (sem1Url != null) ...[
-                    _buildDocumentLink(context, '1st Sem ID', sem1FileName ?? 'Validation_1.pdf', sem1Url),
+                    _buildDocumentLink(
+                      context,
+                      '1st Sem ID',
+                      sem1FileName ?? 'Validation_1.pdf',
+                      sem1Url,
+                    ),
                   ],
                   if (sem2Url != null) ...[
                     const SizedBox(height: 8),
-                    _buildDocumentLink(context, '2nd Sem ID', sem2FileName ?? 'Validation_2.pdf', sem2Url),
+                    _buildDocumentLink(
+                      context,
+                      '2nd Sem ID',
+                      sem2FileName ?? 'Validation_2.pdf',
+                      sem2Url,
+                    ),
                   ],
                 ],
               ),
-            
+
             const SizedBox(height: 16),
-            Text('Admin Remarks', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: context.textPri)),
+            Text(
+              'Admin Remarks',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: context.textPri,
+              ),
+            ),
             SizedBox(height: 6),
             TextFormField(
               controller: _remarksController,
               maxLines: 2,
-              style: TextStyle(fontSize: 13, color: context.textPri, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 13,
+                color: context.textPri,
+                fontWeight: FontWeight.w500,
+              ),
               decoration: InputDecoration(
-                hintText: 'e.g. Please re-upload your SA number, current one is blurred.',
+                hintText:
+                    'e.g. Please re-upload your SA number, current one is blurred.',
                 hintStyle: TextStyle(fontSize: 12, color: context.textSec),
                 fillColor: context.surfaceC,
                 filled: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), 
+                  borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(
-                    color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade300, 
-                    width: 1.5
-                  )
+                    color: context.isDark
+                        ? const Color(0xFF334155)
+                        : Colors.grey.shade300,
+                    width: 1.5,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10), 
+                  borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(
-                    color: context.isDark ? const Color(0xFF334155) : Colors.grey.shade300, 
-                    width: 1.5
-                  )
+                    color: context.isDark
+                        ? const Color(0xFF334155)
+                        : Colors.grey.shade300,
+                    width: 1.5,
+                  ),
                 ),
               ),
             ),
@@ -417,11 +585,16 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                   'Approved',
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.success, 
+                  backgroundColor: AppTheme.success,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                child: const Text('Verify and Approve', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Verify and Approve',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -437,11 +610,16 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                   'Rejected',
                 ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.warning, 
+                  foregroundColor: AppTheme.warning,
                   side: const BorderSide(color: AppTheme.warning, width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                child: const Text('Request Resubmission', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Request Resubmission',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             const SizedBox(height: 2),
@@ -457,10 +635,11 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                   'Rejected',
                   isFinalRejection: true,
                 ),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppTheme.error, 
+                style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+                child: const Text(
+                  'Permanent Rejection',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                 ),
-                child: const Text('Permanent Rejection', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -473,9 +652,23 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 11, color: context.textSec, fontWeight: FontWeight.w500)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: context.textSec,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         SizedBox(height: 2),
-        Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: context.textPri)),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: context.textPri,
+          ),
+        ),
       ],
     );
   }
@@ -489,7 +682,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     bool isFinalRejection = false,
   }) async {
     if (uid == null) return;
-    
+
     final String remarks = _remarksController.text.trim();
 
     try {
@@ -512,7 +705,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
       await _notificationService.sendNotification(
         studentId: uid,
         title: newStatus == 'Approved' ? 'Account Verified' : 'Action Required',
-        message: newStatus == 'Approved' 
+        message: newStatus == 'Approved'
             ? 'Great news! Your SA Number has been verified and your status is now Approved.'
             : 'Issue found: $remarks. Please update your information to proceed.',
         type: newStatus == 'Approved' ? 'success' : 'error',
@@ -522,14 +715,18 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Student $name is now $newStatus.'),
-            backgroundColor: newStatus == 'Approved' ? AppTheme.success : AppTheme.error,
+            backgroundColor: newStatus == 'Approved'
+                ? AppTheme.success
+                : AppTheme.error,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update student verification.')),
+          const SnackBar(
+            content: Text('Failed to update student verification.'),
+          ),
         );
       }
     }
@@ -540,14 +737,23 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: (isSuspicious ? AppTheme.warning : AppTheme.success).withValues(alpha: 0.1),
+        color: (isSuspicious ? AppTheme.warning : AppTheme.success).withValues(
+          alpha: 0.1,
+        ),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: (isSuspicious ? AppTheme.warning : AppTheme.success).withValues(alpha: 0.3)),
+        border: Border.all(
+          color: (isSuspicious ? AppTheme.warning : AppTheme.success)
+              .withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.bot, size: 12, color: isSuspicious ? AppTheme.warning : AppTheme.success),
+          Icon(
+            LucideIcons.bot,
+            size: 12,
+            color: isSuspicious ? AppTheme.warning : AppTheme.success,
+          ),
           SizedBox(width: 6),
           Expanded(
             child: Text(
@@ -579,14 +785,23 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
           SizedBox(width: 6),
           Text(
             'Duplicate Hash Network Check: PASSED',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.success),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.success,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDocumentLink(BuildContext context, String label, String fileName, String url) {
+  Widget _buildDocumentLink(
+    BuildContext context,
+    String label,
+    String fileName,
+    String url,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -597,17 +812,29 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
       child: Row(
         children: [
           Icon(
-            fileName.toLowerCase().endsWith('.pdf') ? LucideIcons.fileText : LucideIcons.image, 
-            size: 16, 
-            color: AppTheme.primaryColor
+            fileName.toLowerCase().endsWith('.pdf')
+                ? LucideIcons.fileText
+                : LucideIcons.image,
+            size: 16,
+            color: AppTheme.primaryColor,
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                Text(fileName, style: TextStyle(fontSize: 10, color: context.textSec), overflow: TextOverflow.ellipsis),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  fileName,
+                  style: TextStyle(fontSize: 10, color: context.textSec),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -618,11 +845,17 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
               }
             },
-            child: const Text('View', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+            child: const Text(
+              'View',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 }
-

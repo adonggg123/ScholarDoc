@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
@@ -43,6 +44,8 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 _buildSection('Notifications', _buildNotificationSettings()),
                 SizedBox(height: 24),
                 _buildSection('Workflow Automations', _buildWorkflowSettings()),
+                SizedBox(height: 24),
+                _buildSection('System Diagnostics', _buildDiagnosticSettings()),
               ] else
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,6 +57,8 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                           _buildSection('Security & Access', _buildSecuritySettings()),
                           SizedBox(height: 32),
                           _buildSection('Workflow Automations', _buildWorkflowSettings()),
+                          SizedBox(height: 32),
+                          _buildSection('System Diagnostics', _buildDiagnosticSettings()),
                         ],
                       ),
                     ),
@@ -177,6 +182,55 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
           subtitle: Text('Adjust confidence limits for automatic AI rejection.', style: TextStyle(fontSize: 12, color: context.textSec)),
           trailing: Icon(LucideIcons.sliders, size: 18, color: AppTheme.primaryColor),
           onTap: () {},
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDiagnosticSettings() {
+    final user = FirebaseAuth.instance.currentUser;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Security Identifiers',
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: context.textSec),
+        ),
+        SizedBox(height: 12),
+        Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: context.surfaceC.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Theme.of(context).dividerColor),
+          ),
+          child: Column(
+            children: [
+              _buildDiagRow('Auth UID', user?.uid ?? 'Not Logged In'),
+              Divider(height: 20),
+              _buildDiagRow('Auth Email', user?.email ?? 'N/A'),
+              Divider(height: 20),
+              _buildDiagRow('Provider', user?.providerData.firstOrNull?.providerId ?? 'firebase'),
+            ],
+          ),
+        ),
+        SizedBox(height: 16),
+        Text(
+          'Use the UID above to verify your Firestore Security Rules in the Firebase Console.',
+          style: TextStyle(fontSize: 11, color: context.textSec, fontStyle: FontStyle.italic),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDiagRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        SelectableText(
+          value,
+          style: TextStyle(fontSize: 12, fontFamily: 'monospace', color: AppTheme.primaryColor),
         ),
       ],
     );

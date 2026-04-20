@@ -86,51 +86,62 @@ class ScholarshipService {
     await _firestore.collection('scholarships').doc(id).delete();
   }
 
-  // Initialize default scholarships if none exist
   Future<void> initializeDefaults() async {
-    final snapshot = await _firestore.collection('scholarships').get();
-    if (snapshot.docs.isEmpty) {
-      final defaults = [
-        Scholarship(
-          id: '',
-          name: 'TES',
-          description: 'Tertiary Education Subsidy',
-          isActive: true,
-          requiredDocuments: ['SA Number', 'Enrollment Form', 'ID Card'],
-        ),
-        Scholarship(
-          id: '',
-          name: 'TDP',
-          description: 'Tulong Dunong Program',
-          isActive: true,
-          requiredDocuments: ['Application Form', 'Grades', 'ID Card'],
-        ),
-        Scholarship(
-          id: '',
-          name: 'DBP',
-          description: 'DBP Rise Scholarship Program',
-          isActive: true,
-          requiredDocuments: ['Application Form', 'Income Tax Return', 'Recommendation'],
-        ),
-        Scholarship(
-          id: '',
-          name: 'SANTEH',
-          description: 'SANTEH Aquaculture S&T Foundation',
-          isActive: true,
-          requiredDocuments: ['Application Form', 'Certificate of Residency', 'ID Card'],
-        ),
-        Scholarship(
-          id: '',
-          name: 'STUFAH',
-          description: 'Student Financial Assistance Program',
-          isActive: true,
-          requiredDocuments: ['Application Form', 'Enrollment Form', 'Grades'],
-        ),
-      ];
+    try {
+      final snapshot = await _firestore.collection('scholarships').get();
+      if (snapshot.docs.isEmpty) {
+        final defaults = [
+          Scholarship(
+            id: '',
+            name: 'TES',
+            description: 'Tertiary Education Subsidy',
+            isActive: true,
+            requiredDocuments: ['SA Number', 'Enrollment Form', 'ID Card'],
+          ),
+          Scholarship(
+            id: '',
+            name: 'TDP',
+            description: 'Tulong Dunong Program',
+            isActive: true,
+            requiredDocuments: ['Application Form', 'Grades', 'ID Card'],
+          ),
+          Scholarship(
+            id: '',
+            name: 'DBP',
+            description: 'DBP Rise Scholarship Program',
+            isActive: true,
+            requiredDocuments: [
+              'Application Form',
+              'Income Tax Return',
+              'Recommendation',
+            ],
+          ),
+          Scholarship(
+            id: '',
+            name: 'SANTEH',
+            description: 'SANTEH Aquaculture S&T Foundation',
+            isActive: true,
+            requiredDocuments: [
+              'Application Form',
+              'Certificate of Residency',
+              'ID Card',
+            ],
+          ),
+          Scholarship(
+            id: '',
+            name: 'STUFAH',
+            description: 'Student Financial Assistance Program',
+            isActive: true,
+            requiredDocuments: ['Application Form', 'Enrollment Form', 'Grades'],
+          ),
+        ];
 
-      for (var s in defaults) {
-        await addScholarship(s);
+        for (var s in defaults) {
+          await addScholarship(s);
+        }
       }
+    } catch (e) {
+      print('ScholarshipService: Permission denied or error during init: $e');
     }
   }
 }

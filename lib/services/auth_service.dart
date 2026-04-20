@@ -206,6 +206,18 @@ class AuthService {
       );
       debugPrint('AuthService: Admin Login SUCCESS');
       
+      // 3. Attempt to ensure Admin document exists (Non-blocking, as rules might be restrictive)
+      try {
+        await _firestore.collection('admins').doc(_auth.currentUser!.uid).set({
+          'email': adminEmail,
+          'username': username,
+          'role': 'Admin',
+          'lastLogin': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (e) {
+        debugPrint('AuthService: Note - Admin role doc could not be updated: $e');
+      }
+
       // Log Admin Activity
       await _auditService.logActivity(
         action: 'Logged into Admin Dashboard',
@@ -227,7 +239,19 @@ class AuthService {
               password: password,
             );
             
-            debugPrint('AuthService: Admin successfully provisioned.');
+            // 3. Attempt to ensure Admin document exists (Non-blocking)
+            try {
+              await _firestore.collection('admins').doc(_auth.currentUser!.uid).set({
+                'email': adminEmail,
+                'username': username,
+                'role': 'Admin',
+                'lastLogin': FieldValue.serverTimestamp(),
+              }, SetOptions(merge: true));
+            } catch (e) {
+              debugPrint('AuthService: Note - Admin role doc could not be created: $e');
+            }
+
+            debugPrint('AuthService: Admin successfully provisioned with Firestore document.');
             
             // Log Admin Activity
             await _auditService.logActivity(

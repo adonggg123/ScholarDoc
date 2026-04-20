@@ -1188,8 +1188,9 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                   final String course = data['course'] ?? 'N/A';
                   final String year = data['year'] ?? 'N/A';
                   final String status = data['status'] ?? 'Pending';
-                  final String saNumber =
-                      data['familyDetails']?['saNumber'] ?? 'Not Provided';
+                  final String saNumber = data['saNumber'] ??
+                      data['familyDetails']?['saNumber'] ??
+                      'Not Provided';
 
                   return _buildDataRow(
                     context,
@@ -1383,9 +1384,13 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     String newStatus,
   ) async {
     try {
-      await FirebaseFirestore.instance.collection('students').doc(docId).update(
-        {'status': newStatus},
-      );
+      // Update with all administrative fields often required by security rules
+      await FirebaseFirestore.instance.collection('students').doc(docId).update({
+        'status': newStatus,
+        'adminRemarks': 'Updated via Student Records',
+        'requiresResubmission': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
       await _auditService.logActivity(
         action: 'Changed student status to $newStatus',
@@ -1427,9 +1432,13 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
         );
       }
     } catch (e) {
+      debugPrint('Error updating student status: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to update status.')),
+          SnackBar(
+            content: Text('Failed to update status: ${e.toString()}'),
+            backgroundColor: AppTheme.error,
+          ),
         );
       }
     }

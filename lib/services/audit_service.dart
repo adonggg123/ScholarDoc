@@ -22,11 +22,19 @@ class AuditService {
       if (kIsWeb) {
         platformInfo = 'Web Browser';
       } else {
-        if (Platform.isAndroid) {
-          platformInfo = 'Android Device';
-        } else if (Platform.isIOS) platformInfo = 'iOS Device';
-        else if (Platform.isWindows) platformInfo = 'Windows Client';
-        else if (Platform.isMacOS) platformInfo = 'macOS Client';
+        try {
+          if (Platform.isAndroid) {
+            platformInfo = 'Android Device';
+          } else if (Platform.isIOS) {
+            platformInfo = 'iOS Device';
+          } else if (Platform.isWindows) {
+            platformInfo = 'Windows Client';
+          } else if (Platform.isMacOS) {
+            platformInfo = 'macOS Client';
+          }
+        } catch (e) {
+          platformInfo = 'Unknown Desktop/Mobile';
+        }
       }
 
       await _firestore.collection('audit_logs').add({
