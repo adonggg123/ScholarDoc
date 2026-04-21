@@ -335,6 +335,24 @@ class AuthService {
         .snapshots();
   }
 
-  // Get current user
   User? get currentUser => _auth.currentUser;
+
+  // Repair Tool: Find students with STUFAH and update to STUFAP
+  Future<int> fixStudentScholarshipTypo() async {
+    int updatedCount = 0;
+    try {
+      final snapshot = await _firestore
+          .collection('students')
+          .where('scholarshipName', isEqualTo: 'STUFAH')
+          .get();
+      
+      for (var doc in snapshot.docs) {
+        await doc.reference.update({'scholarshipName': 'STUFAP'});
+        updatedCount++;
+      }
+    } catch (e) {
+      debugPrint('AuthService: Error fixing student scholarship typo: $e');
+    }
+    return updatedCount;
+  }
 }

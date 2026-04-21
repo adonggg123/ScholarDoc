@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
+import '../../services/auth_service.dart';
+import '../../services/scholarship_service.dart';
 
 class AdminSettingsScreen extends StatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -16,6 +18,32 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
   bool _smsAlerts = false;
   bool _autoAssign = true;
   bool _requireMfa = false;
+  bool _fixingTypo = false;
+
+  void _runSpellingRepair() async {
+    setState(() => _fixingTypo = true);
+    try {
+      final sCount = await ScholarshipService().fixScholarshipTypo();
+      final aCount = await AuthService().fixStudentScholarshipTypo();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Repair Complete: Fixed $sCount scholarship and $aCount student records.'),
+            backgroundColor: AppTheme.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Repair Failed: $e'), backgroundColor: AppTheme.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _fixingTypo = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +73,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 SizedBox(height: 24),
                 _buildSection('Workflow Automations', _buildWorkflowSettings()),
                 SizedBox(height: 24),
-                _buildSection('System Diagnostics', _buildDiagnosticSettings()),
+                _buildSection('System Diagnostics & Maintenance', _buildDiagnosticSettings()),
               ] else
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +86,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                           SizedBox(height: 32),
                           _buildSection('Workflow Automations', _buildWorkflowSettings()),
                           SizedBox(height: 32),
-                          _buildSection('System Diagnostics', _buildDiagnosticSettings()),
+                          _buildSection('System Diagnostics & Maintenance', _buildDiagnosticSettings()),
                         ],
                       ),
                     ),
@@ -211,6 +239,55 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
               _buildDiagRow('Auth Email', user?.email ?? 'N/A'),
               Divider(height: 20),
               _buildDiagRow('Provider', user?.providerData.firstOrNull?.providerId ?? 'firebase'),
+            ],
+          ),
+        ),
+        SizedBox(height: 32),
+        Text(
+          'System Maintenance',
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: context.textSec),
+        ),
+        SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.error.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.error.withValues(alpha: 0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(LucideIcons.database, size: 18, color: AppTheme.error),
+                  SizedBox(width: 12),
+                  Text(
+                    'Deep Repair: Spelling Correction',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.error),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Text(
+                'This will scan your entire cloud database for the "STUFAH" typo and update all affected scholarship and student records to "STUFAP".',
+                style: TextStyle(fontSize: 12, color: context.textSec),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _fixingTypo ? null : _runSpellingRepair,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.error,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  minimumSize: Size(double.infinity, 45),
+                ),
+                icon: _fixingTypo 
+                  ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Icon(LucideIcons.wrench, size: 16),
+                label: Text(_fixingTypo ? 'Processing...' : 'Run spelling repair'),
+              ),
             ],
           ),
         ),

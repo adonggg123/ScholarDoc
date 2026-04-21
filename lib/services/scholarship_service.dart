@@ -134,7 +134,7 @@ class ScholarshipService {
           ),
           Scholarship(
             id: '',
-            name: 'STUFAH',
+            name: 'STUFAP',
             description: 'Student Financial Assistance Program',
             isActive: true,
             requiredDocuments: [
@@ -153,5 +153,24 @@ class ScholarshipService {
     } catch (e) {
       print('ScholarshipService: Permission denied or error during init: $e');
     }
+  }
+
+  // Repair Tool: Fix the STUFAH -> STUFAP typo in the scholarships collection
+  Future<int> fixScholarshipTypo() async {
+    int updatedCount = 0;
+    try {
+      final snapshot = await _firestore
+          .collection('scholarships')
+          .where('name', isEqualTo: 'STUFAH')
+          .get();
+      
+      for (var doc in snapshot.docs) {
+        await doc.reference.update({'name': 'STUFAP'});
+        updatedCount++;
+      }
+    } catch (e) {
+      print('ScholarshipService: Error fixing typo: $e');
+    }
+    return updatedCount;
   }
 }

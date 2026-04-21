@@ -565,7 +565,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                   data['uid'], // Firestore doc ID
                   name,
                   studentId,
-                  'Approved',
+                  'Verified',
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.success,
@@ -575,7 +575,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                   ),
                 ),
                 child: const Text(
-                  'Verify and Approve',
+                  'Mark as Verified',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -590,17 +590,17 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                   data['uid'],
                   name,
                   studentId,
-                  'Rejected',
+                  'Missing',
                 ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.warning,
-                  side: const BorderSide(color: AppTheme.warning, width: 1.5),
+                  foregroundColor: AppTheme.error,
+                  side: const BorderSide(color: AppTheme.error, width: 1.5),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 child: const Text(
-                  'Request Resubmission',
+                  'Mark as Missing Documents',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -618,7 +618,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                   'Rejected',
                   isFinalRejection: true,
                 ),
-                style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+                style: TextButton.styleFrom(foregroundColor: context.textSec),
                 child: const Text(
                   'Permanent Rejection',
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
@@ -687,18 +687,20 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
       // 3. Send Notification
       await _notificationService.sendNotification(
         studentId: uid,
-        title: newStatus == 'Approved' ? 'Account Verified' : 'Action Required',
-        message: newStatus == 'Approved'
-            ? 'Great news! Your SA Number has been verified and your status is now Approved.'
-            : 'Issue found: $remarks. Please update your information to proceed.',
-        type: newStatus == 'Approved' ? 'success' : 'error',
+        title: newStatus == 'Verified' ? 'Account Verified' : (newStatus == 'Missing' ? 'Missing Documents' : 'Update on Application'),
+        message: newStatus == 'Verified'
+            ? 'Great news! Your SA Number has been verified and your status is now Verified.'
+            : (newStatus == 'Missing' 
+                ? 'Issue found: $remarks. Your status is now Missing; please submit the required document.'
+                : 'Issue found: $remarks. Please contact support.'),
+        type: newStatus == 'Verified' ? 'success' : 'error',
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Student $name is now $newStatus.'),
-            backgroundColor: newStatus == 'Approved'
+            content: Text('Student $name status updated to $newStatus.'),
+            backgroundColor: newStatus == 'Verified'
                 ? AppTheme.success
                 : AppTheme.error,
           ),
