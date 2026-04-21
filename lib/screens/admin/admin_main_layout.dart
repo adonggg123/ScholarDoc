@@ -158,32 +158,46 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
   }
 
   Widget _buildSidebarHeader() {
-    return Container(
-      padding: EdgeInsets.only(top: 10, bottom: 10, left: 0, right: 27),
+    return Padding(
+      padding: EdgeInsets.only(top: 25, bottom: 15, left: 0, right: 27),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
+          Image.asset(
+            'assets/app_logo.png',
             width: 60,
             height: 60,
-            child: ClipOval(
-              child: Image.asset('assets/app_logo.png', fit: BoxFit.contain),
-            ),
+            fit: BoxFit.contain,
           ),
           const SizedBox(width: 0),
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [AppTheme.primaryColor, Color(0xFFFBC02D)],
-            ).createShader(bounds),
-            blendMode: BlendMode.srcIn,
-            child: const Text(
-              'ScholarDoc',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 17,
-                letterSpacing: 0.5,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [AppTheme.primaryColor, Color(0xFFFBC02D)],
+                ).createShader(bounds),
+                blendMode: BlendMode.srcIn,
+                child: const Text(
+                  'ScholarDoc',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ),
-            ),
+              Text(
+                'Admin Panel',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: context.textSec,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
           ),
         ],
       ),

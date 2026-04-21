@@ -67,19 +67,25 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
             color: AppTheme.primaryColor,
             child: Stack(
               children: [
-                // Background Pattern/Image
+                // Background Image with Sharpness/Clarity
+                Positioned.fill(
+                  child: Image.asset(
+                    'assets/campus_bg.jpg',
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.high,
+                  ),
+                ),
 
-                // Subtle Gradient Overlay
+                // Blue Brand Overlay (Semi-transparent)
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                         colors: [
-                          AppTheme.primaryColor,
-                          AppTheme.primaryColor.withValues(alpha: 0.8),
-                          const Color(0xFF1E417A),
+                          AppTheme.primaryColor.withValues(alpha: 0.85),
+                          AppTheme.primaryColor.withValues(alpha: 0.92),
                         ],
                       ),
                     ),
@@ -188,58 +194,66 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
   }
 
   Widget _buildMobileLayout(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppTheme.primaryColor,
-            AppTheme.primaryColor.withValues(alpha: 0.9),
-            const Color(0xFF1E417A),
-          ],
+    return Stack(
+      children: [
+        // Background Image
+        Positioned.fill(
+          child: Image.asset(
+            'assets/campus_bg.jpg',
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.high,
+          ),
         ),
-      ),
-      child: Stack(
-        children: [
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: FadeTransition(
-                opacity: _animController,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 40,
-                        offset: const Offset(0, 20),
+        // Gradient Overlay
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.8),
+                  AppTheme.primaryColor.withValues(alpha: 0.95),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: FadeTransition(
+              opacity: _animController,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 40,
+                      offset: const Offset(0, 20),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(height: 6, color: AppTheme.secondaryColor),
+                      Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: _buildLoginForm(context),
                       ),
                     ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(32),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(height: 6, color: AppTheme.secondaryColor),
-                        Padding(
-                          padding: const EdgeInsets.all(40),
-                          child: _buildLoginForm(context),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -247,57 +261,52 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          height: 68,
-          width: 68,
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.12)
-                : AppTheme.primaryColor.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : AppTheme.primaryColor.withValues(alpha: 0.1),
-              width: 1.5,
-            ),
-          ),
-          child: Image.asset(
-            'assets/app_logo.png',
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => Icon(
-              Icons.school_rounded,
-              color: isDark ? Colors.white : AppTheme.primaryColor,
-              size: 24,
-            ),
-          ),
+        Image.asset(
+          'assets/app_logo.png',
+          height: 100,
+          width: 100,
+          fit: BoxFit.contain,
         ),
-        const SizedBox(width: 14),
-        ShaderMask(
-          blendMode: BlendMode.srcIn,
-          shaderCallback: (bounds) => LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              isDark ? Colors.white : AppTheme.primaryColor,
-              AppTheme.accentColor,
-            ],
-          ).createShader(bounds),
-          child: RichText(
-            text: TextSpan(
-              style: GoogleFonts.poppins(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-                color: Colors.white,
+        const SizedBox(width: 0),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: (bounds) => LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  isDark ? Colors.white : AppTheme.primaryColor,
+                  AppTheme.accentColor,
+                ],
+              ).createShader(bounds),
+              child: RichText(
+                text: TextSpan(
+                  style: GoogleFonts.poppins(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
+                    color: Colors.white,
+                  ),
+                  children: const [
+                    TextSpan(text: 'Scholar'),
+                    TextSpan(text: 'Doc'),
+                  ],
+                ),
               ),
-              children: [
-                const TextSpan(text: 'Scholar'),
-                const TextSpan(text: 'Doc'),
-              ],
             ),
-          ),
+            Text(
+              'ADMIN PANEL',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white.withValues(alpha: 0.6) : AppTheme.secondaryColor,
+                letterSpacing: 2.0,
+              ),
+            ),
+          ],
         ),
       ],
     );
