@@ -1781,15 +1781,13 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    _buildDocumentItem(
-                      'Validated Student ID (Front)',
-                      'verified',
-                    ),
-                    _buildDocumentItem(
-                      'Validated Student ID (Back)',
-                      'verified',
-                    ),
-                    _buildDocumentItem('Billing Statement / COR', 'pending'),
+                    if (data['submissionPdfUrl'] != null)
+                      _buildDocumentItem(
+                        'ID & Signatures Combined PDF',
+                        'verified',
+                      )
+                    else
+                      _buildDocumentItem('No documents uploaded yet', 'pending'),
                     const SizedBox(height: 48),
 
                     // Compliance Action

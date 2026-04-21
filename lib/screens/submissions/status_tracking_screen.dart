@@ -94,9 +94,26 @@ class _StatusTrackingScreenState extends State<StatusTrackingScreen>
                       ? _scholarshipService.getScholarshipById(scholarshipId)
                       : Future.value(null),
                   builder: (context, scholarshipSnapshot) {
-                    final List<String> requirements =
+                    List<String> requirements =
                         scholarshipSnapshot.data?.requiredDocuments ??
-                        ['General Enrollment Form', 'ID Card', 'Signature'];
+                        [
+                          'SA Number',
+                          'ID (Front)',
+                          'ID (Back)',
+                          'Combined PDF Submission',
+                        ];
+
+                    // --- Label Auto-Remapping Logic ---
+                    // Automatically replace 'Enrollment Form' and 'ID Card' with modern requirements
+                    requirements =
+                        requirements.expand((doc) {
+                          if (doc == 'Enrollment Form' || doc == 'ID Card') {
+                            // If we find either legacy doc, check if we've already added the new ones
+                            // We replace them with the requested bundle if they exist
+                            return ['ID (Front)', 'ID (Back)', 'Combined PDF Submission'];
+                          }
+                          return [doc];
+                        }).toSet().toList(); // Use Set to avoid duplicates if both were present
 
                     return CustomScrollView(
                       slivers: [

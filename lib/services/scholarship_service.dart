@@ -96,7 +96,12 @@ class ScholarshipService {
             name: 'TES',
             description: 'Tertiary Education Subsidy',
             isActive: true,
-            requiredDocuments: ['SA Number', 'Enrollment Form', 'ID Card'],
+            requiredDocuments: [
+              'SA Number',
+              'ID (Front)',
+              'ID (Back)',
+              'Combined PDF Submission',
+            ],
           ),
           Scholarship(
             id: '',
@@ -132,7 +137,12 @@ class ScholarshipService {
             name: 'STUFAH',
             description: 'Student Financial Assistance Program',
             isActive: true,
-            requiredDocuments: ['Application Form', 'Enrollment Form', 'Grades'],
+            requiredDocuments: [
+              'ID (Front)',
+              'ID (Back)',
+              'Combined PDF Submission',
+              'Grades',
+            ],
           ),
         ];
 

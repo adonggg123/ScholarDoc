@@ -366,10 +366,8 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
     final String course = data['course'] ?? 'N/A';
     final String year = data['year'] ?? 'N/A';
 
-    final String? sem1Url = data['sem1Url'];
-    final String? sem2Url = data['sem2Url'];
-    final String? sem1FileName = data['sem1FileName'];
-    final String? sem2FileName = data['sem2FileName'];
+    final String? submissionPdfUrl = data['submissionPdfUrl'];
+    final String? submissionPdfName = data['submissionPdfName'];
 
     final aiCheck = ml.detectSASuspiciousPattern(saNumber);
 
@@ -492,7 +490,7 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            if (sem1Url == null && sem2Url == null)
+            if (submissionPdfUrl == null)
               Text(
                 'No documents uploaded.',
                 style: TextStyle(
@@ -502,26 +500,11 @@ class _SaVerificationScreenState extends State<SaVerificationScreen> {
                 ),
               )
             else
-              Column(
-                children: [
-                  if (sem1Url != null) ...[
-                    _buildDocumentLink(
-                      context,
-                      '1st Sem ID',
-                      sem1FileName ?? 'Validation_1.pdf',
-                      sem1Url,
-                    ),
-                  ],
-                  if (sem2Url != null) ...[
-                    const SizedBox(height: 8),
-                    _buildDocumentLink(
-                      context,
-                      '2nd Sem ID',
-                      sem2FileName ?? 'Validation_2.pdf',
-                      sem2Url,
-                    ),
-                  ],
-                ],
+              _buildDocumentLink(
+                context,
+                'Combined Submission',
+                submissionPdfName ?? 'Full_Submission.pdf',
+                submissionPdfUrl,
               ),
 
             const SizedBox(height: 16),
